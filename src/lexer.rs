@@ -85,7 +85,7 @@ macro_rules! packed_token {
 
 /// A lexer implementation which will consume a stream of lexemes from a [Scanner] and produce
 /// a stream of [Token]s.
-#[derive(Debug)]
+#[derive()]
 pub struct Lexer<'a, Reader: Debug + Read> {
     /// [StringTable] used for interning all parsed strings
     strings: Rc<RefCell<StringTable<'a>>>,
