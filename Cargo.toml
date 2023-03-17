@@ -1,0 +1,11 @@
+[package]
+name = "chisel-json"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lexical = "6.1.1"
+fxhash = "0.2.1"
+chisel-charstream = "0.1.1"
