@@ -79,7 +79,7 @@ fn should_parse_strings() {
             let table = Rc::new(RefCell::new(StringTable::new()));
             let mut lexer = Lexer::new(table, &mut reader);
             let token = lexer.consume().unwrap();
-            assert_eq!(token.token, Token::Str(l))
+            assert_eq!(token.token, Token::Str(l.clone()))
         }
     }
 }

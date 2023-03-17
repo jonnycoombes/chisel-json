@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::io::Read;
-use chisel_decoders::decoders::{Decoder, DecoderErrorCode};
+use chisel_decoders::common::DecoderErrorCode;
 use chisel_decoders::utf8::Utf8Decoder;
 use crate::parser_coords::ParserCoords;
 use crate::parser_errors::*;
