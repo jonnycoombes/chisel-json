@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 lexical = "6.1.1"
 fxhash = "0.2.1"
-chisel-charstream = "0.1.1"
+chisel-charstream = "0.1.2"
