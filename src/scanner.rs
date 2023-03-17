@@ -9,8 +9,8 @@ use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::io::Read;
-use chisel_charstream::utf8::{CharStream, StreamErrorCode};
-
+use chisel_decoders::decoders::{Decoder, DecoderErrorCode};
+use chisel_decoders::utf8::Utf8Decoder;
 use crate::parser_coords::ParserCoords;
 use crate::parser_errors::*;
 use crate::scanner_error;
@@ -95,7 +95,7 @@ pub struct Scanner<'a, Reader: Read + Debug> {
     /// Lexeme ring buffer, used to implement lookaheads
     buffer: VecDeque<PackedLexeme>,
     /// The stream used for sourcing characters from the input
-    stream: CharStream<'a, Reader>,
+    decoder: Utf8Decoder<'a, Reader>,
     /// Coordinates of the last lexeme in the lookahead buffer
     back_coords: ParserCoords,
     /// Coordinates of the first lexeme in the lookahead buffer
@@ -109,7 +109,7 @@ impl<'a, Reader: Read + Debug> Scanner<'a, Reader> {
     pub fn new(reader: &'a mut Reader) -> Self {
         Scanner {
             buffer: VecDeque::new(),
-            stream: CharStream::new(reader),
+            decoder: Utf8Decoder::new(reader),
             back_coords: ParserCoords::default(),
             front_coords: ParserCoords::default(),
             mode: ScannerMode::IgnoreWhitespace,
@@ -132,7 +132,7 @@ impl<'a, Reader: Read + Debug> Scanner<'a, Reader> {
         self.front_coords
     }
 
-    /// Consume the next lexeme from the scanner. Will return a [CharStreamErrorType] if there
+    /// Consume the next lexeme from the scanner. Will return a [Utf8DecoderErrorType] if there
     /// are no more lexemes available.  Will produce an EOI (end-of-input) lexeme when
     /// the end of input is reached.
     pub fn consume(&mut self) -> ParserResult<PackedLexeme> {
@@ -195,7 +195,7 @@ impl<'a, Reader: Read + Debug> Scanner<'a, Reader> {
     /// Advance over any whitespace in the input stream, and try to produce a valid character
     fn advance(&mut self) -> ParserResult<char> {
         loop {
-            match self.stream.next_char() {
+            match self.decoder.decode_next() {
                 Ok(c) => {
                     self.back_coords.absolute += 1;
                     self.back_coords.column += 1;
@@ -215,7 +215,7 @@ impl<'a, Reader: Read + Debug> Scanner<'a, Reader> {
                     }
                 }
                 Err(err) => match err.code {
-                    StreamErrorCode::EndOfInput => {
+                    DecoderErrorCode::EndOfInput => {
                         break scanner_error!(ParserErrorCode::EndOfInput, "end of input reached");
                     }
                     _ => {
