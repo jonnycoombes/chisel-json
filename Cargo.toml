@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 lexical = "6.1.1"
 fxhash = "0.2.1"
-chisel-decoders = "0.1.3"
+chisel-decoders = "0.1.10"
+chisel-stringtable = "0.1.3"

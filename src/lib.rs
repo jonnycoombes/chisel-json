@@ -1,11 +1,6 @@
-#![feature(test)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
-mod lexer;
-mod scanner;
-mod parser_errors;
-mod parser_coords;
-
-#[cfg(test)]
-mod test;
-mod string_table;
+pub mod lexer;
+pub mod scanner;
+pub mod parser_errors;
+pub mod parser_coords;

@@ -1,19 +1,16 @@
-extern crate test;
 
-use std::any::Any;
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Instant;
-use test::Bencher;
+use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
 
-use crate::scanner::{Lexeme, Scanner, ScannerMode};
 
 #[test]
 fn should_handle_empty_input() {
     let buffer: &[u8] = "".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     let eoi = scanner
         .with_mode(ScannerMode::IgnoreWhitespace)
         .consume()
@@ -24,8 +21,8 @@ fn should_handle_empty_input() {
 #[test]
 fn should_handle_general_chars() {
     let buffer: &[u8] = "{   } [  ]+  - : ,   ".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
 
     while let Ok(lex) = scanner.with_mode(ScannerMode::IgnoreWhitespace).consume() {
@@ -54,8 +51,8 @@ fn should_handle_general_chars() {
 #[test]
 fn should_report_correct_lookahead_coords() {
     let buffer: &[u8] = "123456789".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     for index in 1..=4 {
         _ = scanner.lookahead(index)
     }
@@ -67,8 +64,8 @@ fn should_report_correct_lookahead_coords() {
 #[test]
 fn should_handle_whitespace_chars() {
     let buffer: &[u8] = " {  }   \n[]+-:,   ".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
 
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
@@ -107,8 +104,8 @@ fn should_handle_whitespace_chars() {
 #[test]
 fn should_handle_special_chars() {
     let buffer: &[u8] = "\\\"\' \t".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         lexemes.push(lex.lexeme);
@@ -130,10 +127,11 @@ fn should_handle_special_chars() {
 }
 
 #[should_panic]
+#[test]
 fn lookahead_bounds_check() {
     let buffer: &[u8] = "{}[],:".as_bytes();
-    let mut reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(buffer);
+    let mut scanner = Scanner::new(reader);
     assert!(scanner
         .with_mode(ScannerMode::IgnoreWhitespace)
         .lookahead(34)
@@ -147,10 +145,10 @@ fn lookahead_bounds_check() {
 fn scan_small_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("src/test/fixtures/samples/json/simple_structure.json");
+        .join("tests/fixtures/samples/json/simple_structure.json");
     let f = File::open(path);
-    let mut reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(f.unwrap());
+    let mut scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
@@ -160,28 +158,14 @@ fn scan_small_file() {
     println!("Scanned all UTF-8 in {:?}", start.elapsed());
 }
 
-#[bench]
-fn scan_small_file_benchmark(bencher: &mut Bencher) {
-    bencher.iter(|| {
-        scan_small_file();
-    })
-}
-
-#[bench]
-fn scan_complex_file_benchmark(bencher: &mut Bencher) {
-    bencher.iter(|| {
-        scan_complex_file();
-    })
-}
-
 #[test]
 fn scan_large_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("src/test/fixtures/samples/json/events.json");
+        .join("tests/fixtures/samples/json/events.json");
     let f = File::open(path);
-    let mut reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(f.unwrap());
+    let mut scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
@@ -195,10 +179,10 @@ fn scan_large_file() {
 fn scan_complex_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("src/test/fixtures/samples/json/twitter.json");
+        .join("tests/fixtures/samples/json/twitter.json");
     let f = File::open(path);
-    let mut reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(&mut reader);
+    let reader = BufReader::new(f.unwrap());
+    let mut scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
