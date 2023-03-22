@@ -6,6 +6,7 @@
 #![allow(unused_variables)]
 
 use std::borrow::Cow;
+use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::io::Read;
@@ -93,65 +94,66 @@ pub enum ScannerMode {
 #[derive(Debug)]
 pub struct Scanner<Reader: Read + Debug> {
     /// Lexeme ring buffer, used to implement lookaheads
-    buffer: VecDeque<PackedLexeme>,
+    buffer: RefCell<VecDeque<PackedLexeme>>,
     /// The stream used for sourcing characters from the input
     decoder: Utf8Decoder<Reader>,
     /// Coordinates of the last lexeme in the lookahead buffer
-    back_coords: ParserCoords,
+    back_coords: Cell<ParserCoords>,
     /// Coordinates of the first lexeme in the lookahead buffer
-    front_coords: ParserCoords,
+    front_coords: Cell<ParserCoords>,
     /// How whitespace is currently being handled
-    mode: ScannerMode,
+    mode: Cell<ScannerMode>,
 }
 
 impl<Reader: Read + Debug> Scanner<Reader> {
     /// Create a new scanner instance with a given lookahead
     pub fn new(reader: Reader) -> Self {
         Scanner {
-            buffer: VecDeque::new(),
+            buffer: RefCell::new(VecDeque::new()),
             decoder: Utf8Decoder::new(reader),
-            back_coords: ParserCoords::default(),
-            front_coords: ParserCoords::default(),
-            mode: ScannerMode::IgnoreWhitespace,
+            back_coords: Cell::new(ParserCoords::default()),
+            front_coords: Cell::new(ParserCoords::default()),
+            mode: Cell::new(ScannerMode::IgnoreWhitespace),
         }
     }
 
     /// Switch the whitespace handling mode within the scanner
-    pub fn with_mode(&mut self, mode: ScannerMode) -> &mut Self {
-        self.mode = mode;
+    pub fn with_mode(&self, mode: ScannerMode) -> &Self {
+        self.mode.replace(mode);
         self
     }
 
     /// Get the coordinates for the *last* lexeme in the lookahead buffer
     pub fn back_coords(&self) -> ParserCoords {
-        self.back_coords
+        self.back_coords.get()
     }
 
     /// Get the coordinates for the *first* lexeme currently in the lookahead buffer
     pub fn front_coords(&self) -> ParserCoords {
-        self.front_coords
+        self.front_coords.get()
     }
 
     /// Consume the next lexeme from the scanner. Will return a [Utf8DecoderErrorType] if there
     /// are no more lexemes available.  Will produce an EOI (end-of-input) lexeme when
     /// the end of input is reached.
-    pub fn consume(&mut self) -> ParserResult<PackedLexeme> {
-        match self.buffer.is_empty() {
+    pub fn consume(&self) -> ParserResult<PackedLexeme> {
+        let mut buffer = self.buffer.borrow_mut();
+        match buffer.is_empty() {
             false => {
-                let lex = self.buffer.pop_front().unwrap();
-                self.front_coords = lex.coords;
+                let lex = buffer.pop_front().unwrap();
+                self.front_coords.replace(lex.coords);
                 Ok(lex)
             }
             true => match self.char_to_lexeme() {
                 Ok(lex) => Ok(lex),
                 Err(err) => match err.code {
                     ParserErrorCode::EndOfInput => {
-                        Ok(packed_lexeme!(Lexeme::EndOfInput, self.back_coords))
+                        Ok(packed_lexeme!(Lexeme::EndOfInput, self.back_coords.get()))
                     }
                     _ => scanner_error!(
                         ParserErrorCode::ExpectedLexeme,
                         "failed to convert a char to a valid lexeme",
-                        self.back_coords,
+                        self.back_coords.get(),
                         err
                     ),
                 },
@@ -161,22 +163,22 @@ impl<Reader: Read + Debug> Scanner<Reader> {
 
     /// Discard the next `count` lexemes from the input. Return the updated [InputCoords]
     /// for the input
-    pub fn discard(&mut self, count: usize) -> ParserCoords {
+    pub fn discard(&self, count: usize) -> ParserCoords {
         for _ in 1..=count {
             _ = self.consume();
         }
-        self.front_coords
+        self.front_coords.get()
     }
 
     /// Looks ahead in the lexeme stream by a given count. If there are insufficient lexemes
     /// available, then [None] will be returned. This method does not consume any lexemes, it
     /// provides a copy of the lexeme at a specific point in the internal buffer (deque).
-    pub fn lookahead(&mut self, count: usize) -> ParserResult<PackedLexeme> {
+    pub fn lookahead(&self, count: usize) -> ParserResult<PackedLexeme> {
         assert!(count > 0);
         let mut error: Option<ParserError> = None;
-        while self.buffer.len() < count {
+        while self.buffer.borrow().len() < count {
             match self.char_to_lexeme() {
-                Ok(l) => self.buffer.push_back(l),
+                Ok(l) => self.buffer.borrow_mut().push_back(l),
                 Err(err) => {
                     error = Some(err);
                     break;
@@ -185,25 +187,34 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         }
         match error {
             None => {
-                self.front_coords = self.buffer.get(0).unwrap().coords;
-                Ok(*self.buffer.get(count - 1).unwrap())
+                self.front_coords.replace(self.buffer.borrow().get(0).unwrap().coords);
+                Ok(*self.buffer.borrow().get(count - 1).unwrap())
             }
             Some(err) => Err(err),
         }
     }
 
     /// Advance over any whitespace in the input stream, and try to produce a valid character
-    fn advance(&mut self) -> ParserResult<char> {
+    fn advance(&self) -> ParserResult<char> {
         loop {
             match self.decoder.decode_next() {
                 Ok(c) => {
-                    self.back_coords.absolute += 1;
-                    self.back_coords.column += 1;
+
+                    self.back_coords.replace(ParserCoords {
+                        absolute: self.back_coords.get().absolute + 1,
+                        line: self.back_coords.get().line,
+                        column: self.back_coords.get().column + 1
+                    });
+
                     if c == '\n' {
-                        self.back_coords.line += 1;
-                        self.back_coords.column = 0;
+                        self.back_coords.replace(ParserCoords {
+                            absolute: self.back_coords.get().absolute,
+                            line: self.back_coords.get().line + 1,
+                            column: 0
+                        });
                     }
-                    match self.mode {
+
+                    match self.mode.get() {
                         ScannerMode::IgnoreWhitespace => {
                             if !c.is_whitespace() {
                                 break Ok(c);
@@ -213,6 +224,7 @@ impl<Reader: Read + Debug> Scanner<Reader> {
                             break Ok(c);
                         }
                     }
+
                 }
                 Err(err) => match err.code {
                     DecoderErrorCode::EndOfInput => {
@@ -222,7 +234,7 @@ impl<Reader: Read + Debug> Scanner<Reader> {
                         break scanner_error!(
                             ParserErrorCode::StreamFailure,
                             "next_char failed",
-                            self.back_coords
+                            self.back_coords.get()
                         );
                     }
                 },
@@ -232,29 +244,29 @@ impl<Reader: Read + Debug> Scanner<Reader> {
 
     /// Take the next character from the underlying stream and attempt conversion into a
     /// valid lexeme. Pack the current [InputCoords] into the return tuple value.
-    fn char_to_lexeme(&mut self) -> ParserResult<PackedLexeme> {
+    fn char_to_lexeme(&self) -> ParserResult<PackedLexeme> {
         match self.advance() {
             Ok(c) => match c {
-                '{' => Ok(packed_lexeme!(Lexeme::LeftBrace, self.back_coords)),
-                '}' => Ok(packed_lexeme!(Lexeme::RightBrace, self.back_coords)),
-                '[' => Ok(packed_lexeme!(Lexeme::LeftBracket, self.back_coords)),
-                ']' => Ok(packed_lexeme!(Lexeme::RightBracket, self.back_coords)),
-                ':' => Ok(packed_lexeme!(Lexeme::Colon, self.back_coords)),
-                ',' => Ok(packed_lexeme!(Lexeme::Comma, self.back_coords)),
-                '\\' => Ok(packed_lexeme!(Lexeme::Escape, self.back_coords)),
-                '\"' => Ok(packed_lexeme!(Lexeme::DoubleQuote, self.back_coords)),
-                '\'' => Ok(packed_lexeme!(Lexeme::SingleQuote, self.back_coords)),
-                '+' => Ok(packed_lexeme!(Lexeme::Plus, self.back_coords)),
-                '-' => Ok(packed_lexeme!(Lexeme::Minus, self.back_coords)),
-                '\n' => Ok(packed_lexeme!(Lexeme::NewLine, self.back_coords)),
+                '{' => Ok(packed_lexeme!(Lexeme::LeftBrace, self.back_coords.get())),
+                '}' => Ok(packed_lexeme!(Lexeme::RightBrace, self.back_coords.get())),
+                '[' => Ok(packed_lexeme!(Lexeme::LeftBracket, self.back_coords.get())),
+                ']' => Ok(packed_lexeme!(Lexeme::RightBracket, self.back_coords.get())),
+                ':' => Ok(packed_lexeme!(Lexeme::Colon, self.back_coords.get())),
+                ',' => Ok(packed_lexeme!(Lexeme::Comma, self.back_coords.get())),
+                '\\' => Ok(packed_lexeme!(Lexeme::Escape, self.back_coords.get())),
+                '\"' => Ok(packed_lexeme!(Lexeme::DoubleQuote, self.back_coords.get())),
+                '\'' => Ok(packed_lexeme!(Lexeme::SingleQuote, self.back_coords.get())),
+                '+' => Ok(packed_lexeme!(Lexeme::Plus, self.back_coords.get())),
+                '-' => Ok(packed_lexeme!(Lexeme::Minus, self.back_coords.get())),
+                '\n' => Ok(packed_lexeme!(Lexeme::NewLine, self.back_coords.get())),
                 c if c.is_whitespace() => {
-                    Ok(packed_lexeme!(Lexeme::Whitespace(c), self.back_coords))
+                    Ok(packed_lexeme!(Lexeme::Whitespace(c), self.back_coords.get()))
                 }
-                c if c.is_ascii_digit() => Ok(packed_lexeme!(Lexeme::Digit(c), self.back_coords)),
+                c if c.is_ascii_digit() => Ok(packed_lexeme!(Lexeme::Digit(c), self.back_coords.get())),
                 c if c.is_alphabetic() => {
-                    Ok(packed_lexeme!(Lexeme::Alphabetic(c), self.back_coords))
+                    Ok(packed_lexeme!(Lexeme::Alphabetic(c), self.back_coords.get()))
                 }
-                _ => Ok(packed_lexeme!(Lexeme::NonAlphabetic(c), self.back_coords)),
+                _ => Ok(packed_lexeme!(Lexeme::NonAlphabetic(c), self.back_coords.get())),
             },
             Err(err) => Err(err),
         }

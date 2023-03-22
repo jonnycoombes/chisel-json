@@ -10,7 +10,7 @@ use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
 fn should_handle_empty_input() {
     let buffer: &[u8] = "".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let eoi = scanner
         .with_mode(ScannerMode::IgnoreWhitespace)
         .consume()
@@ -22,7 +22,7 @@ fn should_handle_empty_input() {
 fn should_handle_general_chars() {
     let buffer: &[u8] = "{   } [  ]+  - : ,   ".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
 
     while let Ok(lex) = scanner.with_mode(ScannerMode::IgnoreWhitespace).consume() {
@@ -52,7 +52,7 @@ fn should_handle_general_chars() {
 fn should_report_correct_lookahead_coords() {
     let buffer: &[u8] = "123456789".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     for index in 1..=4 {
         _ = scanner.lookahead(index)
     }
@@ -65,7 +65,7 @@ fn should_report_correct_lookahead_coords() {
 fn should_handle_whitespace_chars() {
     let buffer: &[u8] = " {  }   \n[]+-:,   ".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
 
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
@@ -105,7 +105,7 @@ fn should_handle_whitespace_chars() {
 fn should_handle_special_chars() {
     let buffer: &[u8] = "\\\"\' \t".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let mut lexemes: Vec<Lexeme> = vec![];
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         lexemes.push(lex.lexeme);
@@ -131,7 +131,7 @@ fn should_handle_special_chars() {
 fn lookahead_bounds_check() {
     let buffer: &[u8] = "{}[],:".as_bytes();
     let reader = BufReader::new(buffer);
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     assert!(scanner
         .with_mode(ScannerMode::IgnoreWhitespace)
         .lookahead(34)
@@ -148,7 +148,7 @@ fn scan_small_file() {
         .join("tests/fixtures/samples/json/simple_structure.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
@@ -165,7 +165,7 @@ fn scan_large_file() {
         .join("tests/fixtures/samples/json/events.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
@@ -182,7 +182,7 @@ fn scan_complex_file() {
         .join("tests/fixtures/samples/json/twitter.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
-    let mut scanner = Scanner::new(reader);
+    let scanner = Scanner::new(reader);
     let start = Instant::now();
     while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
         if lex.lexeme == Lexeme::EndOfInput {
