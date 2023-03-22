@@ -161,7 +161,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
 
     /// Consume and match (exactly) a sequence of alphabetic characters from the input stream, returning
     /// the start and end input coordinates if successful
-    fn match_exact(&mut self, seq: &[Lexeme]) -> ParserResult<(ParserCoords, ParserCoords)> {
+    fn match_exact(&self, seq: &[Lexeme]) -> ParserResult<(ParserCoords, ParserCoords)> {
         for (index, c) in seq.iter().enumerate() {
             match self.scanner.lookahead(index + 1) {
                 Ok(packed) => {
@@ -188,7 +188,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
 
     /// Attempt to match exactly one of the supplied sequence of [Lexeme]s.  Returns the first
     /// [Lexeme] that matches.
-    fn match_one_of(&mut self, seq: &[Lexeme]) -> ParserResult<PackedLexeme> {
+    fn match_one_of(&self, seq: &[Lexeme]) -> ParserResult<PackedLexeme> {
         match self.scanner.lookahead(1) {
             Ok(packed) => {
                 if seq.contains(&packed.lexeme) {
@@ -334,7 +334,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     }
 
     /// Consume a nulll token from the input and and return a [PackedToken]
-    fn match_null(&mut self) -> ParserResult<PackedToken> {
+    fn match_null(&self) -> ParserResult<PackedToken> {
         match self.match_exact(NULL_SEQUENCE) {
             Ok((start, end)) => {
                 self.scanner.discard(4);
@@ -349,7 +349,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     }
 
     /// Consume a bool token from the input and return a [PackedToken]
-    fn match_bool(&mut self, prefix: char) -> ParserResult<PackedToken> {
+    fn match_bool(&self, prefix: char) -> ParserResult<PackedToken> {
         match prefix {
             't' => match self.match_exact(TRUE_SEQUENCE) {
                 Ok((start, end)) => {
@@ -380,37 +380,37 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     }
 
     /// Consume a left brace from the input and and return a [PackedToken]
-    fn match_start_object(&mut self) -> ParserResult<PackedToken> {
+    fn match_start_object(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::StartObject, result.coords))
     }
 
     /// Consume a right brace from the input and and return a [PackedToken]
-    fn match_end_object(&mut self) -> ParserResult<PackedToken> {
+    fn match_end_object(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::EndObject, result.coords))
     }
 
     /// Consume a left bracket from the input and and return a [PackedToken]
-    fn match_start_array(&mut self) -> ParserResult<PackedToken> {
+    fn match_start_array(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::StartArray, result.coords))
     }
 
     /// Consume a right bracket from the input and and return a [PackedToken]
-    fn match_end_array(&mut self) -> ParserResult<PackedToken> {
+    fn match_end_array(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::EndArray, result.coords))
     }
 
     /// Consume a comma from the input and and return a [PackedToken]
-    fn match_comma(&mut self) -> ParserResult<PackedToken> {
+    fn match_comma(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::Comma, result.coords))
     }
 
     /// Consume a colon from the input and and return a [PackedToken]
-    fn match_colon(&mut self) -> ParserResult<PackedToken> {
+    fn match_colon(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
         Ok(packed_token!(Token::Colon, result.coords))
     }
