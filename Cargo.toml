@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-lexical = "6.1.1"
+fast-float = "0.2.0"
 fxhash = "0.2.1"
 chisel-decoders = "0.1.10"
 chisel-stringtable = "0.1.3"
