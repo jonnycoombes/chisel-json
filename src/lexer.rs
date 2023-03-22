@@ -1,7 +1,5 @@
 #![allow(unused_macros)]
 
-extern crate lexical;
-
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::fmt::Debug;
