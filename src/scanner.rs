@@ -91,11 +91,11 @@ pub enum ScannerMode {
 
 /// A scanner with support for limited lookahead
 #[derive(Debug)]
-pub struct Scanner<'a, Reader: Read + Debug> {
+pub struct Scanner<Reader: Read + Debug> {
     /// Lexeme ring buffer, used to implement lookaheads
     buffer: VecDeque<PackedLexeme>,
     /// The stream used for sourcing characters from the input
-    decoder: Utf8Decoder<'a, Reader>,
+    decoder: Utf8Decoder<Reader>,
     /// Coordinates of the last lexeme in the lookahead buffer
     back_coords: ParserCoords,
     /// Coordinates of the first lexeme in the lookahead buffer
@@ -104,9 +104,9 @@ pub struct Scanner<'a, Reader: Read + Debug> {
     mode: ScannerMode,
 }
 
-impl<'a, Reader: Read + Debug> Scanner<'a, Reader> {
+impl<Reader: Read + Debug> Scanner<Reader> {
     /// Create a new scanner instance with a given lookahead
-    pub fn new(reader: &'a mut Reader) -> Self {
+    pub fn new(reader: Reader) -> Self {
         Scanner {
             buffer: VecDeque::new(),
             decoder: Utf8Decoder::new(reader),

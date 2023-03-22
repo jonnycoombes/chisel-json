@@ -8,13 +8,13 @@ use std::fmt::Debug;
 use std::io::Read;
 use std::rc::Rc;
 use std::sync::Arc;
+use chisel_stringtable::common::StringTable;
 
 use crate::lexer_error;
 use crate::parser_coords::ParserCoords;
 use crate::parser_errors::ParserResult;
 use crate::parser_errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
-use crate::string_table::StringTable;
 
 /// Sequence of literal characters forming a 'null' token
 const NULL_SEQUENCE: &[Lexeme] = &[
@@ -88,16 +88,16 @@ macro_rules! packed_token {
 #[derive()]
 pub struct Lexer<'a, Reader: Debug + Read> {
     /// [StringTable] used for interning all parsed strings
-    strings: Rc<RefCell<StringTable<'a>>>,
+    strings: Rc<RefCell<dyn StringTable<'a, u64>>>,
     /// The [Scanner] instance used by the lexer to source [Lexeme]s
-    scanner: Scanner<'a, Reader>,
+    scanner: Scanner<Reader>,
     /// Internal buffer for hoovering up strings from the input
     buffer: String,
 }
 
 impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     /// Construct a new [Lexer] instance which will utilise a given [StringTable]
-    pub fn new(string_table: Rc<RefCell<StringTable<'a>>>, reader: &'a mut Reader) -> Self {
+    pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: Reader) -> Self {
         Lexer {
             strings: string_table,
             scanner: Scanner::new(reader),
