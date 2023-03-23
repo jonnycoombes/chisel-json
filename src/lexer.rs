@@ -268,7 +268,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                         self.scanner.back_coords()
                       ))
                 }
-                Err(err) => lexer_error!(
+                Err(_) => lexer_error!(
                     ParserErrorCode::MatchFailed,
                     "invalid number found in input",
                     start_coords
