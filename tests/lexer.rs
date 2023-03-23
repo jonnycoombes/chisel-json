@@ -1,3 +1,5 @@
+extern crate core;
+
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -75,6 +77,42 @@ fn should_parse_strings() {
             let mut lexer = Lexer::new(table, reader);
             let token = lexer.consume().unwrap();
             assert_eq!(token.token, Token::Str(l.clone()))
+        }
+    }
+}
+
+#[test]
+fn should_parse_numerics() {
+    let path = env::current_dir()
+        .unwrap()
+        .join("tests/fixtures/samples/utf-8/numbers.txt");
+    let f = File::open(path).unwrap();
+    let lines = BufReader::new(f).lines();
+    for l in lines.flatten() {
+        if !l.is_empty() {
+            let reader = BufReader::new(l.as_bytes());
+            let table = Rc::new(RefCell::new(BTreeStringTable::new()));
+            let mut lexer = Lexer::new(table, reader);
+            let token = lexer.consume().unwrap();
+            assert_eq!(token.token, Token::Num(fast_float::parse(l.replace(',', "")).unwrap()));
+        }
+    }
+}
+
+#[test]
+fn should_correctly_handle_invalid_numbers(){
+    let path = env::current_dir()
+        .unwrap()
+        .join("tests/fixtures/samples/utf-8/invalid_numbers.txt");
+    let f = File::open(path).unwrap();
+    let lines = BufReader::new(f).lines();
+    for l in lines.flatten() {
+        if !l.is_empty() {
+            let reader = BufReader::new(l.as_bytes());
+            let table = Rc::new(RefCell::new(BTreeStringTable::new()));
+            let mut lexer = Lexer::new(table, reader);
+            let token = lexer.consume();
+            assert!(token.is_err());
         }
     }
 }

@@ -33,6 +33,8 @@ pub enum Lexeme {
     Colon,
     /// Delineates things
     Comma,
+    /// Period which may occur within numbers
+    Period,
     /// Double quote
     DoubleQuote,
     /// Single quote
@@ -251,6 +253,7 @@ impl<Reader: Read + Debug> Scanner<Reader> {
                 '}' => Ok(packed_lexeme!(Lexeme::RightBrace, self.back_coords.get())),
                 '[' => Ok(packed_lexeme!(Lexeme::LeftBracket, self.back_coords.get())),
                 ']' => Ok(packed_lexeme!(Lexeme::RightBracket, self.back_coords.get())),
+                '.' => Ok(packed_lexeme!(Lexeme::Period, self.back_coords.get())),
                 ':' => Ok(packed_lexeme!(Lexeme::Colon, self.back_coords.get())),
                 ',' => Ok(packed_lexeme!(Lexeme::Comma, self.back_coords.get())),
                 '\\' => Ok(packed_lexeme!(Lexeme::Escape, self.back_coords.get())),
