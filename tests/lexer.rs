@@ -6,6 +6,7 @@ use std::io::{BufRead, BufReader};
 use std::rc::Rc;
 use std::{env};
 use chisel_stringtable::btree_string_table::BTreeStringTable;
+use chisel_stringtable::common::StringTable;
 use chisel_json::lexer::{Lexer, PackedToken, Token};
 use chisel_json::parser_coords::ParserCoords;
 use chisel_json::parser_errors::{ParserError, ParserResult};
@@ -70,13 +71,18 @@ fn should_parse_strings() {
         .join("tests/fixtures/samples/utf-8/strings.txt");
     let f = File::open(path).unwrap();
     let lines = BufReader::new(f).lines();
+    let table = Rc::new(RefCell::new(BTreeStringTable::new()));
     for l in lines.flatten() {
         if !l.is_empty() {
             let reader = BufReader::new(l.as_bytes());
-            let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-            let mut lexer = Lexer::new(table, reader);
+            let mut lexer = Lexer::new(table.clone(), reader);
             let token = lexer.consume().unwrap();
-            assert_eq!(token.token, Token::Str(l.clone()))
+            match token.token {
+                Token::Str(hash) => {
+                    assert_eq!(table.borrow().get(hash).unwrap(), l.as_str())
+                }
+                _ => panic!()
+            }
         }
     }
 }

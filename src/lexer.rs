@@ -47,7 +47,7 @@ pub enum Token {
     EndArray,
     Colon,
     Comma,
-    Str(String),
+    Str(u64),
     Num(f64),
     Null,
     Bool(bool),
@@ -330,8 +330,9 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
         if let Some(..) = error {
             error.unwrap()
         } else {
+            let hash= self.strings.borrow_mut().add(self.buffer.as_str());
             Ok(packed_token!(
-                Token::Str(self.buffer.clone()),
+                Token::Str(hash),
                 start_coords,
                 self.scanner.back_coords()
             ))
