@@ -6,12 +6,13 @@ use std::fmt::Debug;
 use std::io::Read;
 use std::rc::Rc;
 use std::sync::Arc;
+
 use chisel_stringtable::common::StringTable;
 
 use crate::lexer_error;
 use crate::parser_coords::ParserCoords;
-use crate::parser_errors::ParserResult;
 use crate::parser_errors::*;
+use crate::parser_errors::ParserResult;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
 
 /// Sequence of literal characters forming a 'null' token
@@ -129,8 +130,8 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                         self.scanner.back_coords()
                     ),
                 },
-                Lexeme::Minus => self.match_number(),
-                Lexeme::Digit(_) => self.match_number(),
+                Lexeme::Minus => self.match_number('-'),
+                Lexeme::Digit(d) => self.match_number(d),
                 Lexeme::DoubleQuote => self.match_string(),
                 Lexeme::EndOfInput => {
                     Ok(packed_token!(Token::EndOfInput, self.scanner.back_coords()))
@@ -214,9 +215,66 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
 
     /// Attempt to match on a number representation.  Utilise the excellent lexical lib in order
     /// to carry out the actual parsing of the numeric value
-    fn match_number(&mut self) -> ParserResult<PackedToken> {
+    fn match_number(&mut self, first: char) -> ParserResult<PackedToken> {
         self.buffer.clear();
-        unreachable!()
+        self.buffer.push(first);
+        let mut error: Option<ParserResult<PackedToken>> = None;
+        let start_coords = self
+            .scanner
+            .with_mode(ScannerMode::ProduceWhitespace)
+            .consume()?
+            .coords;
+        loop {
+            let packed = self.scanner.consume()?;
+            match packed.lexeme {
+                Lexeme::Period => self.buffer.push('.'),
+                Lexeme::Digit(d) => self.buffer.push(d),
+                Lexeme::Minus => self.buffer.push('-'),
+                Lexeme::Plus => self.buffer.push('+'),
+                Lexeme::Alphabetic(c) => {
+                    match c {
+                        'e' | 'E' => self.buffer.push(c),
+                        _ => {
+                            error = Some(lexer_error!(
+                        ParserErrorCode::EndOfInput,
+                        "invalid character found whilst parsing number",
+                        packed.coords
+                            ));
+                            break;
+                        }
+                    }
+                }
+                Lexeme::NewLine | Lexeme::Comma => break,
+                Lexeme::EndOfInput => {
+                    error = Some(lexer_error!(
+                        ParserErrorCode::EndOfInput,
+                        "end of input found whilst parsing string",
+                        packed.coords
+                    ));
+                    break;
+                }
+                _ => break
+            }
+        }
+
+        if let Some(..) = error {
+            error.unwrap()
+        } else {
+            match fast_float::parse(&self.buffer) {
+                Ok(n) => {
+                    Ok(packed_token!(
+                        Token::Num(n),
+                        start_coords,
+                        self.scanner.back_coords()
+                      ))
+                }
+                Err(err) => lexer_error!(
+                    ParserErrorCode::MatchFailed,
+                    "invalid number found in input",
+                    start_coords
+                ),
+            }
+        }
     }
 
     /// Attempts to match a string token, including any escaped characters.  Does *not* perform
@@ -249,6 +307,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                 Lexeme::Minus => self.buffer.push('-'),
                 Lexeme::Colon => self.buffer.push(':'),
                 Lexeme::Comma => self.buffer.push(':'),
+                Lexeme::Period => self.buffer.push('.'),
                 Lexeme::EndOfInput => {
                     error = Some(lexer_error!(
                         ParserErrorCode::EndOfInput,
