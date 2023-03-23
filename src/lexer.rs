@@ -330,12 +330,19 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
         if let Some(..) = error {
             error.unwrap()
         } else {
-            let hash= self.strings.borrow_mut().add(self.buffer.as_str());
-            Ok(packed_token!(
+            let mut strings = self.strings.borrow_mut();
+            if let Some(hash) = strings.contains(self.buffer.as_str()){
+                Ok(packed_token!(
                 Token::Str(hash),
                 start_coords,
                 self.scanner.back_coords()
             ))
+            }else{
+                Ok(packed_token!(
+                Token::Str(strings.add(self.buffer.as_str())),
+                start_coords,
+                self.scanner.back_coords()))
+            }
         }
     }
 
