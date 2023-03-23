@@ -218,7 +218,6 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     fn match_number(&mut self, first: char) -> ParserResult<PackedToken> {
         self.buffer.clear();
         self.buffer.push(first);
-        let mut error: Option<ParserResult<PackedToken>> = None;
         let start_coords = self
             .scanner
             .with_mode(ScannerMode::ProduceWhitespace)
@@ -235,45 +234,39 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                     match c {
                         'e' | 'E' => self.buffer.push(c),
                         _ => {
-                            error = Some(lexer_error!(
+                            return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "invalid character found whilst parsing number",
                         packed.coords
-                            ));
-                            break;
+                            );
                         }
                     }
                 }
                 Lexeme::NewLine | Lexeme::Comma => break,
                 Lexeme::EndOfInput => {
-                    error = Some(lexer_error!(
+                    return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "end of input found whilst parsing string",
                         packed.coords
-                    ));
-                    break;
+                    );
                 }
                 _ => break
             }
         }
 
-        if let Some(..) = error {
-            error.unwrap()
-        } else {
-            match fast_float::parse(&self.buffer) {
-                Ok(n) => {
-                    Ok(packed_token!(
+        match fast_float::parse(&self.buffer) {
+            Ok(n) => {
+                Ok(packed_token!(
                         Token::Num(n),
                         start_coords,
                         self.scanner.back_coords()
                       ))
-                }
-                Err(_) => lexer_error!(
+            }
+            Err(_) => lexer_error!(
                     ParserErrorCode::MatchFailed,
                     "invalid number found in input",
                     start_coords
                 ),
-            }
         }
     }
 
@@ -284,7 +277,6 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
         self.buffer.clear();
         self.buffer.push('\"');
 
-        let mut error: Option<ParserResult<PackedToken>> = None;
         let start_coords = self
             .scanner
             .with_mode(ScannerMode::ProduceWhitespace)
@@ -309,40 +301,35 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                 Lexeme::Comma => self.buffer.push(':'),
                 Lexeme::Period => self.buffer.push('.'),
                 Lexeme::EndOfInput => {
-                    error = Some(lexer_error!(
+                    return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "end of input found whilst parsing string",
                         packed.coords
-                    ));
-                    break;
+                    );
                 }
                 Lexeme::NewLine => {
-                    error = Some(lexer_error!(
+                    return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "newline found whilst parsing string",
                         packed.coords
-                    ));
-                    break;
+                    );
                 }
                 _ => break,
             }
         }
-        if let Some(..) = error {
-            error.unwrap()
-        } else {
-            let mut strings = self.strings.borrow_mut();
-            if let Some(hash) = strings.contains(self.buffer.as_str()){
-                Ok(packed_token!(
+
+        let mut strings = self.strings.borrow_mut();
+        if let Some(hash) = strings.contains(self.buffer.as_str()) {
+            Ok(packed_token!(
                 Token::Str(hash),
                 start_coords,
                 self.scanner.back_coords()
             ))
-            }else{
-                Ok(packed_token!(
+        } else {
+            Ok(packed_token!(
                 Token::Str(strings.add(self.buffer.as_str())),
                 start_coords,
                 self.scanner.back_coords()))
-            }
         }
     }
 
