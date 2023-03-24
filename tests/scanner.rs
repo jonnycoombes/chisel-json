@@ -1,8 +1,9 @@
-use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Instant;
+
+use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
 
 #[test]
 fn should_handle_empty_input() {

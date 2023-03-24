@@ -5,16 +5,18 @@
 //! The current implementation of the scanner is *not* internally thread safe.
 #![allow(unused_variables)]
 
-use crate::parser_coords::ParserCoords;
-use crate::parser_errors::*;
-use crate::scanner_error;
-use chisel_decoders::common::DecoderErrorCode;
-use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::io::Read;
+
+use chisel_decoders::common::DecoderErrorCode;
+use chisel_decoders::utf8::Utf8Decoder;
+
+use crate::parser_coords::ParserCoords;
+use crate::parser_errors::*;
+use crate::scanner_error;
 
 /// A lexeme enumeration
 #[derive(Debug, Copy, Clone, PartialEq)]

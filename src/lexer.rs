@@ -9,11 +9,11 @@ use std::sync::Arc;
 
 use chisel_stringtable::common::StringTable;
 
-use crate::parser_coords::ParserCoords;
-use crate::parser_errors::ParserResult;
-use crate::parser_errors::*;
-use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
 use crate::{is_digit, is_period, lexer_error, unpack_digit};
+use crate::parser_coords::ParserCoords;
+use crate::parser_errors::*;
+use crate::parser_errors::ParserResult;
+use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
 
 /// Sequence of literal characters forming a 'null' token
 const NULL_SEQUENCE: &[Lexeme] = &[
@@ -503,13 +503,14 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
 }
 
 mod tests {
-    use chisel_stringtable::btree_string_table::BTreeStringTable;
-    use chisel_stringtable::common::StringTable;
     use std::cell::RefCell;
     use std::env;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::rc::Rc;
+
+    use chisel_stringtable::btree_string_table::BTreeStringTable;
+    use chisel_stringtable::common::StringTable;
 
     use crate::lexer::{Lexer, PackedToken, Token};
     use crate::parser_coords::ParserCoords;
