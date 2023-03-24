@@ -9,11 +9,11 @@ use std::sync::Arc;
 
 use chisel_stringtable::common::StringTable;
 
-use crate::lexer_error;
 use crate::parser_coords::ParserCoords;
-use crate::parser_errors::*;
 use crate::parser_errors::ParserResult;
+use crate::parser_errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
+use crate::{is_digit, is_period, lexer_error, unpack_digit};
 
 /// Sequence of literal characters forming a 'null' token
 const NULL_SEQUENCE: &[Lexeme] = &[
@@ -213,6 +213,38 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
         }
     }
 
+    /// Check that a numeric prefix (either '-' or '0') is a valid JSON numeric prefix.
+    /// We do this separately prior to attempting any full parse of a numeric given that
+    /// fast_float will allow for multiple leading zeros
+    fn match_valid_number_prefix(&self, first: char) -> ParserResult<()> {
+        let la = self.scanner.lookahead(1)?;
+        match first {
+            '-' => {
+                if is_digit!(la.lexeme) {
+                    Ok(())
+                } else {
+                    lexer_error!(
+                        ParserErrorCode::MatchFailed,
+                        "invalid numeric prefix found",
+                        la.coords
+                    )
+                }
+            }
+            '0' => {
+                if !is_period!(la.lexeme) {
+                    lexer_error!(
+                        ParserErrorCode::MatchFailed,
+                        "invalid numeric prefix found",
+                        la.coords
+                    )
+                } else {
+                    Ok(())
+                }
+            }
+            _ => Ok(()),
+        }
+    }
+
     /// Attempt to match on a number representation.  Utilise the excellent lexical lib in order
     /// to carry out the actual parsing of the numeric value
     fn match_number(&mut self, first: char) -> ParserResult<PackedToken> {
@@ -223,6 +255,8 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
             .with_mode(ScannerMode::ProduceWhitespace)
             .consume()?
             .coords;
+
+        self.match_valid_number_prefix(first)?;
         loop {
             let packed = self.scanner.consume()?;
             match packed.lexeme {
@@ -230,19 +264,18 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                 Lexeme::Digit(d) => self.buffer.push(d),
                 Lexeme::Minus => self.buffer.push('-'),
                 Lexeme::Plus => self.buffer.push('+'),
-                Lexeme::Alphabetic(c) => {
-                    match c {
-                        'e' | 'E' => self.buffer.push(c),
-                        _ => {
-                            return lexer_error!(
-                        ParserErrorCode::EndOfInput,
-                        "invalid character found whilst parsing number",
-                        packed.coords
-                            );
-                        }
+                Lexeme::Alphabetic(c) => match c {
+                    'e' | 'E' => self.buffer.push(c),
+                    _ => {
+                        return lexer_error!(
+                            ParserErrorCode::EndOfInput,
+                            "invalid character found whilst parsing number",
+                            packed.coords
+                        );
                     }
-                }
+                },
                 Lexeme::NewLine | Lexeme::Comma => break,
+                Lexeme::Whitespace(_) => break,
                 Lexeme::EndOfInput => {
                     return lexer_error!(
                         ParserErrorCode::EndOfInput,
@@ -250,23 +283,21 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
                         packed.coords
                     );
                 }
-                _ => break
+                _ => break,
             }
         }
 
         match fast_float::parse(&self.buffer) {
-            Ok(n) => {
-                Ok(packed_token!(
-                        Token::Num(n),
-                        start_coords,
-                        self.scanner.back_coords()
-                      ))
-            }
+            Ok(n) => Ok(packed_token!(
+                Token::Num(n),
+                start_coords,
+                self.scanner.back_coords()
+            )),
             Err(_) => lexer_error!(
-                    ParserErrorCode::MatchFailed,
-                    "invalid number found in input",
-                    start_coords
-                ),
+                ParserErrorCode::MatchFailed,
+                "invalid number found in input",
+                start_coords
+            ),
         }
     }
 
@@ -329,7 +360,8 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
             Ok(packed_token!(
                 Token::Str(strings.add(self.buffer.as_str())),
                 start_coords,
-                self.scanner.back_coords()))
+                self.scanner.back_coords()
+            ))
         }
     }
 
