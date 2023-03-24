@@ -15,7 +15,7 @@ use chisel_decoders::common::DecoderErrorCode;
 use chisel_decoders::utf8::Utf8Decoder;
 
 use crate::coords::Coords;
-use crate::parser_errors::*;
+use crate::errors::*;
 use crate::scanner_error;
 
 /// A lexeme enumeration

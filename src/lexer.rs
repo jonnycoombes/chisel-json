@@ -10,8 +10,8 @@ use std::sync::Arc;
 use chisel_stringtable::common::StringTable;
 
 use crate::coords::{Coords, Span};
-use crate::parser_errors::ParserResult;
-use crate::parser_errors::*;
+use crate::errors::ParserResult;
+use crate::errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
 use crate::{is_digit, is_period, lexer_error, unpack_digit};
 
@@ -509,8 +509,8 @@ mod tests {
     use chisel_stringtable::common::StringTable;
 
     use crate::coords::{Coords, Span};
+    use crate::errors::{ParserError, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
-    use crate::parser_errors::{ParserError, ParserResult};
 
     macro_rules! lines_from_file {
         ($f : expr) => {{
