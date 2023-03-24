@@ -71,6 +71,18 @@ macro_rules! is_period {
     };
 }
 
+/// Macro to quickly check whether we have an unrecognised character
+#[macro_export]
+macro_rules! is_not_recognised {
+    ($l:expr) => {
+        match $l {
+            Lexeme::NotRecognised(_) => true,
+            _ => false,
+        }
+    };
+}
+
+/// Macro to quickly check whether we have a digit
 #[macro_export]
 macro_rules! is_digit {
     ($l:expr) => {
@@ -81,6 +93,7 @@ macro_rules! is_digit {
     };
 }
 
+/// Macro to extract the character from inside a digit. Note not safe,  will panic.
 #[macro_export]
 macro_rules! unpack_digit {
     ($l:expr) => {
@@ -91,6 +104,7 @@ macro_rules! unpack_digit {
     };
 }
 
+/// Macro to quickly check whether we have an alphabetic character
 #[macro_export]
 macro_rules! is_alphabetic {
     ($l:expr) => {
@@ -101,6 +115,7 @@ macro_rules! is_alphabetic {
     };
 }
 
+/// Macro to extract the character from inside a alphabetic. Note not safe,  will panic.
 #[macro_export]
 macro_rules! unpack_char {
     ($l:expr) => {
@@ -111,6 +126,7 @@ macro_rules! unpack_char {
     };
 }
 
+/// Macro to quickly check whether we have a whitespace character
 #[macro_export]
 macro_rules! is_whitespace {
     ($l:expr) => {

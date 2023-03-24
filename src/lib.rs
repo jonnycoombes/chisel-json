@@ -4,4 +4,4 @@
 mod lexer;
 pub mod parser_coords;
 pub mod parser_errors;
-pub mod scanner;
+mod scanner;
