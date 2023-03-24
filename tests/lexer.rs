@@ -1,15 +1,23 @@
 extern crate core;
 
-use std::cell::RefCell;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::rc::Rc;
-use std::{env};
-use chisel_stringtable::btree_string_table::BTreeStringTable;
-use chisel_stringtable::common::StringTable;
 use chisel_json::lexer::{Lexer, PackedToken, Token};
 use chisel_json::parser_coords::ParserCoords;
 use chisel_json::parser_errors::{ParserError, ParserResult};
+use chisel_stringtable::btree_string_table::BTreeStringTable;
+use chisel_stringtable::common::StringTable;
+use std::cell::RefCell;
+use std::env;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::rc::Rc;
+
+macro_rules! test_lines {
+    ($f : expr) => {{
+        let path = env::current_dir().unwrap().join($f);
+        let f = File::open(path).unwrap();
+        BufReader::new(f).lines()
+    }};
+}
 
 #[test]
 fn should_parse_basic_tokens() {
@@ -66,11 +74,7 @@ fn should_parse_null_and_booleans() {
 
 #[test]
 fn should_parse_strings() {
-    let path = env::current_dir()
-        .unwrap()
-        .join("tests/fixtures/samples/utf-8/strings.txt");
-    let f = File::open(path).unwrap();
-    let lines = BufReader::new(f).lines();
+    let lines = test_lines!("tests/fixtures/samples/utf-8/strings.txt");
     let table = Rc::new(RefCell::new(BTreeStringTable::new()));
     for l in lines.flatten() {
         if !l.is_empty() {
@@ -81,7 +85,7 @@ fn should_parse_strings() {
                 Token::Str(hash) => {
                     assert_eq!(table.borrow().get(hash).unwrap(), l.as_str())
                 }
-                _ => panic!()
+                _ => panic!(),
             }
         }
     }
@@ -89,29 +93,24 @@ fn should_parse_strings() {
 
 #[test]
 fn should_parse_numerics() {
-    let path = env::current_dir()
-        .unwrap()
-        .join("tests/fixtures/samples/utf-8/numbers.txt");
-    let f = File::open(path).unwrap();
-    let lines = BufReader::new(f).lines();
+    let lines = test_lines!("tests/fixtures/samples/utf-8/numbers.txt");
     for l in lines.flatten() {
         if !l.is_empty() {
             let reader = BufReader::new(l.as_bytes());
             let table = Rc::new(RefCell::new(BTreeStringTable::new()));
             let mut lexer = Lexer::new(table, reader);
             let token = lexer.consume().unwrap();
-            assert_eq!(token.token, Token::Num(fast_float::parse(l.replace(',', "")).unwrap()));
+            assert_eq!(
+                token.token,
+                Token::Num(fast_float::parse(l.replace(',', "")).unwrap())
+            );
         }
     }
 }
 
 #[test]
-fn should_correctly_handle_invalid_numbers(){
-    let path = env::current_dir()
-        .unwrap()
-        .join("tests/fixtures/samples/utf-8/invalid_numbers.txt");
-    let f = File::open(path).unwrap();
-    let lines = BufReader::new(f).lines();
+fn should_correctly_handle_invalid_numbers() {
+    let lines = test_lines!("tests/fixtures/samples/utf-8/invalid_numbers.txt");
     for l in lines.flatten() {
         if !l.is_empty() {
             let reader = BufReader::new(l.as_bytes());
@@ -125,11 +124,7 @@ fn should_correctly_handle_invalid_numbers(){
 
 #[test]
 fn should_correctly_identity_dodgy_strings() {
-    let path = env::current_dir()
-        .unwrap()
-        .join("tests/fixtures/samples/utf-8/dodgy_strings.txt");
-    let f = File::open(path).unwrap();
-    let lines = BufReader::new(f).lines();
+    let lines = test_lines!("tests/fixtures/samples/utf-8/dodgy_strings.txt");
     for l in lines.flatten() {
         if !l.is_empty() {
             let reader = BufReader::new(l.as_bytes());
