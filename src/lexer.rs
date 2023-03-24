@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use chisel_stringtable::common::StringTable;
 
-use crate::coords::Coords;
+use crate::coords::{Coords, Span};
 use crate::parser_errors::ParserResult;
 use crate::parser_errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
@@ -59,9 +59,7 @@ pub struct PackedToken {
     /// The actual [Token]
     pub token: Token,
     /// The starting point in the input for the token
-    pub start: Coords,
-    /// The end point in the input for the token
-    pub end: Option<Coords>,
+    pub span: Span,
 }
 
 /// Convenience macro for packing tokens along with their positional information
@@ -69,15 +67,13 @@ macro_rules! packed_token {
     ($t:expr, $s:expr, $e:expr) => {
         PackedToken {
             token: $t,
-            start: $s,
-            end: Some($e),
+            span: Span { start: $s, end: $e },
         }
     };
     ($t:expr, $s:expr) => {
         PackedToken {
             token: $t,
-            start: $s,
-            end: None,
+            span: Span { start: $s, end: $s },
         }
     };
 }
@@ -419,7 +415,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
         Ok(())
     }
 
-    /// Consume a nulll token from the input and and return a [PackedToken]
+    /// Consume a null token from the input and and return a [PackedToken]
     fn match_null(&self) -> ParserResult<PackedToken> {
         match self.match_exact(NULL_SEQUENCE) {
             Ok((start, end)) => {
@@ -512,8 +508,8 @@ mod tests {
     use chisel_stringtable::btree_string_table::BTreeStringTable;
     use chisel_stringtable::common::StringTable;
 
+    use crate::coords::{Coords, Span};
     use crate::lexer::{Lexer, PackedToken, Token};
-    use crate::coords::Coords;
     use crate::parser_errors::{ParserError, ParserResult};
 
     macro_rules! lines_from_file {
@@ -537,11 +533,11 @@ mod tests {
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
-        let mut coords: Vec<(Coords, Option<Coords>)> = vec![];
+        let mut spans: Vec<Span> = vec![];
         for _ in 1..=7 {
             let token = lexer.consume().unwrap();
             tokens.push(token.token);
-            coords.push((token.start, token.end));
+            spans.push(token.span);
         }
         assert_eq!(
             tokens,
@@ -563,11 +559,11 @@ mod tests {
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
-        let mut coords: Vec<(Coords, Option<Coords>)> = vec![];
+        let mut spans: Vec<Span> = vec![];
         for _ in 1..=6 {
             let token = lexer.consume().unwrap();
             tokens.push(token.token);
-            coords.push((token.start, token.end));
+            spans.push(token.span);
         }
         assert_eq!(
             tokens,
@@ -604,11 +600,11 @@ mod tests {
     #[test]
     fn should_parse_numerics() {
         let lines = lines_from_file!("fixtures/samples/utf-8/numbers.txt");
+        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
-                let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-                let mut lexer = Lexer::new(table, reader);
+                let mut lexer = Lexer::new(table.clone(), reader);
                 let token = lexer.consume().unwrap();
                 assert_eq!(
                     token.token,
@@ -621,11 +617,11 @@ mod tests {
     #[test]
     fn should_correctly_handle_invalid_numbers() {
         let lines = lines_from_file!("fixtures/samples/utf-8/invalid_numbers.txt");
+        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
-                let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-                let mut lexer = Lexer::new(table, reader);
+                let mut lexer = Lexer::new(table.clone(), reader);
                 let token = lexer.consume();
                 assert!(token.is_err());
             }
@@ -635,11 +631,11 @@ mod tests {
     #[test]
     fn should_correctly_identity_dodgy_strings() {
         let lines = lines_from_file!("fixtures/samples/utf-8/dodgy_strings.txt");
+        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
-                let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-                let mut lexer = Lexer::new(table, reader);
+                let mut lexer = Lexer::new(table.clone(), reader);
                 let mut error_token: Option<ParserError> = None;
                 loop {
                     let token = lexer.consume();
@@ -670,7 +666,7 @@ mod tests {
     fn should_correctly_report_errors_for_booleans() {
         let reader = from_bytes!("true farse");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-        let mut lexer = Lexer::new(table, reader);
+        let mut lexer = Lexer::new(table.clone(), reader);
         let mut results: Vec<ParserResult<PackedToken>> = vec![];
         for _ in 1..=2 {
             results.push(lexer.consume());
