@@ -9,11 +9,11 @@ use std::sync::Arc;
 
 use chisel_stringtable::common::StringTable;
 
-use crate::{is_digit, is_period, lexer_error, unpack_digit};
 use crate::parser_coords::ParserCoords;
-use crate::parser_errors::*;
 use crate::parser_errors::ParserResult;
+use crate::parser_errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
+use crate::{is_digit, is_period, lexer_error, unpack_digit};
 
 /// Sequence of literal characters forming a 'null' token
 const NULL_SEQUENCE: &[Lexeme] = &[
@@ -516,7 +516,7 @@ mod tests {
     use crate::parser_coords::ParserCoords;
     use crate::parser_errors::{ParserError, ParserResult};
 
-    macro_rules! from_file {
+    macro_rules! lines_from_file {
         ($f : expr) => {{
             let path = env::current_dir().unwrap().join($f);
             let f = File::open(path).unwrap();
@@ -584,7 +584,7 @@ mod tests {
 
     #[test]
     fn should_parse_strings() {
-        let lines = from_file!("fixtures/samples/utf-8/strings.txt");
+        let lines = lines_from_file!("fixtures/samples/utf-8/strings.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
@@ -603,7 +603,7 @@ mod tests {
 
     #[test]
     fn should_parse_numerics() {
-        let lines = from_file!("fixtures/samples/utf-8/numbers.txt");
+        let lines = lines_from_file!("fixtures/samples/utf-8/numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
@@ -620,7 +620,7 @@ mod tests {
 
     #[test]
     fn should_correctly_handle_invalid_numbers() {
-        let lines = from_file!("fixtures/samples/utf-8/invalid_numbers.txt");
+        let lines = lines_from_file!("fixtures/samples/utf-8/invalid_numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
@@ -634,7 +634,7 @@ mod tests {
 
     #[test]
     fn should_correctly_identity_dodgy_strings() {
-        let lines = from_file!("fixtures/samples/utf-8/dodgy_strings.txt");
+        let lines = lines_from_file!("fixtures/samples/utf-8/dodgy_strings.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = from_bytes!(l);
