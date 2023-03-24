@@ -1,5 +1,7 @@
 //! Coordinate structure used to reference specific locations within parser input
 #![allow(clippy::len_without_is_empty)]
+
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
 /// A [Coord] represents a single location within the parser input
@@ -58,6 +60,24 @@ impl Display for Coords {
     }
 }
 
+impl Eq for Coords {}
+
+impl PartialOrd<Self> for Coords {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self.absolute.cmp(&other.absolute) {
+            Ordering::Less => Some(Ordering::Less),
+            Ordering::Equal => Some(Ordering::Equal),
+            Ordering::Greater => Some(Ordering::Greater),
+        }
+    }
+}
+
+impl Ord for Coords {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.absolute.cmp(&other.absolute)
+    }
+}
+
 impl std::ops::Sub for Coords {
     type Output = usize;
     /// Subtraction is based on the absolute position, could be +/-ve
@@ -67,7 +87,7 @@ impl std::ops::Sub for Coords {
 }
 
 /// A [Span] represents a linear interval within the parser input
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Span {
     /// Start [Coords] for the span
     pub start: Coords,
@@ -78,7 +98,11 @@ pub struct Span {
 impl Span {
     /// Get the length of the span, minimum is 1
     pub fn len(&self) -> usize {
-        self.end - self.start + 1
+        match self.start.cmp(&self.end) {
+            Ordering::Less => self.end - self.start,
+            Ordering::Equal => 1,
+            Ordering::Greater => self.start - self.end,
+        }
     }
 }
 
@@ -89,7 +113,7 @@ impl Display for Span {
             "start: {}, end: {}, length: {}",
             self.start,
             self.end,
-            self.end - self.start
+            self.len()
         )
     }
 }
