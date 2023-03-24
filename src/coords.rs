@@ -1,5 +1,5 @@
 //! Coordinate structure used to reference specific locations within parser input
-
+#![allow(clippy::len_without_is_empty)]
 use std::fmt::{Display, Formatter};
 
 /// A [Coord] represents a single location within the parser input
@@ -67,11 +67,19 @@ impl std::ops::Sub for Coords {
 }
 
 /// A [Span] represents a linear interval within the parser input
+#[derive(Debug, Copy, Clone)]
 pub struct Span {
     /// Start [Coords] for the span
-    start: Coords,
+    pub start: Coords,
     /// End [Coords] for the span
-    end: Coords,
+    pub end: Coords,
+}
+
+impl Span {
+    /// Get the length of the span, minimum is 1
+    pub fn len(&self) -> usize {
+        self.end - self.start + 1
+    }
 }
 
 impl Display for Span {
