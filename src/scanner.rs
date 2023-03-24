@@ -5,16 +5,16 @@
 //! The current implementation of the scanner is *not* internally thread safe.
 #![allow(unused_variables)]
 
+use crate::parser_coords::ParserCoords;
+use crate::parser_errors::*;
+use crate::scanner_error;
+use chisel_decoders::common::DecoderErrorCode;
+use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::io::Read;
-use chisel_decoders::common::DecoderErrorCode;
-use chisel_decoders::utf8::Utf8Decoder;
-use crate::parser_coords::ParserCoords;
-use crate::parser_errors::*;
-use crate::scanner_error;
 
 /// A lexeme enumeration
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -57,6 +57,66 @@ pub enum Lexeme {
     Minus,
     /// A catch-all for non-recognised characters
     NotRecognised(char),
+}
+
+#[macro_export]
+macro_rules! is_period {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Period => true,
+            _ => false,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! is_digit {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Digit(_) => true,
+            _ => false,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! unpack_digit {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Digit(d) => d,
+            _ => panic!(),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! is_alphabetic {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Alphabetic(_) => true,
+            _ => false,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! unpack_char {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Alphabetic(c) => c,
+            _ => panic!(),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! is_whitespace {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Whitespace(_) => true,
+            _ => false,
+        }
+    };
 }
 
 impl Display for Lexeme {
@@ -189,7 +249,8 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         }
         match error {
             None => {
-                self.front_coords.replace(self.buffer.borrow().get(0).unwrap().coords);
+                self.front_coords
+                    .replace(self.buffer.borrow().get(0).unwrap().coords);
                 Ok(*self.buffer.borrow().get(count - 1).unwrap())
             }
             Some(err) => Err(err),
@@ -201,18 +262,17 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         loop {
             match self.decoder.decode_next() {
                 Ok(c) => {
-
                     self.back_coords.replace(ParserCoords {
                         absolute: self.back_coords.get().absolute + 1,
                         line: self.back_coords.get().line,
-                        column: self.back_coords.get().column + 1
+                        column: self.back_coords.get().column + 1,
                     });
 
                     if c == '\n' {
                         self.back_coords.replace(ParserCoords {
                             absolute: self.back_coords.get().absolute,
                             line: self.back_coords.get().line + 1,
-                            column: 0
+                            column: 0,
                         });
                     }
 
@@ -226,7 +286,6 @@ impl<Reader: Read + Debug> Scanner<Reader> {
                             break Ok(c);
                         }
                     }
-
                 }
                 Err(err) => match err.code {
                     DecoderErrorCode::EndOfInput => {
@@ -262,14 +321,21 @@ impl<Reader: Read + Debug> Scanner<Reader> {
                 '+' => Ok(packed_lexeme!(Lexeme::Plus, self.back_coords.get())),
                 '-' => Ok(packed_lexeme!(Lexeme::Minus, self.back_coords.get())),
                 '\n' => Ok(packed_lexeme!(Lexeme::NewLine, self.back_coords.get())),
-                c if c.is_whitespace() => {
-                    Ok(packed_lexeme!(Lexeme::Whitespace(c), self.back_coords.get()))
+                c if c.is_whitespace() => Ok(packed_lexeme!(
+                    Lexeme::Whitespace(c),
+                    self.back_coords.get()
+                )),
+                c if c.is_ascii_digit() => {
+                    Ok(packed_lexeme!(Lexeme::Digit(c), self.back_coords.get()))
                 }
-                c if c.is_ascii_digit() => Ok(packed_lexeme!(Lexeme::Digit(c), self.back_coords.get())),
-                c if c.is_alphabetic() => {
-                    Ok(packed_lexeme!(Lexeme::Alphabetic(c), self.back_coords.get()))
-                }
-                _ => Ok(packed_lexeme!(Lexeme::NonAlphabetic(c), self.back_coords.get())),
+                c if c.is_alphabetic() => Ok(packed_lexeme!(
+                    Lexeme::Alphabetic(c),
+                    self.back_coords.get()
+                )),
+                _ => Ok(packed_lexeme!(
+                    Lexeme::NonAlphabetic(c),
+                    self.back_coords.get()
+                )),
             },
             Err(err) => Err(err),
         }
