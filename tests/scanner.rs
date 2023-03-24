@@ -1,10 +1,8 @@
-
+use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Instant;
-use chisel_json::scanner::{Lexeme, Scanner, ScannerMode};
-
 
 #[test]
 fn should_handle_empty_input() {
@@ -145,7 +143,7 @@ fn lookahead_bounds_check() {
 fn scan_small_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("tests/fixtures/samples/json/simple_structure.json");
+        .join("fixtures/samples/json/simple_structure.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
     let scanner = Scanner::new(reader);
@@ -162,7 +160,7 @@ fn scan_small_file() {
 fn scan_large_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("tests/fixtures/samples/json/events.json");
+        .join("fixtures/samples/json/events.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
     let scanner = Scanner::new(reader);
@@ -179,7 +177,7 @@ fn scan_large_file() {
 fn scan_complex_file() {
     let path = env::current_dir()
         .unwrap()
-        .join("tests/fixtures/samples/json/twitter.json");
+        .join("fixtures/samples/json/twitter.json");
     let f = File::open(path);
     let reader = BufReader::new(f.unwrap());
     let scanner = Scanner::new(reader);
