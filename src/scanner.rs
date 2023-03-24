@@ -341,3 +341,5 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         }
     }
 }
+
+mod tests {}

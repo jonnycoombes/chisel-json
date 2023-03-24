@@ -502,7 +502,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
     }
 }
 
-mod test {
+mod tests {
     use chisel_stringtable::btree_string_table::BTreeStringTable;
     use chisel_stringtable::common::StringTable;
     use std::cell::RefCell;
@@ -515,7 +515,7 @@ mod test {
     use crate::parser_coords::ParserCoords;
     use crate::parser_errors::{ParserError, ParserResult};
 
-    macro_rules! test_lines {
+    macro_rules! from_file {
         ($f : expr) => {{
             let path = env::current_dir().unwrap().join($f);
             let f = File::open(path).unwrap();
@@ -523,10 +523,16 @@ mod test {
         }};
     }
 
+    macro_rules! from_bytes {
+        ($b : expr) => {{
+            let buffer: &[u8] = $b.as_bytes();
+            BufReader::new(buffer)
+        }};
+    }
+
     #[test]
     fn should_parse_basic_tokens() {
-        let buffer: &[u8] = "{}[],:".as_bytes();
-        let reader = BufReader::new(buffer);
+        let reader = from_bytes!("{}[],:");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
@@ -552,8 +558,7 @@ mod test {
 
     #[test]
     fn should_parse_null_and_booleans() {
-        let buffer: &[u8] = "null true    falsetruefalse".as_bytes();
-        let reader = BufReader::new(buffer);
+        let reader = from_bytes!("null true    falsetruefalse");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
@@ -578,11 +583,11 @@ mod test {
 
     #[test]
     fn should_parse_strings() {
-        let lines = test_lines!("fixtures/samples/utf-8/strings.txt");
+        let lines = from_file!("fixtures/samples/utf-8/strings.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = BufReader::new(l.as_bytes());
+                let reader = from_bytes!(l);
                 let mut lexer = Lexer::new(table.clone(), reader);
                 let token = lexer.consume().unwrap();
                 match token.token {
@@ -597,10 +602,10 @@ mod test {
 
     #[test]
     fn should_parse_numerics() {
-        let lines = test_lines!("fixtures/samples/utf-8/numbers.txt");
+        let lines = from_file!("fixtures/samples/utf-8/numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = BufReader::new(l.as_bytes());
+                let reader = from_bytes!(l);
                 let table = Rc::new(RefCell::new(BTreeStringTable::new()));
                 let mut lexer = Lexer::new(table, reader);
                 let token = lexer.consume().unwrap();
@@ -614,10 +619,10 @@ mod test {
 
     #[test]
     fn should_correctly_handle_invalid_numbers() {
-        let lines = test_lines!("fixtures/samples/utf-8/invalid_numbers.txt");
+        let lines = from_file!("fixtures/samples/utf-8/invalid_numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = BufReader::new(l.as_bytes());
+                let reader = from_bytes!(l);
                 let table = Rc::new(RefCell::new(BTreeStringTable::new()));
                 let mut lexer = Lexer::new(table, reader);
                 let token = lexer.consume();
@@ -628,10 +633,10 @@ mod test {
 
     #[test]
     fn should_correctly_identity_dodgy_strings() {
-        let lines = test_lines!("fixtures/samples/utf-8/dodgy_strings.txt");
+        let lines = from_file!("fixtures/samples/utf-8/dodgy_strings.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = BufReader::new(l.as_bytes());
+                let reader = from_bytes!(l);
                 let table = Rc::new(RefCell::new(BTreeStringTable::new()));
                 let mut lexer = Lexer::new(table, reader);
                 let mut error_token: Option<ParserError> = None;
@@ -662,8 +667,7 @@ mod test {
 
     #[test]
     fn should_correctly_report_errors_for_booleans() {
-        let buffer: &[u8] = "true farse".as_bytes();
-        let reader = BufReader::new(buffer);
+        let reader = from_bytes!("true farse");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut results: Vec<ParserResult<PackedToken>> = vec![];
