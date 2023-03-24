@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use chisel_stringtable::common::StringTable;
 
-use crate::parser_coords::ParserCoords;
+use crate::coords::Coords;
 use crate::parser_errors::ParserResult;
 use crate::parser_errors::*;
 use crate::scanner::{Lexeme, PackedLexeme, Scanner, ScannerMode};
@@ -59,9 +59,9 @@ pub struct PackedToken {
     /// The actual [Token]
     pub token: Token,
     /// The starting point in the input for the token
-    pub start: ParserCoords,
+    pub start: Coords,
     /// The end point in the input for the token
-    pub end: Option<ParserCoords>,
+    pub end: Option<Coords>,
 }
 
 /// Convenience macro for packing tokens along with their positional information
@@ -162,7 +162,7 @@ impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
 
     /// Consume and match (exactly) a sequence of alphabetic characters from the input stream, returning
     /// the start and end input coordinates if successful
-    fn match_exact(&self, seq: &[Lexeme]) -> ParserResult<(ParserCoords, ParserCoords)> {
+    fn match_exact(&self, seq: &[Lexeme]) -> ParserResult<(Coords, Coords)> {
         for (index, c) in seq.iter().enumerate() {
             match self.scanner.lookahead(index + 1) {
                 Ok(packed) => {
@@ -513,7 +513,7 @@ mod tests {
     use chisel_stringtable::common::StringTable;
 
     use crate::lexer::{Lexer, PackedToken, Token};
-    use crate::parser_coords::ParserCoords;
+    use crate::coords::Coords;
     use crate::parser_errors::{ParserError, ParserResult};
 
     macro_rules! lines_from_file {
@@ -537,7 +537,7 @@ mod tests {
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
-        let mut coords: Vec<(ParserCoords, Option<ParserCoords>)> = vec![];
+        let mut coords: Vec<(Coords, Option<Coords>)> = vec![];
         for _ in 1..=7 {
             let token = lexer.consume().unwrap();
             tokens.push(token.token);
@@ -563,7 +563,7 @@ mod tests {
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         let mut lexer = Lexer::new(table, reader);
         let mut tokens: Vec<Token> = vec![];
-        let mut coords: Vec<(ParserCoords, Option<ParserCoords>)> = vec![];
+        let mut coords: Vec<(Coords, Option<Coords>)> = vec![];
         for _ in 1..=6 {
             let token = lexer.consume().unwrap();
             tokens.push(token.token);

@@ -2,7 +2,7 @@
 
 use std::borrow::Cow;
 
-use crate::parser_coords::ParserCoords;
+use crate::coords::Coords;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, ParserError>;
@@ -45,7 +45,7 @@ pub struct ParserError {
     /// Additional information about the error
     pub message: Cow<'static, str>,
     /// Optional parser coordinates
-    pub coords: Option<ParserCoords>,
+    pub coords: Option<Coords>,
     /// An optional inner error
     pub inner: Option<Box<ParserError>>,
 }

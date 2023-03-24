@@ -2,6 +2,6 @@
 #![allow(dead_code)]
 
 mod lexer;
-pub mod parser_coords;
+pub mod coords;
 pub mod parser_errors;
 mod scanner;

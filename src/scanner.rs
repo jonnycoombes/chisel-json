@@ -14,7 +14,7 @@ use std::io::Read;
 use chisel_decoders::common::DecoderErrorCode;
 use chisel_decoders::utf8::Utf8Decoder;
 
-use crate::parser_coords::ParserCoords;
+use crate::coords::Coords;
 use crate::parser_errors::*;
 use crate::scanner_error;
 
@@ -149,7 +149,7 @@ pub struct PackedLexeme {
     /// The [Lexeme]
     pub lexeme: Lexeme,
     /// The [InputCoords] for the lexeme
-    pub coords: ParserCoords,
+    pub coords: Coords,
 }
 
 /// Macro for packing a lexeme and its coordinates into a single structure
@@ -178,9 +178,9 @@ pub struct Scanner<Reader: Read + Debug> {
     /// The stream used for sourcing characters from the input
     decoder: Utf8Decoder<Reader>,
     /// Coordinates of the last lexeme in the lookahead buffer
-    back_coords: Cell<ParserCoords>,
+    back_coords: Cell<Coords>,
     /// Coordinates of the first lexeme in the lookahead buffer
-    front_coords: Cell<ParserCoords>,
+    front_coords: Cell<Coords>,
     /// How whitespace is currently being handled
     mode: Cell<ScannerMode>,
 }
@@ -191,8 +191,8 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         Scanner {
             buffer: RefCell::new(VecDeque::new()),
             decoder: Utf8Decoder::new(reader),
-            back_coords: Cell::new(ParserCoords::default()),
-            front_coords: Cell::new(ParserCoords::default()),
+            back_coords: Cell::new(Coords::default()),
+            front_coords: Cell::new(Coords::default()),
             mode: Cell::new(ScannerMode::IgnoreWhitespace),
         }
     }
@@ -204,12 +204,12 @@ impl<Reader: Read + Debug> Scanner<Reader> {
     }
 
     /// Get the coordinates for the *last* lexeme in the lookahead buffer
-    pub fn back_coords(&self) -> ParserCoords {
+    pub fn back_coords(&self) -> Coords {
         self.back_coords.get()
     }
 
     /// Get the coordinates for the *first* lexeme currently in the lookahead buffer
-    pub fn front_coords(&self) -> ParserCoords {
+    pub fn front_coords(&self) -> Coords {
         self.front_coords.get()
     }
 
@@ -243,7 +243,7 @@ impl<Reader: Read + Debug> Scanner<Reader> {
 
     /// Discard the next `count` lexemes from the input. Return the updated [InputCoords]
     /// for the input
-    pub fn discard(&self, count: usize) -> ParserCoords {
+    pub fn discard(&self, count: usize) -> Coords {
         for _ in 1..=count {
             _ = self.consume();
         }
@@ -280,14 +280,14 @@ impl<Reader: Read + Debug> Scanner<Reader> {
         loop {
             match self.decoder.decode_next() {
                 Ok(c) => {
-                    self.back_coords.replace(ParserCoords {
+                    self.back_coords.replace(Coords {
                         absolute: self.back_coords.get().absolute + 1,
                         line: self.back_coords.get().line,
                         column: self.back_coords.get().column + 1,
                     });
 
                     if c == '\n' {
-                        self.back_coords.replace(ParserCoords {
+                        self.back_coords.replace(Coords {
                             absolute: self.back_coords.get().absolute,
                             line: self.back_coords.get().line + 1,
                             column: 0,
