@@ -1,0 +1,10 @@
+{
+  "item1" : "value",
+  "item2" : -1234.56,
+  "item3" : true,
+  "item4" : null,
+  "item5" : ["this", "is", "a", "test", "string", "array"],
+  "item6" : {
+    "sub_item1" : "this is a sub item"
+  }
+}

@@ -115,6 +115,28 @@ macro_rules! is_alphabetic {
     };
 }
 
+/// Macro to quickly check whether we have an alphabetic character
+#[macro_export]
+macro_rules! is_non_alphabetic {
+    ($l:expr) => {
+        match $l {
+            Lexeme::NonAlphabetic(_) => true,
+            _ => false,
+        }
+    };
+}
+
+/// Macro to quickly check whether we have an alphabetic character
+#[macro_export]
+macro_rules! is_whitespace {
+    ($l:expr) => {
+        match $l {
+            Lexeme::Whitespace(_) => true,
+            _ => false,
+        }
+    };
+}
+
 /// Macro to extract the character from inside a alphabetic. Note not safe,  will panic.
 #[macro_export]
 macro_rules! unpack_char {
@@ -122,17 +144,6 @@ macro_rules! unpack_char {
         match $l {
             Lexeme::Alphabetic(c) => c,
             _ => panic!(),
-        }
-    };
-}
-
-/// Macro to quickly check whether we have a whitespace character
-#[macro_export]
-macro_rules! is_whitespace {
-    ($l:expr) => {
-        match $l {
-            Lexeme::Whitespace(_) => true,
-            _ => false,
         }
     };
 }
@@ -360,33 +371,19 @@ impl<Reader: Read + Debug> Scanner<Reader> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     #![allow(unused_macros)]
+    use crate::scanner::{Lexeme, Scanner, ScannerMode};
+    use crate::{reader_from_bytes, reader_from_relative_file};
     use std::env;
     use std::fs::File;
     use std::io::BufReader;
     use std::time::Instant;
 
-    use crate::scanner::{Lexeme, Scanner, ScannerMode};
-
-    macro_rules! reader_from_file {
-        ($f : expr) => {{
-            let path = env::current_dir().unwrap().join($f);
-            let f = File::open(path).unwrap();
-            BufReader::new(f)
-        }};
-    }
-
-    macro_rules! from_bytes {
-        ($b : expr) => {{
-            let buffer: &[u8] = $b.as_bytes();
-            BufReader::new(buffer)
-        }};
-    }
-
     #[test]
     fn should_handle_empty_input() {
-        let reader = from_bytes!("");
+        let reader = reader_from_bytes!("");
         let scanner = Scanner::new(reader);
         let eoi = scanner
             .with_mode(ScannerMode::IgnoreWhitespace)
@@ -397,7 +394,7 @@ mod tests {
 
     #[test]
     fn should_handle_general_chars() {
-        let reader = from_bytes!("{   } [  ]+  - : ,   ");
+        let reader = reader_from_bytes!("{   } [  ]+  - : ,   ");
         let scanner = Scanner::new(reader);
         let mut lexemes: Vec<Lexeme> = vec![];
 
@@ -426,7 +423,7 @@ mod tests {
 
     #[test]
     fn should_report_correct_lookahead_coords() {
-        let reader = from_bytes!("123456789");
+        let reader = reader_from_bytes!("123456789");
         let scanner = Scanner::new(reader);
         for index in 1..=4 {
             _ = scanner.lookahead(index)
@@ -438,7 +435,7 @@ mod tests {
 
     #[test]
     fn should_handle_whitespace_chars() {
-        let reader = from_bytes!(" {  }   \n[]+-:,   ");
+        let reader = reader_from_bytes!(" {  }   \n[]+-:,   ");
         let scanner = Scanner::new(reader);
         let mut lexemes: Vec<Lexeme> = vec![];
 
@@ -477,7 +474,7 @@ mod tests {
 
     #[test]
     fn should_handle_special_chars() {
-        let reader = from_bytes!("\\\"\' \t");
+        let reader = reader_from_bytes!("\\\"\' \t");
         let scanner = Scanner::new(reader);
         let mut lexemes: Vec<Lexeme> = vec![];
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
@@ -502,7 +499,7 @@ mod tests {
     #[should_panic]
     #[test]
     fn lookahead_bounds_check() {
-        let reader = from_bytes!("{}[],:");
+        let reader = reader_from_bytes!("{}[],:");
         let scanner = Scanner::new(reader);
         assert!(scanner
             .with_mode(ScannerMode::IgnoreWhitespace)
@@ -515,7 +512,7 @@ mod tests {
 
     #[test]
     fn scan_small_file() {
-        let reader = reader_from_file!("fixtures/samples/json/simple_structure.json");
+        let reader = reader_from_relative_file!("fixtures/samples/json/simple_structure.json");
         let scanner = Scanner::new(reader);
         let start = Instant::now();
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
@@ -528,7 +525,7 @@ mod tests {
 
     #[test]
     fn scan_large_file() {
-        let reader = reader_from_file!("fixtures/samples/json/events.json");
+        let reader = reader_from_relative_file!("fixtures/samples/json/events.json");
         let scanner = Scanner::new(reader);
         let start = Instant::now();
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
@@ -541,7 +538,7 @@ mod tests {
 
     #[test]
     fn scan_complex_file() {
-        let reader = reader_from_file!("fixtures/samples/json/twitter.json");
+        let reader = reader_from_relative_file!("fixtures/samples/json/twitter.json");
         let scanner = Scanner::new(reader);
         let start = Instant::now();
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
