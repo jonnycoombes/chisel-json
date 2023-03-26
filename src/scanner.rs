@@ -182,8 +182,8 @@ pub enum ScannerMode {
 }
 
 /// A scanner with support for limited lookahead
-#[derive(Debug)]
-pub struct Scanner<Reader: Read + Debug> {
+#[derive()]
+pub struct Scanner<Reader: Read> {
     /// Lexeme ring buffer, used to implement lookaheads
     buffer: RefCell<VecDeque<PackedLexeme>>,
     /// The stream used for sourcing characters from the input
@@ -196,7 +196,7 @@ pub struct Scanner<Reader: Read + Debug> {
     mode: Cell<ScannerMode>,
 }
 
-impl<Reader: Read + Debug> Scanner<Reader> {
+impl<Reader: Read> Scanner<Reader> {
     /// Create a new scanner instance with a given lookahead
     pub fn new(reader: Reader) -> Self {
         Scanner {
@@ -374,12 +374,17 @@ impl<Reader: Read + Debug> Scanner<Reader> {
 #[cfg(test)]
 mod tests {
     #![allow(unused_macros)]
-    use crate::scanner::{Lexeme, Scanner, ScannerMode};
-    use crate::{reader_from_bytes, reader_from_relative_file};
-    use std::env;
+
     use std::fs::File;
     use std::io::BufReader;
     use std::time::Instant;
+    use std::{env, fs};
+
+    use bytesize::ByteSize;
+
+    use crate::errors::ParserResult;
+    use crate::scanner::{Lexeme, Scanner, ScannerMode};
+    use crate::{reader_from_bytes, reader_from_file, reader_from_relative_file};
 
     #[test]
     fn should_handle_empty_input() {
@@ -511,41 +516,35 @@ mod tests {
     }
 
     #[test]
-    fn scan_small_file() {
-        let reader = reader_from_relative_file!("fixtures/samples/json/simple_structure.json");
-        let scanner = Scanner::new(reader);
-        let start = Instant::now();
-        while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
-            if lex.lexeme == Lexeme::EndOfInput {
-                break;
+    fn should_scan_basic_test_files_without_panic() {
+        for f in fs::read_dir("fixtures/json").unwrap() {
+            let path = f.unwrap().path();
+            if path.is_file() {
+                let start = Instant::now();
+                let len = fs::metadata(&path).unwrap().len();
+                let reader = reader_from_file!(&path);
+                let scanner = Scanner::new(reader);
+                loop {
+                    let consumed = scanner.with_mode(ScannerMode::ProduceWhitespace).consume();
+                    match consumed {
+                        Ok(packed) => {
+                            if packed.lexeme == Lexeme::EndOfInput {
+                                println!(
+                                    "Scanned {} in {:?} [{:?}]",
+                                    ByteSize(len),
+                                    start.elapsed(),
+                                    &path,
+                                );
+                                break;
+                            }
+                        }
+                        Err(err) => {
+                            println!("Error whilst scanning {:?}", &path);
+                            panic!()
+                        }
+                    }
+                }
             }
         }
-        println!("Scanned all UTF-8 in {:?}", start.elapsed());
-    }
-
-    #[test]
-    fn scan_large_file() {
-        let reader = reader_from_relative_file!("fixtures/samples/json/events.json");
-        let scanner = Scanner::new(reader);
-        let start = Instant::now();
-        while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
-            if lex.lexeme == Lexeme::EndOfInput {
-                break;
-            }
-        }
-        println!("Scanned all UTF-8 in {:?}", start.elapsed());
-    }
-
-    #[test]
-    fn scan_complex_file() {
-        let reader = reader_from_relative_file!("fixtures/samples/json/twitter.json");
-        let scanner = Scanner::new(reader);
-        let start = Instant::now();
-        while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
-            if lex.lexeme == Lexeme::EndOfInput {
-                break;
-            }
-        }
-        println!("Scanned all UTF-8 in {:?}", start.elapsed());
     }
 }

@@ -15,7 +15,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Reader: Debug + Read>(&self, input: Reader) {
+    pub fn parse<Reader: Read>(&self, input: Reader) -> ParserResult<()> {
         let mut lexer = Lexer::new(self.strings.clone(), input);
         loop {
             let token = lexer.consume();
@@ -34,10 +34,12 @@ impl Parser {
                     Token::EndOfInput => break,
                 },
                 Err(err) => {
-                    println!("Error encountered during parse: {:?}", err)
+                    println!("Error encountered during parse: {:?}", err);
+                    return Err(err);
                 }
             }
         }
+        Ok(())
     }
 }
 
@@ -53,24 +55,30 @@ impl Default for Parser {
 mod tests {
     #![allow(unused_macros)]
     use crate::parser::Parser;
-    use crate::reader_from_relative_file;
-    use std::env;
+    use crate::{reader_from_file, reader_from_relative_file};
+    use bytesize::ByteSize;
     use std::fs::File;
     use std::io::BufReader;
     use std::time::Instant;
+    use std::{env, fs};
 
     #[test]
-    fn should_provide_a_sensible_default() {
-        let parser = Parser::default();
-        assert_eq!(0, parser.strings.borrow().len());
-    }
-
-    #[test]
-    fn should_parse_simple_json() {
-        let start = Instant::now();
-        let reader = reader_from_relative_file!("fixtures/samples/json/simple_structure.json");
-        let parser = Parser::default();
-        parser.parse(reader);
-        println!("Parsed in {:?}", start.elapsed());
+    fn should_parse_basic_test_files() {
+        for f in fs::read_dir("fixtures/json").unwrap() {
+            let path = f.unwrap().path();
+            if path.is_file() {
+                let len = fs::metadata(&path).unwrap().len();
+                let start = Instant::now();
+                let reader = reader_from_file!(path.to_str().unwrap());
+                let parser = Parser::default();
+                assert!(parser.parse(reader).is_ok());
+                println!(
+                    "Parsed {} in {:?} [{:?}]",
+                    ByteSize(len),
+                    start.elapsed(),
+                    path,
+                );
+            }
+        }
     }
 }

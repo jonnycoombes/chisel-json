@@ -81,7 +81,7 @@ macro_rules! packed_token {
 /// A lexer implementation which will consume a stream of lexemes from a [Scanner] and produce
 /// a stream of [Token]s.
 #[derive()]
-pub struct Lexer<'a, Reader: Debug + Read> {
+pub struct Lexer<'a, Reader: Read> {
     /// [StringTable] used for interning all parsed strings
     strings: Rc<RefCell<dyn StringTable<'a, u64>>>,
     /// The [Scanner] instance used by the lexer to source [Lexeme]s
@@ -90,7 +90,7 @@ pub struct Lexer<'a, Reader: Debug + Read> {
     buffer: String,
 }
 
-impl<'a, Reader: Debug + Read> Lexer<'a, Reader> {
+impl<'a, Reader: Read> Lexer<'a, Reader> {
     /// Construct a new [Lexer] instance which will utilise a given [StringTable]
     pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: Reader) -> Self {
         Lexer {
@@ -574,7 +574,7 @@ mod tests {
 
     #[test]
     fn should_parse_strings() {
-        let lines = lines_from_relative_file!("fixtures/samples/utf-8/strings.txt");
+        let lines = lines_from_relative_file!("fixtures/utf-8/strings.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
@@ -593,7 +593,7 @@ mod tests {
 
     #[test]
     fn should_parse_numerics() {
-        let lines = lines_from_relative_file!("fixtures/samples/utf-8/numbers.txt");
+        let lines = lines_from_relative_file!("fixtures/utf-8/numbers.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
@@ -610,7 +610,7 @@ mod tests {
 
     #[test]
     fn should_correctly_handle_invalid_numbers() {
-        let lines = lines_from_relative_file!("fixtures/samples/utf-8/invalid_numbers.txt");
+        let lines = lines_from_relative_file!("fixtures/utf-8/invalid_numbers.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
@@ -624,7 +624,7 @@ mod tests {
 
     #[test]
     fn should_correctly_identity_dodgy_strings() {
-        let lines = lines_from_relative_file!("fixtures/samples/utf-8/dodgy_strings.txt");
+        let lines = lines_from_relative_file!("fixtures/utf-8/dodgy_strings.txt");
         let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
