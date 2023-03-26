@@ -8,6 +8,14 @@ macro_rules! reader_from_relative_file {
 }
 
 #[macro_export]
+macro_rules! reader_from_file {
+    ($f : expr) => {{
+        let f = File::open($f).unwrap();
+        BufReader::new(f)
+    }};
+}
+
+#[macro_export]
 macro_rules! reader_from_bytes {
     ($b : expr) => {{
         let buffer: &[u8] = $b.as_bytes();
