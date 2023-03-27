@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::io::Read;
+use std::io::{BufRead, Read};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -81,18 +81,18 @@ macro_rules! packed_token {
 /// A lexer implementation which will consume a stream of lexemes from a [Scanner] and produce
 /// a stream of [Token]s.
 #[derive()]
-pub struct Lexer<'a, Reader: Read> {
+pub struct Lexer<'a, B: BufRead> {
     /// [StringTable] used for interning all parsed strings
     strings: Rc<RefCell<dyn StringTable<'a, u64>>>,
     /// The [Scanner] instance used by the lexer to source [Lexeme]s
-    scanner: Scanner<Reader>,
+    scanner: Scanner<B>,
     /// Internal buffer for hoovering up strings from the input
     buffer: String,
 }
 
-impl<'a, Reader: Read> Lexer<'a, Reader> {
+impl<'a, B: BufRead> Lexer<'a, B> {
     /// Construct a new [Lexer] instance which will utilise a given [StringTable]
-    pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: Reader) -> Self {
+    pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: B) -> Self {
         Lexer {
             strings: string_table,
             scanner: Scanner::new(reader),

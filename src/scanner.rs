@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::fmt::{Debug, Display, Error, Formatter};
-use std::io::Read;
+use std::io::{BufRead, Read};
 
 use chisel_decoders::common::DecoderErrorCode;
 use chisel_decoders::utf8::Utf8Decoder;
@@ -183,11 +183,11 @@ pub enum ScannerMode {
 
 /// A scanner with support for limited lookahead
 #[derive()]
-pub struct Scanner<Reader: Read> {
+pub struct Scanner<B: BufRead> {
     /// Lexeme ring buffer, used to implement lookaheads
     buffer: RefCell<VecDeque<PackedLexeme>>,
     /// The stream used for sourcing characters from the input
-    decoder: Utf8Decoder<Reader>,
+    decoder: Utf8Decoder<B>,
     /// Coordinates of the last lexeme in the lookahead buffer
     back_coords: Cell<Coords>,
     /// Coordinates of the first lexeme in the lookahead buffer
@@ -196,9 +196,9 @@ pub struct Scanner<Reader: Read> {
     mode: Cell<ScannerMode>,
 }
 
-impl<Reader: Read> Scanner<Reader> {
+impl<B: BufRead> Scanner<B> {
     /// Create a new scanner instance with a given lookahead
-    pub fn new(reader: Reader) -> Self {
+    pub fn new(reader: B) -> Self {
         Scanner {
             buffer: RefCell::new(VecDeque::new()),
             decoder: Utf8Decoder::new(reader),
