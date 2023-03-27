@@ -1,7 +1,7 @@
 use chisel_stringtable::btree_string_table::BTreeStringTable;
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::io::Read;
+use std::io::{BufRead, Read};
 use std::rc::Rc;
 
 use crate::errors::ParserResult;
@@ -15,7 +15,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Reader: Read>(&self, input: Reader) -> ParserResult<()> {
+    pub fn parse<B: BufRead>(&self, input: B) -> ParserResult<()> {
         let mut lexer = Lexer::new(self.strings.clone(), input);
         loop {
             let token = lexer.consume();
