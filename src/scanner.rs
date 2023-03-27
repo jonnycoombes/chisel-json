@@ -267,9 +267,10 @@ impl<B: BufRead> Scanner<B> {
     pub fn lookahead(&self, count: usize) -> ParserResult<PackedLexeme> {
         assert!(count > 0);
         let mut error: Option<ParserError> = None;
-        while self.buffer.borrow().len() < count {
+        let mut buffer = self.buffer.borrow_mut();
+        while buffer.len() < count {
             match self.char_to_lexeme() {
-                Ok(l) => self.buffer.borrow_mut().push_back(l),
+                Ok(l) => buffer.push_back(l),
                 Err(err) => {
                     error = Some(err);
                     break;
@@ -278,9 +279,8 @@ impl<B: BufRead> Scanner<B> {
         }
         match error {
             None => {
-                self.front_coords
-                    .replace(self.buffer.borrow().get(0).unwrap().coords);
-                Ok(*self.buffer.borrow().get(count - 1).unwrap())
+                self.front_coords.replace(buffer.get(0).unwrap().coords);
+                Ok(*buffer.get(count - 1).unwrap())
             }
             Some(err) => Err(err),
         }
