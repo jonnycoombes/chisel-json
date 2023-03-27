@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 fast-float = "0.2.0"
 fxhash = "0.2.1"
-chisel-decoders = "0.1.14"
+chisel-decoders = "0.1.15"
 chisel-stringtable = "0.1.5"
 
 [dev-dependencies]
