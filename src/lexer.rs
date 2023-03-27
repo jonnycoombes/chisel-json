@@ -96,7 +96,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         Lexer {
             strings: string_table,
             scanner: Scanner::new(reader),
-            buffer: String::new(),
+            buffer: String::with_capacity(256),
         }
     }
 
