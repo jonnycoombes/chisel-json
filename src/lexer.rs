@@ -38,6 +38,9 @@ const FALSE_SEQUENCE: &[Lexeme] = &[
     Lexeme::Alphabetic('e'),
 ];
 
+/// Default string buffer capacity
+const DEFAULT_BUFFER_CAPACITY: usize = 128;
+
 /// Enumeration of valid JSON tokens
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -96,7 +99,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         Lexer {
             strings: string_table,
             scanner: Scanner::new(reader),
-            buffer: String::with_capacity(256),
+            buffer: String::with_capacity(DEFAULT_BUFFER_CAPACITY),
         }
     }
 
@@ -244,7 +247,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         }
     }
 
-    /// Attempt to match on a number representation.  Utilise the excellent lexical lib in order
+    /// Attempt to match on a number representation.  Utilise the excellent fast_float lib in order
     /// to carry out the actual parsing of the numeric value
     fn match_number(&mut self, first: char) -> ParserResult<PackedToken> {
         self.buffer.clear();
