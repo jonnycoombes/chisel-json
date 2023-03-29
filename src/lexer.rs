@@ -356,19 +356,21 @@ impl<'a, B: BufRead> Lexer<'a, B> {
             }
         }
 
+        Ok(packed_token!(
+            Token::Str(self.compute_intern_hash(self.buffer.as_str())),
+            start_coords,
+            self.scanner.back_coords()
+        ))
+    }
+
+    /// Compute a hash value for a given string slice, either a pre-existing interned string,
+    /// or a new addition to the string table
+    #[inline(always)]
+    fn compute_intern_hash(&self, value: &str) -> u64 {
         let mut strings = self.strings.borrow_mut();
-        if let Some(hash) = strings.contains(self.buffer.as_str()) {
-            Ok(packed_token!(
-                Token::Str(hash),
-                start_coords,
-                self.scanner.back_coords()
-            ))
-        } else {
-            Ok(packed_token!(
-                Token::Str(strings.add(self.buffer.as_str())),
-                start_coords,
-                self.scanner.back_coords()
-            ))
+        match strings.contains(value) {
+            Some(h) => h,
+            None => strings.add(value),
         }
     }
 
@@ -517,12 +519,13 @@ mod tests {
     use std::io::{BufRead, BufReader};
     use std::rc::Rc;
 
+    use chisel_stringtable::btree_string_table::BTreeStringTable;
+    use chisel_stringtable::common::StringTable;
+
     use crate::coords::{Coords, Span};
     use crate::errors::{ParserError, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
     use crate::{lines_from_relative_file, reader_from_bytes};
-    use chisel_stringtable::btree_string_table::BTreeStringTable;
-    use chisel_stringtable::common::StringTable;
 
     #[test]
     fn should_parse_basic_tokens() {
