@@ -5,6 +5,7 @@
 extern crate core;
 
 pub mod coords;
+mod emitter;
 pub mod errors;
 mod lexer;
 pub mod parser;
