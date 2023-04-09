@@ -4,6 +4,7 @@
 extern crate core;
 
 use crate::coords::Span;
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 pub mod coords;
@@ -23,7 +24,7 @@ pub enum JsonValue<'a> {
     /// Array of values
     Array(Vec<JsonValue<'a>>),
     /// Canonical string value
-    String(&'a str),
+    String(Cow<'a, str>),
     /// Canonical number value
     Number(f64),
     /// Canonical boolean value
