@@ -39,7 +39,7 @@ const FALSE_SEQUENCE: &[Lexeme] = &[
 ];
 
 /// Default string buffer capacity
-const DEFAULT_BUFFER_CAPACITY: usize = 128;
+const DEFAULT_BUFFER_CAPACITY: usize = 1024;
 
 /// Enumeration of valid JSON tokens
 #[derive(Debug, Clone, PartialEq)]
@@ -81,6 +81,13 @@ macro_rules! packed_token {
     };
 }
 
+#[macro_export]
+macro_rules! packed_token_to_pair {
+    ($t:expr) => {
+        ($t.token, $t.span)
+    };
+}
+
 /// A lexer implementation which will consume a stream of lexemes from a [Scanner] and produce
 /// a stream of [Token]s.
 #[derive()]
@@ -94,7 +101,7 @@ pub struct Lexer<'a, B: BufRead> {
 }
 
 impl<'a, B: BufRead> Lexer<'a, B> {
-    /// Construct a new [Lexer] instance which will utilise a given [StringTable]
+    /// Construct a new *validating* [Lexer] instance which will utilise a given [StringTable]
     pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: B) -> Self {
         Lexer {
             strings: string_table,
@@ -118,6 +125,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
                 Lexeme::RightBrace => self.match_end_object(),
                 Lexeme::LeftBracket => self.match_start_array(),
                 Lexeme::RightBracket => self.match_end_array(),
+                Lexeme::DoubleQuote => self.match_string(),
                 Lexeme::Comma => self.match_comma(),
                 Lexeme::Colon => self.match_colon(),
                 Lexeme::Alphabetic(c) => match c {
@@ -131,7 +139,6 @@ impl<'a, B: BufRead> Lexer<'a, B> {
                 },
                 Lexeme::Minus => self.match_number('-'),
                 Lexeme::Digit(d) => self.match_number(d),
-                Lexeme::DoubleQuote => self.match_string(),
                 Lexeme::EndOfInput => {
                     Ok(packed_token!(Token::EndOfInput, self.scanner.back_coords()))
                 }
@@ -305,7 +312,9 @@ impl<'a, B: BufRead> Lexer<'a, B> {
 
     /// Attempts to match a string token, including any escaped characters.  Does *not* perform
     /// any translation of escaped characters so that the token internals are capture in their
-    /// original format
+    /// original format. This function does perform validation on the contents of the string, to
+    /// ensure that any escape sequences etc...are well-formed.  This path is should be slower than
+    /// the raw string matching function
     fn match_string(&mut self) -> ParserResult<PackedToken> {
         self.buffer.clear();
         self.buffer.push('\"');

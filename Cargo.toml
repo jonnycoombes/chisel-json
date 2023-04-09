@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 fast-float = "0.2.0"
 fxhash = "0.2.1"
-chisel-decoders = "0.1.19"
+chisel-decoders = "1.0.0"
 chisel-stringtable = "0.1.5"
 
 [dev-dependencies]
@@ -16,10 +16,3 @@ criterion = "0.4.0"
 [[bench]]
 name = "parsing"
 harness = false
-
-[[bench]]
-name = "scanner"
-harness = false
-
-
-
