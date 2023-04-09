@@ -517,7 +517,7 @@ mod tests {
 
     #[test]
     fn should_scan_basic_test_files_without_panic() {
-        for f in fs::read_dir("fixtures/json").unwrap() {
+        for f in fs::read_dir("fixtures/json/valid").unwrap() {
             let path = f.unwrap().path();
             if path.is_file() {
                 let start = Instant::now();

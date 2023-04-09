@@ -6,7 +6,7 @@ use std::io::BufReader;
 macro_rules! build_parse_benchmark {
     ($func : tt, $filename : expr) => {
         fn $func() {
-            let f = File::open(format!("fixtures/json/{}.json", $filename)).unwrap();
+            let f = File::open(format!("fixtures/json/valid/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
             let parser = Parser::default();
             let _ = parser.parse(reader);

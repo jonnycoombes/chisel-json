@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 
 use crate::coords::Coords;
+use crate::lexer::Token;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, ParserError>;
@@ -21,7 +22,7 @@ pub enum ParserStage {
 }
 
 /// A global enumeration of error codes
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum ParserErrorCode {
     EndOfInput,
     IOError,
@@ -33,6 +34,8 @@ pub enum ParserErrorCode {
     ExpectedLexeme,
     ScannerFailure,
     StreamFailure,
+    FailedToRetrieveToken,
+    UnexpectedToken,
 }
 
 /// The general error structure
@@ -122,6 +125,19 @@ macro_rules! lexer_error {
             message: $msg.into(),
             coords: Some($coords),
             inner: Some(Box::new($inner.clone())),
+        })
+    };
+}
+
+#[macro_export]
+macro_rules! parser_error {
+    ($code: expr, $msg: expr) => {
+        Err(ParserError {
+            stage: ParserStage::Parser,
+            code: $code,
+            message: $msg.into(),
+            coords: None,
+            inner: None,
         })
     };
 }
