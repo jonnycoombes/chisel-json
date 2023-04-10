@@ -1,7 +1,8 @@
 #![allow(unused_macros)]
 
+use chisel_stringtable::btree_string_table::BTreeStringTable;
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::fmt::Debug;
 use std::io::{BufRead, Read};
 use std::rc::Rc;
@@ -57,70 +58,57 @@ pub enum Token {
     EndOfInput,
 }
 
-#[derive(Debug, Clone)]
-pub struct PackedToken {
-    /// The actual [Token]
-    pub token: Token,
-    /// The starting point in the input for the token
-    pub span: Span,
-}
+/// A packed token consists of a [Token] and the [Span] associated with it
+pub type PackedToken = (Token, Span);
 
 /// Convenience macro for packing tokens along with their positional information
 macro_rules! packed_token {
     ($t:expr, $s:expr, $e:expr) => {
-        PackedToken {
-            token: $t,
-            span: Span { start: $s, end: $e },
-        }
+        ($t, Span { start: $s, end: $e })
     };
     ($t:expr, $s:expr) => {
-        PackedToken {
-            token: $t,
-            span: Span { start: $s, end: $s },
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! packed_token_to_pair {
-    ($t:expr) => {
-        ($t.token, $t.span)
+        ($t, Span { start: $s, end: $s })
     };
 }
 
 /// A lexer implementation which will consume a stream of lexemes from a [Scanner] and produce
 /// a stream of [Token]s.
 #[derive()]
-pub struct Lexer<'a, B: BufRead> {
+pub struct Lexer<B: BufRead> {
     /// [StringTable] used for interning all parsed strings
-    strings: Rc<RefCell<dyn StringTable<'a, u64>>>,
+    strings: Rc<RefCell<dyn StringTable<'static, u64>>>,
     /// The [Scanner] instance used by the lexer to source [Lexeme]s
     scanner: Scanner<B>,
     /// Internal buffer for hoovering up strings from the input
-    buffer: String,
+    buffer: RefCell<String>,
 }
 
-impl<'a, B: BufRead> Lexer<'a, B> {
+impl<B: BufRead> Lexer<B> {
     /// Construct a new *validating* [Lexer] instance which will utilise a given [StringTable]
-    pub fn new(string_table: Rc<RefCell<dyn StringTable<'a, u64>>>, reader: B) -> Self {
+    pub fn new(reader: B) -> Self {
         Lexer {
-            strings: string_table,
+            strings: Rc::new(RefCell::new(BTreeStringTable::new())),
             scanner: Scanner::new(reader),
-            buffer: String::with_capacity(DEFAULT_BUFFER_CAPACITY),
+            buffer: RefCell::new(String::with_capacity(DEFAULT_BUFFER_CAPACITY)),
         }
+    }
+
+    /// Get a smart pointer to the internal string table used to intern strings used by the lexer
+    pub fn lookup_string(&self, key: u64) -> Cow<'static, str> {
+        self.strings.borrow().get(key).unwrap().clone()
     }
 
     /// Consume the next token from the input stream. This is a simple LA(1) algorithm,
     /// which looks ahead in the input 1 lexeme, and then based on the grammar rules, attempts
     /// to consume a token based on the prefix found. The working assumption is that ws is skipped
     /// unless parsing out specific types of tokens such as strings, numbers etc...
-    pub fn consume(&mut self) -> ParserResult<PackedToken> {
+    pub fn consume(&self) -> ParserResult<PackedToken> {
         match self
             .scanner
             .with_mode(ScannerMode::IgnoreWhitespace)
             .lookahead(1)
         {
-            Ok(packed) => match packed.lexeme {
+            Ok(packed) => match packed.0 {
                 Lexeme::LeftBrace => self.match_start_object(),
                 Lexeme::RightBrace => self.match_end_object(),
                 Lexeme::LeftBracket => self.match_start_array(),
@@ -172,10 +160,10 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         for (index, c) in seq.iter().enumerate() {
             match self.scanner.lookahead(index + 1) {
                 Ok(packed) => {
-                    if packed.lexeme != *c {
+                    if packed.0 != *c {
                         return lexer_error!(
                             ParserErrorCode::InvalidLexeme,
-                            format!("was looking for {}, found {}", c, packed.lexeme),
+                            format!("was looking for {}, found {}", c, packed.0),
                             self.scanner.back_coords()
                         );
                     }
@@ -198,7 +186,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
     fn match_one_of(&self, seq: &[Lexeme]) -> ParserResult<PackedLexeme> {
         match self.scanner.lookahead(1) {
             Ok(packed) => {
-                if seq.contains(&packed.lexeme) {
+                if seq.contains(&packed.0) {
                     Ok(packed)
                 } else {
                     lexer_error!(
@@ -226,25 +214,25 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         let la = self.scanner.lookahead(1)?;
         match first {
             '-' => {
-                if is_digit!(la.lexeme) {
+                if is_digit!(la.0) {
                     Ok(())
                 } else {
                     lexer_error!(
                         ParserErrorCode::MatchFailed,
                         "invalid numeric prefix found",
-                        la.coords
+                        la.1
                     )
                 }
             }
             '0' => {
-                if !is_digit!(la.lexeme) && !is_period!(la.lexeme) {
+                if !is_digit!(la.0) && !is_period!(la.0) {
                     return Ok(());
                 }
-                if !is_period!(la.lexeme) {
+                if !is_period!(la.0) {
                     lexer_error!(
                         ParserErrorCode::MatchFailed,
                         "invalid numeric prefix found",
-                        la.coords
+                        la.1
                     )
                 } else {
                     Ok(())
@@ -256,47 +244,52 @@ impl<'a, B: BufRead> Lexer<'a, B> {
 
     /// Attempt to match on a number representation.  Utilise the excellent fast_float lib in order
     /// to carry out the actual parsing of the numeric value
-    fn match_number(&mut self, first: char) -> ParserResult<PackedToken> {
-        self.buffer.clear();
-        self.buffer.push(first);
+    fn match_number(&self, first: char) -> ParserResult<PackedToken> {
+        let mut buffer = self.buffer.borrow_mut();
+        buffer.clear();
+        buffer.push(first);
         let start_coords = self
             .scanner
             .with_mode(ScannerMode::ProduceWhitespace)
             .consume()?
-            .coords;
-
+            .1;
+        let mut lookahead = 1;
         self.match_valid_number_prefix(first)?;
         loop {
-            let packed = self.scanner.consume()?;
-            match packed.lexeme {
-                Lexeme::Period => self.buffer.push('.'),
-                Lexeme::Digit(d) => self.buffer.push(d),
-                Lexeme::Minus => self.buffer.push('-'),
-                Lexeme::Plus => self.buffer.push('+'),
+            lookahead += 1;
+            let packed = self.scanner.lookahead(lookahead)?;
+            match packed.0 {
+                Lexeme::Period => buffer.push('.'),
+                Lexeme::Digit(d) => buffer.push(d),
+                Lexeme::Minus => buffer.push('-'),
+                Lexeme::Plus => buffer.push('+'),
                 Lexeme::Alphabetic(c) => match c {
-                    'e' | 'E' => self.buffer.push(c),
+                    'e' | 'E' => buffer.push(c),
                     _ => {
                         return lexer_error!(
                             ParserErrorCode::EndOfInput,
                             "invalid character found whilst parsing number",
-                            packed.coords
+                            packed.1
                         );
                     }
                 },
                 Lexeme::NewLine | Lexeme::Comma => break,
                 Lexeme::Whitespace(_) => break,
+                Lexeme::LeftBrace | Lexeme::RightBrace => break,
+                Lexeme::LeftBracket | Lexeme::RightBracket => break,
                 Lexeme::EndOfInput => {
                     return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "end of input found whilst parsing string",
-                        packed.coords
+                        packed.1
                     );
                 }
                 _ => break,
             }
         }
 
-        match fast_float::parse(&self.buffer) {
+        self.scanner.discard(lookahead);
+        match fast_float::parse(buffer.as_bytes()) {
             Ok(n) => Ok(packed_token!(
                 Token::Num(n),
                 start_coords,
@@ -315,50 +308,51 @@ impl<'a, B: BufRead> Lexer<'a, B> {
     /// original format. This function does perform validation on the contents of the string, to
     /// ensure that any escape sequences etc...are well-formed.  This path is should be slower than
     /// the raw string matching function
-    fn match_string(&mut self) -> ParserResult<PackedToken> {
-        self.buffer.clear();
-        self.buffer.push('\"');
+    fn match_string(&self) -> ParserResult<PackedToken> {
+        let mut buffer = self.buffer.borrow_mut();
+        buffer.clear();
+        buffer.push('\"');
 
         let start_coords = self
             .scanner
             .with_mode(ScannerMode::ProduceWhitespace)
             .consume()?
-            .coords;
+            .1;
 
         loop {
             let packed = self.scanner.consume()?;
-            match packed.lexeme {
-                Lexeme::Escape => self.match_escape_sequence()?,
+            match packed.0 {
+                Lexeme::Escape => self.match_escape_sequence(&mut buffer)?,
                 Lexeme::DoubleQuote => {
-                    self.buffer.push('\"');
+                    buffer.push('\"');
                     break;
                 }
-                Lexeme::NonAlphabetic(c) => self.buffer.push(c),
-                Lexeme::Alphabetic(c) => self.buffer.push(c),
-                Lexeme::Digit(c) => self.buffer.push(c),
-                Lexeme::Whitespace(c) => self.buffer.push(c),
-                Lexeme::LeftBrace => self.buffer.push('{'),
-                Lexeme::RightBrace => self.buffer.push('}'),
-                Lexeme::LeftBracket => self.buffer.push('['),
-                Lexeme::RightBracket => self.buffer.push(']'),
-                Lexeme::Plus => self.buffer.push('+'),
-                Lexeme::Minus => self.buffer.push('-'),
-                Lexeme::Colon => self.buffer.push(':'),
-                Lexeme::Comma => self.buffer.push(':'),
-                Lexeme::Period => self.buffer.push('.'),
-                Lexeme::SingleQuote => self.buffer.push('\''),
+                Lexeme::NonAlphabetic(c) => buffer.push(c),
+                Lexeme::Alphabetic(c) => buffer.push(c),
+                Lexeme::Digit(c) => buffer.push(c),
+                Lexeme::Whitespace(c) => buffer.push(c),
+                Lexeme::LeftBrace => buffer.push('{'),
+                Lexeme::RightBrace => buffer.push('}'),
+                Lexeme::LeftBracket => buffer.push('['),
+                Lexeme::RightBracket => buffer.push(']'),
+                Lexeme::Plus => buffer.push('+'),
+                Lexeme::Minus => buffer.push('-'),
+                Lexeme::Colon => buffer.push(':'),
+                Lexeme::Comma => buffer.push(':'),
+                Lexeme::Period => buffer.push('.'),
+                Lexeme::SingleQuote => buffer.push('\''),
                 Lexeme::EndOfInput => {
                     return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "end of input found whilst parsing string",
-                        packed.coords
+                        packed.1
                     );
                 }
                 Lexeme::NewLine => {
                     return lexer_error!(
                         ParserErrorCode::EndOfInput,
                         "newline found whilst parsing string",
-                        packed.coords
+                        packed.1
                     );
                 }
                 _ => break,
@@ -366,7 +360,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
         }
 
         Ok(packed_token!(
-            Token::Str(self.compute_intern_hash(self.buffer.as_str())),
+            Token::Str(self.compute_intern_hash(buffer.as_str())),
             start_coords,
             self.scanner.back_coords()
         ))
@@ -384,22 +378,22 @@ impl<'a, B: BufRead> Lexer<'a, B> {
     }
 
     /// Match a valid string escape sequence
-    fn match_escape_sequence(&mut self) -> ParserResult<()> {
-        self.buffer.push('\\');
+    fn match_escape_sequence(&self, buffer: &mut RefMut<String>) -> ParserResult<()> {
+        buffer.push('\\');
         let packed = self.scanner.consume()?;
-        match packed.lexeme {
-            Lexeme::DoubleQuote => self.buffer.push('\"'),
+        match packed.0 {
+            Lexeme::DoubleQuote => buffer.push('\"'),
             Lexeme::Alphabetic(c) => match c {
                 'u' => {
-                    self.buffer.push(c);
-                    self.match_unicode_escape_sequence()?
+                    buffer.push(c);
+                    self.match_unicode_escape_sequence(buffer)?
                 }
-                'n' | 't' | 'r' | '\\' | '/' | 'b' | 'f' => self.buffer.push(c),
+                'n' | 't' | 'r' | '\\' | '/' | 'b' | 'f' => buffer.push(c),
                 _ => {
                     return lexer_error!(
                         ParserErrorCode::InvalidCharacter,
                         "invalid escape sequence detected",
-                        packed.coords
+                        packed.1
                     );
                 }
             },
@@ -410,18 +404,18 @@ impl<'a, B: BufRead> Lexer<'a, B> {
 
     /// Match a valid unicode escape sequence in the form uXXXX where each X is a valid hex
     /// digit
-    fn match_unicode_escape_sequence(&mut self) -> ParserResult<()> {
+    fn match_unicode_escape_sequence(&self, buffer: &mut RefMut<String>) -> ParserResult<()> {
         for _ in 1..=4 {
             let packed = self.scanner.consume()?;
-            match packed.lexeme {
+            match packed.0 {
                 Lexeme::Alphabetic(c) | Lexeme::Digit(c) => {
                     if c.is_ascii_hexdigit() {
-                        self.buffer.push(c);
+                        buffer.push(c);
                     } else {
                         return lexer_error!(
                             ParserErrorCode::InvalidCharacter,
                             "invalid hex escape code detected",
-                            packed.coords
+                            packed.1
                         );
                     }
                 }
@@ -429,7 +423,7 @@ impl<'a, B: BufRead> Lexer<'a, B> {
                     return lexer_error!(
                         ParserErrorCode::InvalidCharacter,
                         "invalid escape sequence detected",
-                        packed.coords
+                        packed.1
                     );
                 }
             }
@@ -486,37 +480,37 @@ impl<'a, B: BufRead> Lexer<'a, B> {
     /// Consume a left brace from the input and and return a [PackedToken]
     fn match_start_object(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::StartObject, result.coords))
+        Ok(packed_token!(Token::StartObject, result.1))
     }
 
     /// Consume a right brace from the input and and return a [PackedToken]
     fn match_end_object(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::EndObject, result.coords))
+        Ok(packed_token!(Token::EndObject, result.1))
     }
 
     /// Consume a left bracket from the input and and return a [PackedToken]
     fn match_start_array(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::StartArray, result.coords))
+        Ok(packed_token!(Token::StartArray, result.1))
     }
 
     /// Consume a right bracket from the input and and return a [PackedToken]
     fn match_end_array(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::EndArray, result.coords))
+        Ok(packed_token!(Token::EndArray, result.1))
     }
 
     /// Consume a comma from the input and and return a [PackedToken]
     fn match_comma(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::Comma, result.coords))
+        Ok(packed_token!(Token::Comma, result.1))
     }
 
     /// Consume a colon from the input and and return a [PackedToken]
     fn match_colon(&self) -> ParserResult<PackedToken> {
         let result = self.scanner.consume()?;
-        Ok(packed_token!(Token::Colon, result.coords))
+        Ok(packed_token!(Token::Colon, result.1))
     }
 }
 
@@ -539,14 +533,13 @@ mod tests {
     #[test]
     fn should_parse_basic_tokens() {
         let reader = reader_from_bytes!("{}[],:");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-        let mut lexer = Lexer::new(table, reader);
+        let lexer = Lexer::new(reader);
         let mut tokens: Vec<Token> = vec![];
         let mut spans: Vec<Span> = vec![];
         for _ in 1..=7 {
             let token = lexer.consume().unwrap();
-            tokens.push(token.token);
-            spans.push(token.span);
+            tokens.push(token.0);
+            spans.push(token.1);
         }
         assert_eq!(
             tokens,
@@ -565,14 +558,13 @@ mod tests {
     #[test]
     fn should_parse_null_and_booleans() {
         let reader = reader_from_bytes!("null true    falsetruefalse");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-        let mut lexer = Lexer::new(table, reader);
+        let lexer = Lexer::new(reader);
         let mut tokens: Vec<Token> = vec![];
         let mut spans: Vec<Span> = vec![];
         for _ in 1..=6 {
             let token = lexer.consume().unwrap();
-            tokens.push(token.token);
-            spans.push(token.span);
+            tokens.push(token.0);
+            spans.push(token.1);
         }
         assert_eq!(
             tokens,
@@ -590,15 +582,14 @@ mod tests {
     #[test]
     fn should_parse_strings() {
         let lines = lines_from_relative_file!("fixtures/utf-8/strings.txt");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(table.clone(), reader);
+                let lexer = Lexer::new(reader);
                 let token = lexer.consume().unwrap();
-                match token.token {
+                match token.0 {
                     Token::Str(hash) => {
-                        assert_eq!(table.borrow().get(hash).unwrap(), l.as_str())
+                        assert_eq!(lexer.lookup_string(hash), l.as_str())
                     }
                     _ => panic!(),
                 }
@@ -609,14 +600,13 @@ mod tests {
     #[test]
     fn should_parse_numerics() {
         let lines = lines_from_relative_file!("fixtures/utf-8/numbers.txt");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(table.clone(), reader);
+                let lexer = Lexer::new(reader);
                 let token = lexer.consume().unwrap();
                 assert_eq!(
-                    token.token,
+                    token.0,
                     Token::Num(fast_float::parse(l.replace(',', "")).unwrap())
                 );
             }
@@ -626,11 +616,10 @@ mod tests {
     #[test]
     fn should_correctly_handle_invalid_numbers() {
         let lines = lines_from_relative_file!("fixtures/utf-8/invalid_numbers.txt");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(table.clone(), reader);
+                let lexer = Lexer::new(reader);
                 let token = lexer.consume();
                 assert!(token.is_err());
             }
@@ -640,17 +629,16 @@ mod tests {
     #[test]
     fn should_correctly_identity_dodgy_strings() {
         let lines = lines_from_relative_file!("fixtures/utf-8/dodgy_strings.txt");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
         for l in lines.flatten() {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(table.clone(), reader);
+                let lexer = Lexer::new(reader);
                 let mut error_token: Option<ParserError> = None;
                 loop {
                     let token = lexer.consume();
                     match token {
                         Ok(packed) => {
-                            if packed.token == Token::EndOfInput {
+                            if packed.0 == Token::EndOfInput {
                                 break;
                             }
                         }
@@ -674,8 +662,7 @@ mod tests {
     #[test]
     fn should_correctly_report_errors_for_booleans() {
         let reader = reader_from_bytes!("true farse");
-        let table = Rc::new(RefCell::new(BTreeStringTable::new()));
-        let mut lexer = Lexer::new(table.clone(), reader);
+        let lexer = Lexer::new(reader);
         let mut results: Vec<ParserResult<PackedToken>> = vec![];
         for _ in 1..=2 {
             results.push(lexer.consume());

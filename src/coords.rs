@@ -87,7 +87,7 @@ impl std::ops::Sub for Coords {
 }
 
 /// A [Span] represents a linear interval within the parser input
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Span {
     /// Start [Coords] for the span
     pub start: Coords,

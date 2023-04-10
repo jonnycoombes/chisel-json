@@ -36,6 +36,9 @@ pub enum ParserErrorCode {
     StreamFailure,
     FailedToRetrieveToken,
     UnexpectedToken,
+    PairExpected,
+    InvalidObject,
+    InvalidArray,
 }
 
 /// The general error structure

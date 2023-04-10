@@ -18,9 +18,10 @@ mod scanner;
 mod test_macros;
 
 /// Basic enumeration of different Json values
+#[derive(Debug)]
 pub enum JsonValue<'a> {
     /// Map of values
-    Object(HashMap<&'a str, JsonValue<'a>>),
+    Object(HashMap<String, JsonValue<'a>>),
     /// Array of values
     Array(Vec<JsonValue<'a>>),
     /// Canonical string value
@@ -31,15 +32,4 @@ pub enum JsonValue<'a> {
     Boolean(bool),
     /// Canonical null value
     Null,
-}
-
-/// Wrapper struct that contains both a parsed [JsonValue] along with additional parse information
-/// such as the [Span] relating to the value, and an arbitrary attribute type [T]
-pub struct AttributeJsonValue<'a, T> {
-    /// The wrapped [JsonValue]
-    inner: JsonValue<'a>,
-    /// A [Span] containing coordinates for the value
-    span: Span,
-    /// Attributes of type [T]
-    attributes: T,
 }

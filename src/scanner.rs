@@ -154,22 +154,13 @@ impl Display for Lexeme {
     }
 }
 
-/// Structure for packing a lexeme together with it's input coordinates
-#[derive(Debug, Copy, Clone)]
-pub struct PackedLexeme {
-    /// The [Lexeme]
-    pub lexeme: Lexeme,
-    /// The [InputCoords] for the lexeme
-    pub coords: Coords,
-}
+/// A packed lexeme is just a pair consisting of a [Lexeme] and its [Coords]
+pub type PackedLexeme = (Lexeme, Coords);
 
 /// Macro for packing a lexeme and its coordinates into a single structure
 macro_rules! packed_lexeme {
     ($l:expr, $c:expr) => {
-        PackedLexeme {
-            lexeme: $l,
-            coords: $c,
-        }
+        ($l, $c)
     };
 }
 
@@ -232,7 +223,7 @@ impl<B: BufRead> Scanner<B> {
         match buffer.is_empty() {
             false => {
                 let lex = buffer.pop_front().unwrap();
-                self.front_coords.replace(lex.coords);
+                self.front_coords.replace(lex.1);
                 Ok(lex)
             }
             true => match self.char_to_lexeme() {
@@ -279,7 +270,7 @@ impl<B: BufRead> Scanner<B> {
         }
         match error {
             None => {
-                self.front_coords.replace(buffer.get(0).unwrap().coords);
+                self.front_coords.replace(buffer.get(0).unwrap().1);
                 Ok(*buffer.get(count - 1).unwrap())
             }
             Some(err) => Err(err),
@@ -394,7 +385,7 @@ mod tests {
             .with_mode(ScannerMode::IgnoreWhitespace)
             .consume()
             .unwrap();
-        assert_eq!(eoi.lexeme, Lexeme::EndOfInput);
+        assert_eq!(eoi.0, Lexeme::EndOfInput);
     }
 
     #[test]
@@ -404,8 +395,8 @@ mod tests {
         let mut lexemes: Vec<Lexeme> = vec![];
 
         while let Ok(lex) = scanner.with_mode(ScannerMode::IgnoreWhitespace).consume() {
-            lexemes.push(lex.lexeme);
-            if lex.lexeme == Lexeme::EndOfInput {
+            lexemes.push(lex.0);
+            if lex.0 == Lexeme::EndOfInput {
                 break;
             }
         }
@@ -435,7 +426,7 @@ mod tests {
         }
         assert_eq!(scanner.back_coords().column, 4);
         let lex = scanner.consume().unwrap();
-        assert_eq!(lex.coords.column, 1);
+        assert_eq!(lex.1.column, 1);
     }
 
     #[test]
@@ -445,8 +436,8 @@ mod tests {
         let mut lexemes: Vec<Lexeme> = vec![];
 
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
-            lexemes.push(lex.lexeme);
-            if lex.lexeme == Lexeme::EndOfInput {
+            lexemes.push(lex.0);
+            if lex.0 == Lexeme::EndOfInput {
                 break;
             }
         }
@@ -483,8 +474,8 @@ mod tests {
         let scanner = Scanner::new(reader);
         let mut lexemes: Vec<Lexeme> = vec![];
         while let Ok(lex) = scanner.with_mode(ScannerMode::ProduceWhitespace).consume() {
-            lexemes.push(lex.lexeme);
-            if lex.lexeme == Lexeme::EndOfInput {
+            lexemes.push(lex.0);
+            if lex.0 == Lexeme::EndOfInput {
                 break;
             }
         }
@@ -528,7 +519,7 @@ mod tests {
                     let consumed = scanner.with_mode(ScannerMode::ProduceWhitespace).consume();
                     match consumed {
                         Ok(packed) => {
-                            if packed.lexeme == Lexeme::EndOfInput {
+                            if packed.0 == Lexeme::EndOfInput {
                                 println!(
                                     "Scanned {} in {:?} [{:?}]",
                                     ByteSize(len),
