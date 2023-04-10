@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 use crate::coords::Span;
 use crate::errors::{ParserError, ParserErrorCode, ParserResult, ParserStage};
-use crate::lexer::{Lexer, PackedToken, Token};
+use crate::lexer_old::{Lexer, PackedToken, Token};
 use crate::parser_error;
 use crate::paths::{PathElement, PathElementStack};
 use crate::JsonValue;
@@ -30,6 +30,7 @@ pub struct Parser<B: BufRead> {
     path: PathElementStack,
     /// The [Lexer] used by the parser
     lexer: Lexer<B>,
+    
     last_span: Span,
 }
 

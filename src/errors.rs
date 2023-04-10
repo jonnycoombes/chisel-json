@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 
 use crate::coords::Coords;
-use crate::lexer::Token;
+use crate::lexer_old::Token;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, ParserError>;
@@ -13,8 +13,6 @@ pub type ParserResult<T> = Result<T, ParserError>;
 pub enum ParserStage {
     /// The stream stage of the parser
     Stream,
-    /// The scanning stage of the parser
-    Scanner,
     /// The lexer stage of the parser
     Lexer,
     /// The parsing/AST construction stage of the parser

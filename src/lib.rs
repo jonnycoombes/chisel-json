@@ -10,12 +10,11 @@ use std::collections::HashMap;
 pub mod coords;
 pub mod errors;
 mod events;
-mod lexer;
 pub mod parser;
 mod paths;
-mod scanner;
 #[cfg(test)]
 mod test_macros;
+mod lexer;
 
 /// Basic enumeration of different Json values
 #[derive(Debug)]
