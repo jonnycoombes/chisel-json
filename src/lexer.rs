@@ -1,5 +1,6 @@
 use crate::coords::{Coords, Span};
 use crate::errors::{ParserError, ParserErrorCode, ParserResult, ParserStage};
+use crate::parser::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
@@ -127,7 +128,15 @@ impl<B: BufRead> Lexer<B> {
     }
 
     /// Match on a valid Json number representation, taking into account valid prefixes allowed
-    /// within Json but discarding anything that may be allowed by a more general representation
+    /// within Json but discarding anything that may be allowed by a more general representations.
+    ///
+    /// Few rules are applied here, leading to different error conditions:
+    /// - All representations must have a valid prefix
+    /// - Only a single exponent can be specified
+    /// - Only a single decimal point can be specified
+    /// - Exponents must be well-formed
+    /// - An non-exponent alphabetic found in the representation will result in an error
+    /// - Numbers can be terminated by commas, brackets and whitespace only (end of pair, end of array)
     fn match_number(&mut self) -> ParserResult<PackedToken> {
         let start_coords = self.coords;
         let mut seen_e = false;
@@ -187,9 +196,23 @@ impl<B: BufRead> Lexer<B> {
                                 self.coords
                             );
                         }
-                        _ => {
+                        ']' | ',' => {
                             self.pushback();
                             break;
+                        }
+                        ch if ch.is_whitespace() => {
+                            self.pushback();
+                            break;
+                        }
+                        ch => {
+                            return lexer_error!(
+                                ParserErrorCode::InvalidNumericRepresentation,
+                                format!(
+                                    "found an invalid character terminating a number: \"{}\"",
+                                    ch
+                                ),
+                                self.coords
+                            );
                         }
                     },
                     Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
@@ -200,9 +223,19 @@ impl<B: BufRead> Lexer<B> {
             }
         }
 
+        self.try_parse_buffer_to_float(start_coords, self.coords)
+    }
+
+    /// Use the fast float library to try and parse out an [f64] from the current buffer contents
+    #[inline]
+    fn try_parse_buffer_to_float(
+        &mut self,
+        start_coords: Coords,
+        end_coords: Coords,
+    ) -> ParserResult<PackedToken> {
         let s: String = self.buffer.iter().collect();
         match fast_float::parse(s.as_bytes()) {
-            Ok(n) => packed_token!(Token::Num(n), start_coords, self.coords),
+            Ok(n) => packed_token!(Token::Num(n), start_coords, end_coords),
             Err(_) => lexer_error!(
                 ParserErrorCode::MatchFailed,
                 "invalid number found in input",
@@ -213,9 +246,10 @@ impl<B: BufRead> Lexer<B> {
 
     /// Check that a numeric representation is prefixed correctly.
     ///
-    /// Basically a couple of rules here:
-    /// - A leading minus sign can only be following by a non-zero digit
-    /// - A leading zero can only be followed by a period. (No padding allowed).
+    /// A few rules here:
+    /// - A leading minus must be followed by a digit
+    /// - A leading minus must be followed by at most one zero before a period
+    /// - Any number > zero can't have a leading zero in the representation
     fn match_valid_number_prefix(&mut self) -> ParserResult<()> {
         assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
         match self.buffer[0] {
