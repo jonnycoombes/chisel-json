@@ -85,11 +85,7 @@ impl<B: BufRead> Lexer<B> {
         loop {
             match self.decoder.decode_next() {
                 Ok(c) => {
-                    if c == '\n' {
-                        coords.inc(true);
-                    } else {
-                        coords.inc(false);
-                    }
+                    coords.inc(c == '\n');
                     if !skip_whitespace {
                         buffer.push(c);
                     } else if !c.is_whitespace() {
