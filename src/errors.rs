@@ -3,7 +3,6 @@
 use std::borrow::Cow;
 
 use crate::coords::Coords;
-use crate::lexer_old::Token;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, ParserError>;
@@ -23,20 +22,8 @@ pub enum ParserStage {
 #[derive(Debug, Clone)]
 pub enum ParserErrorCode {
     EndOfInput,
-    IOError,
-    InvalidByteSequence,
-    InvalidCharSequence,
-    InvalidCharacter,
-    InvalidLexeme,
-    MatchFailed,
-    ExpectedLexeme,
-    ScannerFailure,
     StreamFailure,
-    FailedToRetrieveToken,
-    UnexpectedToken,
-    PairExpected,
-    InvalidObject,
-    InvalidArray,
+    NonUtf8InputDetected
 }
 
 /// The general error structure
@@ -64,37 +51,6 @@ macro_rules! stream_error {
             message: $msg.into(),
             coords: None,
             inner: None,
-        })
-    };
-}
-
-#[macro_export]
-macro_rules! scanner_error {
-    ($code: expr, $msg : expr) => {
-        Err(ParserError {
-            stage: ParserStage::Scanner,
-            code: $code,
-            message: $msg.into(),
-            coords: None,
-            inner: None,
-        })
-    };
-    ($code: expr, $msg : expr, $coords : expr) => {
-        Err(ParserError {
-            stage: ParserStage::Scanner,
-            code: $code,
-            message: $msg.into(),
-            coords: Some($coords),
-            inner: None,
-        })
-    };
-    ($code: expr, $msg : expr, $coords : expr, $inner : expr) => {
-        Err(ParserError {
-            stage: ParserStage::Scanner,
-            code: $code,
-            message: $msg.into(),
-            coords: Some($coords),
-            inner: Some(Box::new($inner.clone())),
         })
     };
 }

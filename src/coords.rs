@@ -15,6 +15,19 @@ pub struct Coords {
     pub column: usize,
 }
 
+impl Coords {
+    pub fn inc(&mut self, newline: bool) {
+        if newline {
+            self.absolute += 1;
+            self.line += 1;
+            self.column = 1;
+        } else {
+            self.absolute += 1;
+            self.column += 1;
+        }
+    }
+}
+
 /// Extract the line number from a [Coords]
 #[macro_export]
 macro_rules! line {
