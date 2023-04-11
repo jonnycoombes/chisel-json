@@ -23,7 +23,13 @@ pub enum ParserStage {
 pub enum ParserErrorCode {
     EndOfInput,
     StreamFailure,
-    NonUtf8InputDetected
+    NonUtf8InputDetected,
+    UnexpectedToken,
+    PairExpected,
+    InvalidObject,
+    InvalidArray,
+    MatchFailed,
+    InvalidNumericRepresentation,
 }
 
 /// The general error structure

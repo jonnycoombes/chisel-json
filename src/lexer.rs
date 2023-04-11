@@ -6,12 +6,18 @@ use chisel_decoders::utf8::Utf8Decoder;
 use chisel_stringtable::btree_string_table::BTreeStringTable;
 use chisel_stringtable::common::StringTable;
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::io::BufRead;
 use std::rc::Rc;
 
 /// Default lookahead buffer size
 const DEFAULT_BUFFER_SIZE: usize = 0xff;
+/// Pattern to match for null
+const NULL_PATTERN: [char; 4] = ['n', 'u', 'l', 'l'];
+/// Pattern to match for true
+const TRUE_PATTERN: [char; 4] = ['t', 'r', 'u', 'e'];
+/// Pattern to match for false
+const FALSE_PATTERN: [char; 5] = ['f', 'a', 'l', 's', 'e'];
 
 /// Enumeration of valid JSON tokens
 #[derive(Debug, Clone, PartialEq)]
@@ -35,10 +41,10 @@ pub type PackedToken = (Token, Span);
 /// Convenience macro for packing tokens along with their positional information
 macro_rules! packed_token {
     ($t:expr, $s:expr, $e:expr) => {
-        ($t, Span { start: $s, end: $e })
+        Ok(($t, Span { start: $s, end: $e }))
     };
     ($t:expr, $s:expr) => {
-        ($t, Span { start: $s, end: $s })
+        Ok(($t, Span { start: $s, end: $s }))
     };
 }
 
@@ -50,10 +56,13 @@ pub struct Lexer<B: BufRead> {
     string_table: Rc<RefCell<dyn StringTable<'static, u64>>>,
 
     /// Lookahead buffer
-    buffer: Rc<RefCell<Vec<char>>>,
+    buffer: Vec<char>,
+
+    /// Optional pushback character
+    pushback: Option<char>,
 
     /// Current input [Coords]
-    coords: Rc<RefCell<Coords>>,
+    coords: Coords,
 }
 
 impl<B: BufRead> Lexer<B> {
@@ -61,8 +70,9 @@ impl<B: BufRead> Lexer<B> {
         Lexer {
             decoder: Utf8Decoder::new(reader),
             string_table: Rc::new(RefCell::new(BTreeStringTable::new())),
-            buffer: Rc::new(RefCell::new(Vec::with_capacity(DEFAULT_BUFFER_SIZE))),
-            coords: Rc::new(RefCell::new(Coords::default())),
+            buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
+            pushback: None,
+            coords: Coords::default(),
         }
     }
 
@@ -71,27 +81,281 @@ impl<B: BufRead> Lexer<B> {
         self.string_table.borrow().get(key).unwrap().clone()
     }
 
+    /// Reset the current state
+    fn reset(&mut self) {
+        self.buffer.clear();
+        self.pushback = None;
+    }
+
     /// Consume the next [Token] from the input
-    pub fn consume(&self) -> ParserResult<PackedToken> {
-        Ok(packed_token!(Token::Null, Coords::default()))
+    pub fn consume(&mut self) -> ParserResult<PackedToken> {
+        self.reset();
+        match self.advance(true) {
+            Ok(_) => match self.buffer[0] {
+                '{' => packed_token!(Token::StartObject, self.coords),
+                '}' => packed_token!(Token::EndObject, self.coords),
+                '[' => packed_token!(Token::StartArray, self.coords),
+                ']' => packed_token!(Token::EndArray, self.coords),
+                ':' => packed_token!(Token::Colon, self.coords),
+                ',' => packed_token!(Token::Comma, self.coords),
+                'n' => self.match_null(),
+                't' => self.match_true(),
+                'f' => self.match_false(),
+                '-' => self.match_number(),
+                d if d.is_ascii_digit() => self.match_number(),
+                _ => packed_token!(Token::Null, self.coords),
+            },
+            Err(err) => match err.code {
+                ParserErrorCode::EndOfInput => {
+                    packed_token!(Token::EndOfInput, self.coords)
+                }
+                _ => lexer_error!(err.code, err.message, err.coords.unwrap()),
+            },
+        }
+    }
+
+    /// Advance n characters in the input
+    #[inline]
+    fn advance_n(&mut self, n: usize, skip_whitespace: bool) -> ParserResult<()> {
+        for _ in 0..n {
+            match self.advance(skip_whitespace) {
+                Ok(_) => (),
+                Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
+            }
+        }
+        Ok(())
+    }
+
+    /// Match on a valid Json number representation, taking into account valid prefixes allowed
+    /// within Json but discarding anything that may be allowed by a more general representation
+    fn match_number(&mut self) -> ParserResult<PackedToken> {
+        let start_coords = self.coords;
+        let mut seen_e = false;
+        let mut seen_period = false;
+        match self.match_valid_number_prefix() {
+            Ok(()) => loop {
+                match self.advance(false) {
+                    Ok(_) => match self.buffer.last().unwrap() {
+                        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => (),
+                        'e' | 'E' => match seen_e {
+                            false => {
+                                match self.advance(false) {
+                                    Ok(_) => match self.buffer.last().unwrap() {
+                                        '+' | '-' => (),
+                                        _ => {
+                                            return lexer_error!(
+                                                ParserErrorCode::InvalidNumericRepresentation,
+                                                "malformed exponent detected",
+                                                self.coords
+                                            )
+                                        }
+                                    },
+                                    Err(err) => {
+                                        return lexer_error!(
+                                            err.code,
+                                            err.message,
+                                            err.coords.unwrap()
+                                        )
+                                    }
+                                }
+                                seen_e = true;
+                            }
+                            true => {
+                                return lexer_error!(
+                                    ParserErrorCode::InvalidNumericRepresentation,
+                                    "found multiple exponents",
+                                    self.coords
+                                );
+                            }
+                        },
+                        '.' => match seen_period {
+                            false => {
+                                seen_period = true;
+                            }
+                            true => {
+                                return lexer_error!(
+                                    ParserErrorCode::InvalidNumericRepresentation,
+                                    "found multiple decimal points",
+                                    self.coords
+                                );
+                            }
+                        },
+                        ch if ch.is_alphabetic() => {
+                            return lexer_error!(
+                                ParserErrorCode::InvalidNumericRepresentation,
+                                "found non-numerics within representation",
+                                self.coords
+                            );
+                        }
+                        _ => {
+                            self.pushback();
+                            break;
+                        }
+                    },
+                    Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
+                }
+            },
+            Err(err) => {
+                return lexer_error!(err.code, err.message, err.coords.unwrap());
+            }
+        }
+
+        let s: String = self.buffer.iter().collect();
+        match fast_float::parse(s.as_bytes()) {
+            Ok(n) => packed_token!(Token::Num(n), start_coords, self.coords),
+            Err(_) => lexer_error!(
+                ParserErrorCode::MatchFailed,
+                "invalid number found in input",
+                start_coords
+            ),
+        }
+    }
+
+    /// Check that a numeric representation is prefixed correctly.
+    ///
+    /// Basically a couple of rules here:
+    /// - A leading minus sign can only be following by a non-zero digit
+    /// - A leading zero can only be followed by a period. (No padding allowed).
+    fn match_valid_number_prefix(&mut self) -> ParserResult<()> {
+        assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
+        match self.buffer[0] {
+            '-' => match self.advance(false) {
+                Ok(_) => match self.buffer[1] {
+                    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => Ok(()),
+                    '0' => match self.advance(false) {
+                        Ok(_) => match self.buffer[2] {
+                            '.' => Ok(()),
+                            _ => lexer_error!(
+                                ParserErrorCode::InvalidNumericRepresentation,
+                                "only one leading zero is allowed",
+                                self.coords
+                            ),
+                        },
+                        Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
+                    },
+                    ch => lexer_error!(
+                        ParserErrorCode::InvalidNumericRepresentation,
+                        format!("minus followed by illegal character: \"{}\"", ch),
+                        self.coords
+                    ),
+                },
+                Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
+            },
+            '0' => match self.advance(false) {
+                Ok(()) => match self.buffer[1] {
+                    '.' => Ok(()),
+                    '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => lexer_error!(
+                        ParserErrorCode::InvalidNumericRepresentation,
+                        "only one leading zero is allowed",
+                        self.coords
+                    ),
+                    _ => {
+                        self.pushback();
+                        Ok(())
+                    }
+                },
+                Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
+            },
+            _ => Ok(()),
+        }
+    }
+
+    /// Match on a null token
+    fn match_null(&mut self) -> ParserResult<PackedToken> {
+        let start_coords = self.coords;
+        match self.advance_n(3, false) {
+            Ok(_) => {
+                if self.buffer[0..=3] == NULL_PATTERN {
+                    packed_token!(Token::Null, start_coords, self.coords)
+                } else {
+                    lexer_error!(
+                        ParserErrorCode::MatchFailed,
+                        "\"null\" expected",
+                        start_coords
+                    )
+                }
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Match on a true token
+    fn match_true(&mut self) -> ParserResult<PackedToken> {
+        let start_coords = self.coords;
+        match self.advance_n(3, false) {
+            Ok(_) => {
+                if self.buffer[0..=3] == TRUE_PATTERN {
+                    packed_token!(Token::Bool(true), start_coords, self.coords)
+                } else {
+                    lexer_error!(
+                        ParserErrorCode::MatchFailed,
+                        "\"true\" expected",
+                        start_coords
+                    )
+                }
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Match on a false token
+    fn match_false(&mut self) -> ParserResult<PackedToken> {
+        let start_coords = self.coords;
+        match self.advance_n(4, false) {
+            Ok(_) => {
+                if self.buffer[0..=4] == FALSE_PATTERN {
+                    packed_token!(Token::Bool(false), start_coords, self.coords)
+                } else {
+                    lexer_error!(
+                        ParserErrorCode::MatchFailed,
+                        "\"null\" expected",
+                        start_coords
+                    )
+                }
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Get the next character from either the pushback or from the decoder
+    #[inline]
+    fn next_char(&mut self) -> DecoderResult<char> {
+        match self.pushback {
+            Some(c) => {
+                self.pushback = None;
+                Ok(c)
+            }
+            None => self.decoder.decode_next(),
+        }
+    }
+
+    /// Transfer the last character in the buffer to the pushback
+    #[inline]
+    fn pushback(&mut self) {
+        if !self.buffer.is_empty() {
+            self.pushback = self.buffer.pop();
+        } else {
+            self.pushback = None;
+        }
     }
 
     /// Advance a character in the input stream, and push onto the end of the internal buffer. This
     /// will update the current input [Coords]. Optionally skip whitespace in the input, (but still
     /// update the coordinates accordingly).  
-    fn advance(&self, skip_whitespace: bool) -> ParserResult<()> {
-        let mut buffer = self.buffer.borrow_mut();
-        let mut coords = self.coords.borrow_mut();
+    fn advance(&mut self, skip_whitespace: bool) -> ParserResult<()> {
         loop {
-            match self.decoder.decode_next() {
+            match self.next_char() {
                 Ok(c) => {
-                    coords.inc(c == '\n');
-                    if !skip_whitespace {
-                        buffer.push(c);
-                    } else if !c.is_whitespace() {
-                        buffer.push(c)
+                    self.coords.inc(c == '\n');
+                    if skip_whitespace {
+                        if !c.is_whitespace() {
+                            self.buffer.push(c);
+                            break;
+                        }
+                    } else {
+                        self.buffer.push(c);
+                        break;
                     }
-                    break;
                 }
                 Err(err) => {
                     return match err.code {
@@ -109,5 +373,164 @@ impl<B: BufRead> Lexer<B> {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::env;
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+    use std::rc::Rc;
+
+    use chisel_stringtable::btree_string_table::BTreeStringTable;
+    use chisel_stringtable::common::StringTable;
+
+    use crate::coords::{Coords, Span};
+    use crate::errors::{ParserError, ParserResult};
+    use crate::lexer::{Lexer, PackedToken, Token};
+    use crate::{lines_from_relative_file, reader_from_bytes};
+
+    #[test]
+    fn should_parse_basic_tokens() {
+        let reader = reader_from_bytes!("{}[],:");
+        let mut lexer = Lexer::new(reader);
+        let mut tokens: Vec<Token> = vec![];
+        let mut spans: Vec<Span> = vec![];
+        for _ in 1..=7 {
+            let token = lexer.consume().unwrap();
+            tokens.push(token.0);
+            spans.push(token.1);
+        }
+        assert_eq!(
+            tokens,
+            [
+                Token::StartObject,
+                Token::EndObject,
+                Token::StartArray,
+                Token::EndArray,
+                Token::Comma,
+                Token::Colon,
+                Token::EndOfInput
+            ]
+        );
+    }
+
+    #[test]
+    fn should_parse_null_and_booleans() {
+        let reader = reader_from_bytes!("null true    falsetruefalse");
+        let mut lexer = Lexer::new(reader);
+        let mut tokens: Vec<Token> = vec![];
+        let mut spans: Vec<Span> = vec![];
+        for _ in 1..=6 {
+            let token = lexer.consume().unwrap();
+            tokens.push(token.0);
+            spans.push(token.1);
+        }
+        assert_eq!(
+            tokens,
+            [
+                Token::Null,
+                Token::Bool(true),
+                Token::Bool(false),
+                Token::Bool(true),
+                Token::Bool(false),
+                Token::EndOfInput
+            ]
+        );
+    }
+
+    #[test]
+    fn should_parse_strings() {
+        let lines = lines_from_relative_file!("fixtures/utf-8/strings.txt");
+        for l in lines.flatten() {
+            if !l.is_empty() {
+                let reader = reader_from_bytes!(l);
+                let mut lexer = Lexer::new(reader);
+                let token = lexer.consume().unwrap();
+                match token.0 {
+                    Token::Str(hash) => {
+                        assert_eq!(lexer.lookup_string(hash), l.as_str())
+                    }
+                    _ => panic!(),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn should_parse_numerics() {
+        let lines = lines_from_relative_file!("fixtures/utf-8/numbers.txt");
+        for l in lines.flatten() {
+            if !l.is_empty() {
+                let reader = reader_from_bytes!(l);
+                let mut lexer = Lexer::new(reader);
+                let token = lexer.consume().unwrap();
+                assert_eq!(
+                    token.0,
+                    Token::Num(fast_float::parse(l.replace(',', "")).unwrap())
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn should_correctly_handle_invalid_numbers() {
+        let lines = lines_from_relative_file!("fixtures/utf-8/invalid_numbers.txt");
+        for l in lines.flatten() {
+            if !l.is_empty() {
+                let reader = reader_from_bytes!(l);
+                let mut lexer = Lexer::new(reader);
+                let token = lexer.consume();
+                assert!(token.is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn should_correctly_identity_dodgy_strings() {
+        let lines = lines_from_relative_file!("fixtures/utf-8/dodgy_strings.txt");
+        for l in lines.flatten() {
+            if !l.is_empty() {
+                let reader = reader_from_bytes!(l);
+                let mut lexer = Lexer::new(reader);
+                let mut error_token: Option<ParserError> = None;
+                loop {
+                    let token = lexer.consume();
+                    match token {
+                        Ok(packed) => {
+                            if packed.0 == Token::EndOfInput {
+                                break;
+                            }
+                        }
+                        Err(err) => {
+                            error_token = Some(err.clone());
+                            println!(
+                                "Dodgy string found: '{}' -> {} : {}",
+                                l,
+                                err.message,
+                                err.coords.unwrap()
+                            );
+                            break;
+                        }
+                    }
+                }
+                assert!(error_token.is_some());
+            }
+        }
+    }
+
+    #[test]
+    fn should_correctly_report_errors_for_booleans() {
+        let reader = reader_from_bytes!("true farse");
+        let mut lexer = Lexer::new(reader);
+        let mut results: Vec<ParserResult<PackedToken>> = vec![];
+        for _ in 1..=2 {
+            results.push(lexer.consume());
+        }
+        assert!(results[0].is_ok());
+        assert!(results[1].is_err());
+        println!("Parse error: {:?}", results[1]);
     }
 }
