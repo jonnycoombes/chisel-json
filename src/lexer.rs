@@ -99,12 +99,17 @@ impl<B: BufRead> Lexer<B> {
                 ']' => packed_token!(Token::EndArray, self.coords),
                 ':' => packed_token!(Token::Colon, self.coords),
                 ',' => packed_token!(Token::Comma, self.coords),
+                '\"' => self.match_string(),
                 'n' => self.match_null(),
                 't' => self.match_true(),
                 'f' => self.match_false(),
                 '-' => self.match_number(),
                 d if d.is_ascii_digit() => self.match_number(),
-                _ => packed_token!(Token::Null, self.coords),
+                ch => lexer_error!(
+                    ParserErrorCode::InvalidCharacter,
+                    format!("invalid character found in input: \"{}\"", ch),
+                    self.coords
+                ),
             },
             Err(err) => match err.code {
                 ParserErrorCode::EndOfInput => {
@@ -115,16 +120,9 @@ impl<B: BufRead> Lexer<B> {
         }
     }
 
-    /// Advance n characters in the input
-    #[inline]
-    fn advance_n(&mut self, n: usize, skip_whitespace: bool) -> ParserResult<()> {
-        for _ in 0..n {
-            match self.advance(skip_whitespace) {
-                Ok(_) => (),
-                Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
-            }
-        }
-        Ok(())
+    /// Match on a valid Json string.
+    fn match_string(&mut self) -> ParserResult<PackedToken> {
+        packed_token!(Token::Str(1), self.coords)
     }
 
     /// Match on a valid Json number representation, taking into account valid prefixes allowed
@@ -371,6 +369,18 @@ impl<B: BufRead> Lexer<B> {
         } else {
             self.pushback = None;
         }
+    }
+
+    /// Advance n characters in the input
+    #[inline]
+    fn advance_n(&mut self, n: usize, skip_whitespace: bool) -> ParserResult<()> {
+        for _ in 0..n {
+            match self.advance(skip_whitespace) {
+                Ok(_) => (),
+                Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
+            }
+        }
+        Ok(())
     }
 
     /// Advance a character in the input stream, and push onto the end of the internal buffer. This

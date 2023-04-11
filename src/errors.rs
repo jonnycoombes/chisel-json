@@ -28,6 +28,7 @@ pub enum ParserErrorCode {
     PairExpected,
     InvalidObject,
     InvalidArray,
+    InvalidCharacter,
     MatchFailed,
     InvalidNumericRepresentation,
 }

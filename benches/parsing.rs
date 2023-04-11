@@ -8,8 +8,8 @@ macro_rules! build_parse_benchmark {
         fn $func() {
             let f = File::open(format!("fixtures/json/valid/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
-            let mut parser = Parser::new(reader);
-            let _ = parser.parse();
+            let parser = Parser::default();
+            let _ = parser.parse(reader);
         }
     };
 }
