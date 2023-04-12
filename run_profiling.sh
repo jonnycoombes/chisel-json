@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 ansiGreen='\033[0;32m'
 ansiLightGrey='\033[1;37m'
