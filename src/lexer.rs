@@ -10,7 +10,7 @@ use std::io::BufRead;
 use std::rc::Rc;
 
 /// Default lookahead buffer size
-const DEFAULT_BUFFER_SIZE: usize = 0xff;
+const DEFAULT_BUFFER_SIZE: usize = 4096;
 /// Pattern to match for null
 const NULL_PATTERN: [char; 4] = ['n', 'u', 'l', 'l'];
 /// Pattern to match for true
@@ -130,7 +130,7 @@ impl<B: BufRead> Lexer<B> {
                                     }
                                 }
                                 Err(err) => {
-                                    return lexer_error!(err.code, err.message, err.coords.unwrap())
+                                    return lexer_error!(err.code, err.message, err.coords.unwrap());
                                 }
                             },
                             ch => {
@@ -138,11 +138,11 @@ impl<B: BufRead> Lexer<B> {
                                     ParserErrorCode::InvalidEscapeSequence,
                                     format!("found illegal escape sequence: \"\\{}\"", ch),
                                     self.coords
-                                )
+                                );
                             }
                         },
                         Err(err) => {
-                            return lexer_error!(err.code, err.message, err.coords.unwrap())
+                            return lexer_error!(err.code, err.message, err.coords.unwrap());
                         }
                     },
                     '\"' => {
@@ -184,7 +184,7 @@ impl<B: BufRead> Lexer<B> {
                                                 ParserErrorCode::InvalidNumericRepresentation,
                                                 "malformed exponent detected",
                                                 self.coords
-                                            )
+                                            );
                                         }
                                     },
                                     Err(err) => {
@@ -192,7 +192,7 @@ impl<B: BufRead> Lexer<B> {
                                             err.code,
                                             err.message,
                                             err.coords.unwrap()
-                                        )
+                                        );
                                     }
                                 }
                                 have_exponent = true;
@@ -447,7 +447,7 @@ impl<B: BufRead> Lexer<B> {
                         DecoderErrorCode::EndOfInput => {
                             lexer_error!(ParserErrorCode::EndOfInput, err.message)
                         }
-                    }
+                    };
                 }
             }
         }
