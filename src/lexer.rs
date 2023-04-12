@@ -85,7 +85,6 @@ impl<B: BufRead> Lexer<B> {
     /// Reset the current state
     fn reset(&mut self) {
         self.buffer.clear();
-        self.pushback = None;
     }
 
     /// Consume the next [Token] from the input
