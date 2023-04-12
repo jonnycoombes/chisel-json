@@ -1,6 +1,7 @@
 ""
 "this is a simple test"
 "\nthis is a simple \t escaped test"
+"here is a unicode sequence \u55fe"
 "5 + 7 = ?"
 "Which one is correct team name in NBA?"
 "<a href=\"http://twitter.com/download/iphone\" rel=\"nofollow\">Twitter for iPhone</a>"
