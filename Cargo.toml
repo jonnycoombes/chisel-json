@@ -10,11 +10,11 @@ chisel-decoders = "1.0.0"
 [dev-dependencies]
 bytesize = "1.2.0"
 criterion = "0.4.0"
+pprof = {version = "0.11.1", features = ["flamegraph", "criterion", "protobuf"]}
 
 [[bench]]
 name = "parsing"
 harness = false
-
 
 [[bench]]
 name = "lexing"
