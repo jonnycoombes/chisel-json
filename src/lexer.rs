@@ -308,6 +308,7 @@ impl<B: BufRead> Lexer<B> {
         }
     }
 
+    #[inline]
     fn check_following_zero(&mut self) -> Result<(), ParserError> {
         match self.buffer[1] {
             '.' => Ok(()),
@@ -321,18 +322,21 @@ impl<B: BufRead> Lexer<B> {
         }
     }
 
+    #[inline]
     fn check_following_minus(&mut self) -> Result<(), ParserError> {
         match self.buffer[1] {
             match_non_zero_digits!() => Ok(()),
             '0' => {
                 self.advance(false)
                     .and_then(|_| {
-                        match self.buffer[2] {
-                            '.' => Ok(()),
-                            _ =>
-                                lexer_error!(ParserErrorCode::InvalidNumericRepresentation,
-                                                    "only one leading zero is allowed", self.coords)
+                        if self.buffer[2] != '.' {
+                            return lexer_error!(
+                                    ParserErrorCode::InvalidNumericRepresentation,
+                                    "only one leading zero is allowed",
+                                    self.coords
+                                );
                         }
+                        Ok(())
                     })
             }
             ch =>
