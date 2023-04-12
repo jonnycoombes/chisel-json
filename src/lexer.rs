@@ -235,7 +235,7 @@ impl<B: BufRead> Lexer<B> {
                                 self.coords
                             );
                         }
-                        ']' | ',' => {
+                        ']' | ',' | '}' => {
                             self.pushback();
                             break;
                         }

@@ -97,6 +97,7 @@ impl Parser {
         let mut values: Vec<JsonValue> = vec![];
         loop {
             match lexer.consume()? {
+                (Token::StartArray, _) => values.push(self.parse_array(lexer)?),
                 (Token::EndArray, _) => return Ok(JsonValue::Array(values)),
                 (Token::StartObject, _) => values.push(self.parse_object(lexer)?),
                 (Token::Str(hash), _) => values.push(JsonValue::String(lexer.lookup_string(hash))),
@@ -138,6 +139,7 @@ mod tests {
     fn should_parse_basic_test_files() {
         for f in fs::read_dir("fixtures/json/valid").unwrap() {
             let path = f.unwrap().path();
+            println!("Parsing {:?}", &path);
             if path.is_file() {
                 let len = fs::metadata(&path).unwrap().len();
                 let start = Instant::now();
