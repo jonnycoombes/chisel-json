@@ -182,7 +182,7 @@ impl<B: BufRead> Lexer<B> {
         let mut have_exponent = false;
         let mut have_decimal = false;
         match self.match_valid_number_prefix() {
-            Ok(()) => loop {
+            Ok(_) => loop {
                 match self.advance(false) {
                     Ok(_) => match self.buffer.last().unwrap() {
                         match_digits!() => (),
