@@ -1,4 +1,3 @@
-use chisel_stringtable::btree_string_table::BTreeStringTable;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -12,7 +11,6 @@ use crate::lexer::{Lexer, Token};
 use crate::parser_error;
 use crate::paths::{PathElement, PathElementStack};
 use crate::JsonValue;
-use chisel_stringtable::common::StringTable;
 
 /// Check whether a packed token contains a colon token
 macro_rules! is_token_colon {
@@ -42,7 +40,7 @@ impl Parser {
         match lexer.consume()? {
             (Token::StartObject, _) => self.parse_object(lexer),
             (Token::StartArray, _) => self.parse_array(lexer),
-            (Token::Str(hash), _) => Ok(JsonValue::String(lexer.lookup_string(hash))),
+            (Token::Str(str), _) => Ok(JsonValue::String(Cow::Owned(str))),
             (Token::Num(value), _) => Ok(JsonValue::Number(value)),
             (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
@@ -63,11 +61,11 @@ impl Parser {
         let mut pairs: HashMap<String, JsonValue> = HashMap::new();
         loop {
             match lexer.consume()? {
-                (Token::Str(hash), _) => {
+                (Token::Str(str), _) => {
                     let colon = lexer.consume()?;
                     if is_token_colon!(colon) {
                         pairs.insert(
-                            lexer.lookup_string(hash).to_string(),
+                            str,
                             self.parse_value(lexer)?,
                         );
                     } else {
@@ -100,7 +98,7 @@ impl Parser {
                 (Token::StartArray, _) => values.push(self.parse_array(lexer)?),
                 (Token::EndArray, _) => return Ok(JsonValue::Array(values)),
                 (Token::StartObject, _) => values.push(self.parse_object(lexer)?),
-                (Token::Str(hash), _) => values.push(JsonValue::String(lexer.lookup_string(hash))),
+                (Token::Str(str), _) => values.push(JsonValue::String(Cow::Owned(str))),
                 (Token::Num(value), _) => values.push(JsonValue::Number(value)),
                 (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
                 (Token::Null, _) => values.push(JsonValue::Null),

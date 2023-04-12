@@ -20,6 +20,7 @@ build_parse_benchmark!(bc_block, "bc_block");
 build_parse_benchmark!(gh_emojis, "gh_emojis");
 build_parse_benchmark!(historical_events, "historical_events");
 build_parse_benchmark!(events, "events");
+build_parse_benchmark!(twitter, "twitter");
 
 fn benchmark_blog_entries(c: &mut Criterion) {
     c.bench_function("parse of blog_entries", |b| b.iter(blog_entries));
@@ -42,9 +43,12 @@ fn benchmark_historical_events(c: &mut Criterion) {
 }
 
 fn benchmark_events(c: &mut Criterion) {
-    c.bench_function("lex of events", |b| b.iter(events));
+    c.bench_function("parse of events", |b| b.iter(events));
 }
 
+fn benchmark_twitter(c: &mut Criterion) {
+    c.bench_function("parse of twitter", |b| b.iter(twitter));
+}
 criterion_group!(
     benches,
     benchmark_blog_entries,
@@ -52,6 +56,7 @@ criterion_group!(
     benchmark_bc_block,
     benchmark_gh_emojis,
     benchmark_historical_events,
-    benchmark_events
+    benchmark_events,
+    benchmark_twitter
 );
 criterion_main!(benches);
