@@ -4,8 +4,6 @@ use crate::parser::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
-use chisel_stringtable::btree_string_table::BTreeStringTable;
-use chisel_stringtable::common::StringTable;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::io::BufRead;
@@ -29,7 +27,7 @@ pub enum Token {
     EndArray,
     Colon,
     Comma,
-    Str(u64),
+    Str(String),
     Num(f64),
     Null,
     Bool(bool),
@@ -53,9 +51,6 @@ pub struct Lexer<B: BufRead> {
     /// The input [Utf8Decoder]
     decoder: Utf8Decoder<B>,
 
-    /// The [StringTable]
-    string_table: Rc<RefCell<dyn StringTable<'static, u64>>>,
-
     /// Lookahead buffer
     buffer: Vec<char>,
 
@@ -70,16 +65,10 @@ impl<B: BufRead> Lexer<B> {
     pub fn new(reader: B) -> Self {
         Lexer {
             decoder: Utf8Decoder::new(reader),
-            string_table: Rc::new(RefCell::new(BTreeStringTable::new())),
             buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
             pushback: None,
             coords: Coords::default(),
         }
-    }
-
-    /// Look up a string from the string table, given a [u64] key
-    pub fn lookup_string(&self, key: u64) -> Cow<'static, str> {
-        self.string_table.borrow().get(key).unwrap().clone()
     }
 
     /// Reset the current state
@@ -157,9 +146,7 @@ impl<B: BufRead> Lexer<B> {
                         }
                     },
                     '\"' => {
-                        let s = self.buffer_to_string();
-                        let hash = self.string_table.borrow_mut().add(s.as_str());
-                        return packed_token!(Token::Str(hash), start_coords, self.coords);
+                        return packed_token!(Token::Str(self.buffer_to_string()), start_coords, self.coords);
                     }
                     _ => (),
                 },
@@ -477,9 +464,6 @@ mod tests {
     use std::rc::Rc;
     use std::time::Instant;
 
-    use chisel_stringtable::btree_string_table::BTreeStringTable;
-    use chisel_stringtable::common::StringTable;
-
     use crate::coords::{Coords, Span};
     use crate::errors::{ParserError, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
@@ -543,8 +527,8 @@ mod tests {
                 let mut lexer = Lexer::new(reader);
                 let token = lexer.consume().unwrap();
                 match token.0 {
-                    Token::Str(hash) => {
-                        assert_eq!(lexer.lookup_string(hash), l.as_str())
+                    Token::Str(str) => {
+                        assert_eq!(str, l)
                     }
                     _ => panic!(),
                 }
