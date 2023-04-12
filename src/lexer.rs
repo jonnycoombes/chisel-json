@@ -47,6 +47,18 @@ macro_rules! packed_token {
     };
 }
 
+macro_rules! match_digits {
+    () => {
+        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    }
+}
+
+macro_rules! match_non_zero_digits {
+    () => {
+        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    }
+}
+
 pub struct Lexer<B: BufRead> {
     /// The input [Utf8Decoder]
     decoder: Utf8Decoder<B>,
@@ -173,7 +185,7 @@ impl<B: BufRead> Lexer<B> {
             Ok(()) => loop {
                 match self.advance(false) {
                     Ok(_) => match self.buffer.last().unwrap() {
-                        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => (),
+                        match_digits!() => (),
                         'e' | 'E' => {
                             if !have_exponent {
                                 match self.advance(false) {
@@ -299,7 +311,7 @@ impl<B: BufRead> Lexer<B> {
     fn check_following_zero(&mut self) -> Result<(), ParserError> {
         match self.buffer[1] {
             '.' => Ok(()),
-            '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
+            match_digits!() =>
                 lexer_error!(ParserErrorCode::InvalidNumericRepresentation,
                                     "only one leading zero is allowed", self.coords),
             _ => {
@@ -311,7 +323,7 @@ impl<B: BufRead> Lexer<B> {
 
     fn check_following_minus(&mut self) -> Result<(), ParserError> {
         match self.buffer[1] {
-            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => Ok(()),
+            match_non_zero_digits!() => Ok(()),
             '0' => {
                 self.advance(false)
                     .and_then(|_| {
