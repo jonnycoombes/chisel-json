@@ -10,7 +10,7 @@ use std::io::BufRead;
 use std::rc::Rc;
 
 /// Default lookahead buffer size
-const DEFAULT_BUFFER_SIZE: usize = 0xff;
+const DEFAULT_BUFFER_SIZE: usize = 4096;
 /// Pattern to match for null
 const NULL_PATTERN: [char; 4] = ['n', 'u', 'l', 'l'];
 /// Pattern to match for true
