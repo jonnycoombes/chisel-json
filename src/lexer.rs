@@ -284,52 +284,56 @@ impl<B: BufRead> Lexer<B> {
     fn match_valid_number_prefix(&mut self) -> ParserResult<()> {
         assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
         match self.buffer[0] {
-            '-' => match self.advance(false) {
-                Ok(_) => match self.buffer[1] {
-                    '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => Ok(()),
-                    '0' => match self.advance(false) {
-                        Ok(_) => match self.buffer[2] {
-                            '.' => Ok(()),
-                            _ => lexer_error!(
-                                ParserErrorCode::InvalidNumericRepresentation,
-                                "only one leading zero is allowed",
-                                self.coords
-                            ),
-                        },
-                        Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
-                    },
-                    ch => lexer_error!(
-                        ParserErrorCode::InvalidNumericRepresentation,
-                        format!("minus followed by illegal character: \"{}\"", ch),
-                        self.coords
-                    ),
-                },
-                Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
-            },
-            '0' => match self.advance(false) {
-                Ok(()) => match self.buffer[1] {
-                    '.' => Ok(()),
-                    '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => lexer_error!(
-                        ParserErrorCode::InvalidNumericRepresentation,
-                        "only one leading zero is allowed",
-                        self.coords
-                    ),
-                    _ => {
-                        self.pushback();
-                        Ok(())
-                    }
-                },
-                Err(err) => lexer_error!(err.code, err.message, err.coords.unwrap()),
-            },
+            '-' => {
+                self.advance(false)
+                    .and_then(|_| self.check_following_minus())
+            }
+            '0' => {
+                self.advance(false)
+                    .and_then(|_| self.check_following_zero())
+            }
             _ => Ok(()),
+        }
+    }
+
+    fn check_following_zero(&mut self) -> Result<(), ParserError> {
+        match self.buffer[1] {
+            '.' => Ok(()),
+            '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
+                lexer_error!(ParserErrorCode::InvalidNumericRepresentation,
+                                    "only one leading zero is allowed", self.coords),
+            _ => {
+                self.pushback();
+                Ok(())
+            }
+        }
+    }
+
+    fn check_following_minus(&mut self) -> Result<(), ParserError> {
+        match self.buffer[1] {
+            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => Ok(()),
+            '0' => {
+                self.advance(false)
+                    .and_then(|_| {
+                        match self.buffer[2] {
+                            '.' => Ok(()),
+                            _ =>
+                                lexer_error!(ParserErrorCode::InvalidNumericRepresentation,
+                                                    "only one leading zero is allowed", self.coords)
+                        }
+                    })
+            }
+            ch =>
+                lexer_error!(ParserErrorCode::InvalidNumericRepresentation,
+                                format!("minus followed by illegal character: \"{}\"", ch), self.coords)
         }
     }
 
     /// Match on a null token
     fn match_null(&mut self) -> ParserResult<PackedToken> {
         let start_coords = self.coords;
-        match self.advance_n(3, false) {
-            Ok(_) => {
+        self.advance_n(3, false)
+            .and_then(|_| {
                 if self.buffer[0..=3] == NULL_PATTERN {
                     packed_token!(Token::Null, start_coords, self.coords)
                 } else {
@@ -339,16 +343,14 @@ impl<B: BufRead> Lexer<B> {
                         start_coords
                     )
                 }
-            }
-            Err(err) => Err(err),
-        }
+            })
     }
 
     /// Match on a true token
     fn match_true(&mut self) -> ParserResult<PackedToken> {
         let start_coords = self.coords;
-        match self.advance_n(3, false) {
-            Ok(_) => {
+        self.advance_n(3, false)
+            .and_then(|_| {
                 if self.buffer[0..=3] == TRUE_PATTERN {
                     packed_token!(Token::Bool(true), start_coords, self.coords)
                 } else {
@@ -358,16 +360,14 @@ impl<B: BufRead> Lexer<B> {
                         start_coords
                     )
                 }
-            }
-            Err(err) => Err(err),
-        }
+            })
     }
 
     /// Match on a false token
     fn match_false(&mut self) -> ParserResult<PackedToken> {
         let start_coords = self.coords;
-        match self.advance_n(4, false) {
-            Ok(_) => {
+        self.advance_n(4, false)
+            .and_then(|_| {
                 if self.buffer[0..=4] == FALSE_PATTERN {
                     packed_token!(Token::Bool(false), start_coords, self.coords)
                 } else {
@@ -377,9 +377,7 @@ impl<B: BufRead> Lexer<B> {
                         start_coords
                     )
                 }
-            }
-            Err(err) => Err(err),
-        }
+            })
     }
 
     /// Get the next character from either the pushback or from the decoder
@@ -420,7 +418,7 @@ impl<B: BufRead> Lexer<B> {
 
     /// Advance a character in the input stream, and push onto the end of the internal buffer. This
     /// will update the current input [Coords]. Optionally skip whitespace in the input, (but still
-    /// update the coordinates accordingly).  
+    /// update the coordinates accordingly).
     fn advance(&mut self, skip_whitespace: bool) -> ParserResult<()> {
         loop {
             match self.next_char() {
