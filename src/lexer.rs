@@ -122,7 +122,51 @@ impl<B: BufRead> Lexer<B> {
 
     /// Match on a valid Json string.
     fn match_string(&mut self) -> ParserResult<PackedToken> {
-        packed_token!(Token::Str(1), self.coords)
+        let start_coords = self.coords;
+        loop {
+            match self.advance(false) {
+                Ok(_) => match self.buffer.last().unwrap() {
+                    '\\' => match self.advance(false) {
+                        Ok(_) => match self.buffer.last().unwrap() {
+                            'n' | 't' | 'r' | '\\' | '/' | 'b' | 'f' | '\"' => (),
+                            'u' => match self.advance_n(4, false) {
+                                Ok(_) => {
+                                    for i in 1..=4 {
+                                        if !self.buffer[self.buffer.len() - i].is_ascii_hexdigit() {
+                                            return lexer_error!(
+                                                ParserErrorCode::InvalidUnicodeEscapeSequence,
+                                                format!("invalid unicode escape sequence detected"),
+                                                self.coords
+                                            );
+                                        }
+                                    }
+                                }
+                                Err(err) => {
+                                    return lexer_error!(err.code, err.message, err.coords.unwrap())
+                                }
+                            },
+                            ch => {
+                                return lexer_error!(
+                                    ParserErrorCode::InvalidEscapeSequence,
+                                    format!("found illegal escape sequence: \"\\{}\"", ch),
+                                    self.coords
+                                )
+                            }
+                        },
+                        Err(err) => {
+                            return lexer_error!(err.code, err.message, err.coords.unwrap())
+                        }
+                    },
+                    '\"' => {
+                        let s = self.buffer_to_string();
+                        let hash = self.string_table.borrow_mut().add(s.as_str());
+                        return packed_token!(Token::Str(hash), start_coords, self.coords);
+                    }
+                    _ => (),
+                },
+                Err(err) => return lexer_error!(err.code, err.message, err.coords.unwrap()),
+            }
+        }
     }
 
     /// Match on a valid Json number representation, taking into account valid prefixes allowed
@@ -137,15 +181,15 @@ impl<B: BufRead> Lexer<B> {
     /// - Numbers can be terminated by commas, brackets and whitespace only (end of pair, end of array)
     fn match_number(&mut self) -> ParserResult<PackedToken> {
         let start_coords = self.coords;
-        let mut seen_e = false;
-        let mut seen_period = false;
+        let mut have_exponent = false;
+        let mut have_decimal = false;
         match self.match_valid_number_prefix() {
             Ok(()) => loop {
                 match self.advance(false) {
                     Ok(_) => match self.buffer.last().unwrap() {
                         '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => (),
-                        'e' | 'E' => match seen_e {
-                            false => {
+                        'e' | 'E' => {
+                            if !have_exponent {
                                 match self.advance(false) {
                                     Ok(_) => match self.buffer.last().unwrap() {
                                         '+' | '-' => (),
@@ -165,28 +209,26 @@ impl<B: BufRead> Lexer<B> {
                                         )
                                     }
                                 }
-                                seen_e = true;
-                            }
-                            true => {
+                                have_exponent = true;
+                            } else {
                                 return lexer_error!(
                                     ParserErrorCode::InvalidNumericRepresentation,
                                     "found multiple exponents",
                                     self.coords
                                 );
                             }
-                        },
-                        '.' => match seen_period {
-                            false => {
-                                seen_period = true;
-                            }
-                            true => {
+                        }
+                        '.' => {
+                            if !have_decimal {
+                                have_decimal = true;
+                            } else {
                                 return lexer_error!(
                                     ParserErrorCode::InvalidNumericRepresentation,
                                     "found multiple decimal points",
                                     self.coords
                                 );
                             }
-                        },
+                        }
                         ch if ch.is_alphabetic() => {
                             return lexer_error!(
                                 ParserErrorCode::InvalidNumericRepresentation,
@@ -224,6 +266,12 @@ impl<B: BufRead> Lexer<B> {
         self.try_parse_buffer_to_float(start_coords, self.coords)
     }
 
+    /// Convert the contents of the buffer into an owned [String]
+    #[inline]
+    fn buffer_to_string(&self) -> String {
+        self.buffer.iter().collect()
+    }
+
     /// Use the fast float library to try and parse out an [f64] from the current buffer contents
     #[inline]
     fn try_parse_buffer_to_float(
@@ -231,8 +279,7 @@ impl<B: BufRead> Lexer<B> {
         start_coords: Coords,
         end_coords: Coords,
     ) -> ParserResult<PackedToken> {
-        let s: String = self.buffer.iter().collect();
-        match fast_float::parse(s.as_bytes()) {
+        match fast_float::parse(self.buffer_to_string()) {
             Ok(n) => packed_token!(Token::Num(n), start_coords, end_coords),
             Err(_) => lexer_error!(
                 ParserErrorCode::MatchFailed,
@@ -366,6 +413,8 @@ impl<B: BufRead> Lexer<B> {
     fn pushback(&mut self) {
         if !self.buffer.is_empty() {
             self.pushback = self.buffer.pop();
+            self.coords.absolute -= 1;
+            self.coords.column -= 1;
         } else {
             self.pushback = None;
         }
@@ -427,6 +476,7 @@ mod tests {
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::rc::Rc;
+    use std::time::Instant;
 
     use chisel_stringtable::btree_string_table::BTreeStringTable;
     use chisel_stringtable::common::StringTable;
@@ -505,6 +555,7 @@ mod tests {
 
     #[test]
     fn should_parse_numerics() {
+        let start = Instant::now();
         let lines = lines_from_relative_file!("fixtures/utf-8/numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
@@ -517,6 +568,7 @@ mod tests {
                 );
             }
         }
+        println!("Parsed numerics in {:?}", start.elapsed());
     }
 
     #[test]

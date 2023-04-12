@@ -31,6 +31,8 @@ pub enum ParserErrorCode {
     InvalidCharacter,
     MatchFailed,
     InvalidNumericRepresentation,
+    InvalidEscapeSequence,
+    InvalidUnicodeEscapeSequence,
 }
 
 /// The general error structure

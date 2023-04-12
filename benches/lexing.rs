@@ -1,4 +1,4 @@
-use chisel_json::lexer::{Lexer, PackedToken, Token};
+use chisel_json::lexer::{Lexer, Token};
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::fs::File;
 use std::io::BufReader;
@@ -18,7 +18,6 @@ macro_rules! build_lex_benchmark {
                     }
                     Err(err) => {
                         println!("error occurred: {:?}", err);
-                        ()
                     }
                 }
             }
