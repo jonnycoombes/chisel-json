@@ -15,6 +15,19 @@ pub struct Coords {
     pub column: usize,
 }
 
+impl Coords {
+    pub fn inc(&mut self, newline: bool) {
+        if newline {
+            self.absolute += 1;
+            self.line += 1;
+            self.column = 1;
+        } else {
+            self.absolute += 1;
+            self.column += 1;
+        }
+    }
+}
+
 /// Extract the line number from a [Coords]
 #[macro_export]
 macro_rules! line {
@@ -87,7 +100,7 @@ impl std::ops::Sub for Coords {
 }
 
 /// A [Span] represents a linear interval within the parser input
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Span {
     /// Start [Coords] for the span
     pub start: Coords,
