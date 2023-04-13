@@ -16,6 +16,7 @@ pub struct Coords {
 }
 
 impl Coords {
+    #[inline]
     pub fn inc(&mut self, newline: bool) {
         if newline {
             self.absolute += 1;
