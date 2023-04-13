@@ -20,7 +20,7 @@ mod test_macros;
 #[derive(Debug)]
 pub enum JsonValue<'a> {
     /// Map of values
-    Object(HashMap<String, JsonValue<'a>>),
+    Object(Vec<(String, JsonValue<'a>)>),
     /// Array of values
     Array(Vec<JsonValue<'a>>),
     /// Canonical string value
