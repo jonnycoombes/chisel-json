@@ -9,7 +9,7 @@ chisel-decoders = "1.0.0"
 
 [dev-dependencies]
 bytesize = "1.2.0"
-criterion = "0.4.0"
+criterion = {version ="0.4.0", features = ["html_reports"]}
 pprof = {version = "0.11.1", features = ["flamegraph", "criterion", "protobuf"]}
 
 [[bench]]

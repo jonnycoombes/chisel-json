@@ -25,14 +25,14 @@ cd "$(dirname "$0")"
 
 main() {
 	echo -e "$ansiGreen"
-	echo 'Running lexer profiling for 60 seconds per benchmark'
+	echo 'Creating baseline benchmarking for trunk (lexer)'
 	echo -e "$ansiNoColour"
-	cargo bench --bench lexing -- --profile-time 60
+	cargo bench --bench lexing -- --save-baseline trunk --verbose
 
 	echo -e "$ansiGreen"
-	echo 'Running parser profiling for 60 seconds per benchmark'
+	echo 'Creating baseline benchmarking for trunk (parser)'
 	echo -e "$ansiNoColour"
-	cargo bench --bench parsing -- --profile-time 60
+	cargo bench --bench parsing -- --save-baseline trunk --verbose
 }
 
 main "$@"
