@@ -35,7 +35,7 @@ pub enum Token {
 }
 
 /// A packed token consists of a [Token] and the [Span] associated with it
-pub type PackedToken = (Token, Span);
+pub type PackedToken<'a> = (Token, Span);
 
 /// Convenience macro for packing tokens along with their positional information
 macro_rules! packed_token {
@@ -313,7 +313,7 @@ impl<B: BufRead> Lexer<B> {
     /// Convert the contents of the buffer into an owned [String]
     #[inline]
     fn buffer_to_string(&self) -> String {
-        self.buffer.iter().collect()
+        String::from_iter(self.buffer.iter())
     }
 
     /// Use the fast float library to try and parse out an [f64] from the current buffer contents

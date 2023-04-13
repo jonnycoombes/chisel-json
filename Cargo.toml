@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 fast-float = "0.2.0"
-chisel-decoders = "1.0.0"
+chisel-decoders = "1.0.1"
 
 [dev-dependencies]
 bytesize = "1.2.0"
