@@ -1,8 +1,9 @@
 use chisel_json::lexer::{Lexer, Token};
 use criterion::{criterion_group, criterion_main, Criterion};
+use pprof::criterion::{Output, PProfProfiler};
 use std::fs::File;
 use std::io::BufReader;
-use pprof::criterion::{Output, PProfProfiler};
+use std::time::Duration;
 
 macro_rules! build_lex_benchmark {
     ($func : tt, $filename : expr) => {
@@ -57,9 +58,9 @@ fn benchmark_events(c: &mut Criterion) {
     c.bench_function("lex of events", |b| b.iter(events));
 }
 
-criterion_group!{
+criterion_group! {
     name = benches;
-    config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+    config = Criterion::default().measurement_time(Duration::from_secs(60)).with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
     targets= benchmark_blog_entries,
     benchmark_simple_structure,
     benchmark_bc_block,
