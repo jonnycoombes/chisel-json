@@ -52,13 +52,13 @@ impl Parser {
 
     /// An object is just a list of comma separated KV pairs
     fn parse_object<B: BufRead>(&self, lexer: &mut Lexer<B>) -> ParserResult<JsonValue> {
-        let mut pairs: HashMap<String, JsonValue> = HashMap::new();
+        let mut pairs = vec![];
         loop {
             match lexer.consume()? {
                 (Token::Str(str), _) => {
                     let colon = lexer.consume()?;
                     if is_token_colon!(colon) {
-                        pairs.insert(str, self.parse_value(lexer)?);
+                        pairs.push((str, self.parse_value(lexer)?));
                     } else {
                         return parser_error!(Details::PairExpected, colon.1.start);
                     }
