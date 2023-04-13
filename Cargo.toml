@@ -2,6 +2,13 @@
 name = "chisel-json"
 version = "0.1.0"
 edition = "2021"
+authors = ["Jonny Coombes <jcoombes@jcs-software.co.uk>"]
+rust-version = "1.56"
+description = "Another JSON parser for Rust"
+license = "MIT OR Apache-2.0"
+keywords = ["json", "parser"]
+categories = ["parser-implementations", "text-processing"]
+repository = "https://github.com/jonnycoombes/chisel-json"
 
 [dependencies]
 fast-float = "0.2.0"

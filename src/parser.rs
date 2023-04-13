@@ -111,6 +111,16 @@ mod tests {
         let parser = Parser::default();
         let parsed = parser.parse(reader);
         assert!(parsed.is_ok());
+        println!("{parsed:?}")
+    }
+
+    #[test]
+    fn should_parse_simple_schema() {
+        let reader = reader_from_file!("fixtures/json/valid/simple_schema.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader);
+        assert!(parsed.is_ok());
+        println!("{parsed:?}")
     }
 
     #[test]
