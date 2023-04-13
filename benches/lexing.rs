@@ -7,7 +7,7 @@ use std::io::BufReader;
 macro_rules! build_lex_benchmark {
     ($func : tt, $filename : expr) => {
         fn $func() {
-            let f = File::open(format!("fixtures/json/valid/{}.json", $filename)).unwrap();
+            let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
             let mut lexer = Lexer::new(reader);
             loop {
@@ -26,45 +26,23 @@ macro_rules! build_lex_benchmark {
     };
 }
 
-build_lex_benchmark!(blog_entries, "blog_entries");
-build_lex_benchmark!(simple_structure, "simple_structure");
-build_lex_benchmark!(bc_block, "bc_block");
-build_lex_benchmark!(gh_emojis, "gh_emojis");
-build_lex_benchmark!(historical_events, "historical_events");
-build_lex_benchmark!(events, "events");
+build_lex_benchmark!(canada, "canada");
+build_lex_benchmark!(citm_catalog, "citm_catalog");
+build_lex_benchmark!(twitter, "twitter");
 
-fn benchmark_blog_entries(c: &mut Criterion) {
-    c.bench_function("lex of blog_entries", |b| b.iter(blog_entries));
+fn benchmark_canada(c: &mut Criterion) {
+    c.bench_function("lex of canada", |b| b.iter(canada));
 }
-
-fn benchmark_simple_structure(c: &mut Criterion) {
-    c.bench_function("lex of simple_structure", |b| b.iter(simple_structure));
+fn benchmark_citm_catalog(c: &mut Criterion) {
+    c.bench_function("lex of citm_catalog", |b| b.iter(citm_catalog));
 }
-
-fn benchmark_bc_block(c: &mut Criterion) {
-    c.bench_function("lex of bc_block", |b| b.iter(bc_block));
-}
-
-fn benchmark_gh_emojis(c: &mut Criterion) {
-    c.bench_function("lex of gh_emojis", |b| b.iter(gh_emojis));
-}
-
-fn benchmark_historical_events(c: &mut Criterion) {
-    c.bench_function("lex of historical events", |b| b.iter(historical_events));
-}
-
-fn benchmark_events(c: &mut Criterion) {
-    c.bench_function("lex of events", |b| b.iter(events));
+fn benchmark_twitter(c: &mut Criterion) {
+    c.bench_function("lex of twitter", |b| b.iter(twitter));
 }
 
 criterion_group! {
     name = benches;
     config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
-    targets= benchmark_blog_entries,
-    benchmark_simple_structure,
-    benchmark_bc_block,
-    benchmark_gh_emojis,
-    benchmark_historical_events,
-    benchmark_events
+    targets= benchmark_twitter, benchmark_citm_catalog, benchmark_canada
 }
 criterion_main!(benches);
