@@ -6,7 +6,7 @@ use std::io::{BufRead, Read};
 use std::rc::Rc;
 
 use crate::coords::Span;
-use crate::errors::{ParserError, ParserErrorCode, ParserResult, ParserStage};
+use crate::errors::{Details, ParserError, ParserResult, Stage};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
 use crate::paths::{PathElement, PathElementStack};
@@ -45,13 +45,7 @@ impl Parser {
             (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
             (_, span) => {
-                parser_error!(
-                    ParserErrorCode::UnexpectedToken,
-                    format!(
-                        "unexpected found whilst attempting to parse valid value: {}",
-                        span
-                    )
-                )
+                parser_error!(Details::UnexpectedToken, span.start)
             }
         }
     }
@@ -64,27 +58,15 @@ impl Parser {
                 (Token::Str(str), _) => {
                     let colon = lexer.consume()?;
                     if is_token_colon!(colon) {
-                        pairs.insert(
-                            str,
-                            self.parse_value(lexer)?,
-                        );
+                        pairs.insert(str, self.parse_value(lexer)?);
                     } else {
-                        return parser_error!(
-                            ParserErrorCode::PairExpected,
-                            format!(
-                                "expected a colon within the input, but didn't find one: {}",
-                                colon.1
-                            )
-                        );
+                        return parser_error!(Details::PairExpected, colon.1.start);
                     }
                 }
                 (Token::Comma, _) => (),
                 (Token::EndObject, _) => return Ok(JsonValue::Object(pairs)),
-                (token, span) => {
-                    return parser_error!(
-                        ParserErrorCode::InvalidObject,
-                        format!("invalid object definition found: {}, {:?}", span, token)
-                    );
+                (_token, span) => {
+                    return parser_error!(Details::InvalidObject, span.start);
                 }
             }
         }
@@ -103,11 +85,8 @@ impl Parser {
                 (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
                 (Token::Null, _) => values.push(JsonValue::Null),
                 (Token::Comma, _) => (),
-                (token, span) => {
-                    return parser_error!(
-                        ParserErrorCode::InvalidArray,
-                        format!("invalid object definition found: {}, {:?}", span, token)
-                    );
+                (_token, span) => {
+                    return parser_error!(Details::InvalidArray, span.start);
                 }
             }
         }
@@ -117,6 +96,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     #![allow(unused_macros)]
+
     use crate::parser::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
