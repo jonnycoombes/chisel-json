@@ -44,8 +44,8 @@ impl Parser {
             (Token::Num(value), _) => Ok(JsonValue::Number(value)),
             (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
-            (_, span) => {
-                parser_error!(Details::UnexpectedToken, span.start)
+            (token, span) => {
+                parser_error!(Details::UnexpectedToken(token), span.start)
             }
         }
     }

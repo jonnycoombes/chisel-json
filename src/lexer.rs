@@ -6,6 +6,7 @@ use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
+use std::fmt::{Display, Formatter};
 use std::io::BufRead;
 use std::rc::Rc;
 
@@ -32,6 +33,24 @@ pub enum Token {
     Null,
     Bool(bool),
     EndOfInput,
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::StartObject => write!(f, "StartObject"),
+            Token::EndObject => write!(f, "EndObject"),
+            Token::StartArray => write!(f, "StartArray"),
+            Token::EndArray => write!(f, "EndArray"),
+            Token::Colon => write!(f, "Colon"),
+            Token::Comma => write!(f, "Comma"),
+            Token::Str(str) => write!(f, "String(\"{}\")", str),
+            Token::Num(num) => write!(f, "Num({})", num),
+            Token::Null => write!(f, "Null"),
+            Token::Bool(bool) => write!(f, "Bool({})", bool),
+            Token::EndOfInput => write!(f, "EndOfInput"),
+        }
+    }
 }
 
 /// A packed token consists of a [Token] and the [Span] associated with it
@@ -171,7 +190,7 @@ impl<B: BufRead> Lexer<B> {
                 Details::EndOfInput => {
                     packed_token!(Token::EndOfInput, self.coords)
                 }
-                _ => lexer_error!(err.details, err.coords.unwrap()),
+                _ => lexer_error!(err.details, err.coords),
             },
         }
     }
@@ -194,7 +213,7 @@ impl<B: BufRead> Lexer<B> {
                             }
                         },
                         Err(err) => {
-                            return lexer_error!(err.details, err.coords.unwrap());
+                            return lexer_error!(err.details, err.coords);
                         }
                     },
                     match_quote!() => {
@@ -206,7 +225,7 @@ impl<B: BufRead> Lexer<B> {
                     }
                     _ => (),
                 },
-                Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
+                Err(err) => return lexer_error!(err.details, err.coords),
             }
         }
     }
@@ -287,11 +306,11 @@ impl<B: BufRead> Lexer<B> {
                             );
                         }
                     },
-                    Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
+                    Err(err) => return lexer_error!(err.details, err.coords),
                 }
             },
             Err(err) => {
-                return lexer_error!(err.details, err.coords.unwrap());
+                return lexer_error!(err.details, err.coords);
             }
         }
 
@@ -401,7 +420,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=3] == NULL_PATTERN {
                 packed_token!(Token::Null, start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(NULL_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
@@ -413,7 +438,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=3] == TRUE_PATTERN {
                 packed_token!(Token::Bool(true), start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(TRUE_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
@@ -425,7 +456,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=4] == FALSE_PATTERN {
                 packed_token!(Token::Bool(false), start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(FALSE_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
