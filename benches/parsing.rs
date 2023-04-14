@@ -20,6 +20,7 @@ build_parse_benchmark!(canada, "canada");
 build_parse_benchmark!(citm_catalog, "citm_catalog");
 build_parse_benchmark!(simple, "simple");
 build_parse_benchmark!(schema, "schema");
+build_parse_benchmark!(rota, "rota");
 
 fn benchmark_citm_catalog(c: &mut Criterion) {
     c.bench_function("parse of citm_catalog", |b| b.iter(citm_catalog));
@@ -41,9 +42,13 @@ fn benchmark_schema(c: &mut Criterion) {
     c.bench_function("parse of schema", |b| b.iter(schema));
 }
 
+fn benchmark_rota(c: &mut Criterion) {
+    c.bench_function("parse of rota", |b| b.iter(rota));
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
-    targets = benchmark_citm_catalog, benchmark_twitter, benchmark_canada, benchmark_simple, benchmark_schema
+    targets = benchmark_citm_catalog, benchmark_twitter, benchmark_canada, benchmark_simple, benchmark_schema, benchmark_rota
 }
 criterion_main!(benches);

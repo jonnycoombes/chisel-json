@@ -270,7 +270,7 @@ impl<B: BufRead> Lexer<B> {
                             self.pushback();
                             break;
                         }
-                        ch if ch.is_whitespace() => {
+                        ch if ch.is_ascii_whitespace() => {
                             self.pushback();
                             break;
                         }
@@ -313,7 +313,14 @@ impl<B: BufRead> Lexer<B> {
     /// Convert the contents of the buffer into an owned [String]
     #[inline]
     fn buffer_to_string(&self) -> String {
-        String::from_iter(self.buffer.iter())
+        let mut s = String::with_capacity(self.buffer.len());
+        self.buffer.iter().for_each(|ch| s.push(*ch));
+        s
+    }
+
+    #[inline]
+    fn buffer_to_bytes_unchecked(&self) -> Vec<u8> {
+        self.buffer.iter().map(|ch| *ch as u8).collect()
     }
 
     /// Use the fast float library to try and parse out an [f64] from the current buffer contents
@@ -323,7 +330,7 @@ impl<B: BufRead> Lexer<B> {
         start_coords: Coords,
         end_coords: Coords,
     ) -> ParserResult<PackedToken> {
-        match fast_float::parse(self.buffer_to_string()) {
+        match fast_float::parse(self.buffer_to_bytes_unchecked()) {
             Ok(n) => packed_token!(Token::Num(n), start_coords, end_coords),
             Err(_) => lexer_error!(
                 Details::InvalidNumericRepresentation(self.buffer_to_string()),
@@ -465,7 +472,7 @@ impl<B: BufRead> Lexer<B> {
                 Ok(c) => {
                     self.coords.inc(c == '\n');
                     if skip_whitespace {
-                        if !c.is_whitespace() {
+                        if !c.is_ascii_whitespace() {
                             self.buffer.push(c);
                             break;
                         }
