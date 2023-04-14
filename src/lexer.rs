@@ -1,5 +1,5 @@
 use crate::coords::{Coords, Span};
-use crate::errors::{Details, ParserError, ParserResult, Stage};
+use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::parser::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
@@ -360,7 +360,7 @@ impl<B: BufRead> Lexer<B> {
     }
 
     #[inline]
-    fn check_following_zero(&mut self) -> Result<(), ParserError> {
+    fn check_following_zero(&mut self) -> Result<(), Error> {
         match self.buffer[1] {
             match_period!() => Ok(()),
             match_digit!() => lexer_error!(
@@ -375,7 +375,7 @@ impl<B: BufRead> Lexer<B> {
     }
 
     #[inline]
-    fn check_following_minus(&mut self) -> Result<(), ParserError> {
+    fn check_following_minus(&mut self) -> Result<(), Error> {
         match self.buffer[1] {
             match_non_zero_digit!() => Ok(()),
             match_zero!() => self.advance(false).and_then(|_| {
@@ -510,7 +510,7 @@ mod tests {
     use std::time::Instant;
 
     use crate::coords::{Coords, Span};
-    use crate::errors::{ParserError, ParserResult};
+    use crate::errors::{Error, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
     use crate::{lines_from_relative_file, reader_from_bytes};
 
@@ -619,7 +619,7 @@ mod tests {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
                 let mut lexer = Lexer::new(reader);
-                let mut error_token: Option<ParserError> = None;
+                let mut error_token: Option<Error> = None;
                 loop {
                     let token = lexer.consume();
                     match token {

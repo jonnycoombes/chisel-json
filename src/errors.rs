@@ -1,11 +1,13 @@
 //! General error types for the parser
 
 use std::borrow::Cow;
+use std::fmt::{Display, Formatter};
 
 use crate::coords::Coords;
+use crate::parser::Parser;
 
 /// Global result type used throughout the parser stages
-pub type ParserResult<T> = Result<T, ParserError>;
+pub type ParserResult<T> = Result<T, Error>;
 
 /// Enumeration of the various different parser stages that can produce an error
 #[derive(Debug, Copy, Clone)]
@@ -35,13 +37,19 @@ pub enum Details {
 
 /// The general error structure
 #[derive(Debug, Clone)]
-pub struct ParserError {
+pub struct Error {
     /// The originating stage for the error
     pub stage: Stage,
     /// The global error code for the error
     pub details: Details,
     /// Optional parser coordinates
     pub coords: Option<Coords>,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
 }
 
 #[macro_export]
