@@ -270,7 +270,7 @@ impl<B: BufRead> Lexer<B> {
                             self.pushback();
                             break;
                         }
-                        ch if ch.is_whitespace() => {
+                        ch if ch.is_ascii_whitespace() => {
                             self.pushback();
                             break;
                         }
@@ -465,7 +465,7 @@ impl<B: BufRead> Lexer<B> {
                 Ok(c) => {
                     self.coords.inc(c == '\n');
                     if skip_whitespace {
-                        if !c.is_whitespace() {
+                        if !c.is_ascii_whitespace() {
                             self.buffer.push(c);
                             break;
                         }
