@@ -86,13 +86,13 @@ macro_rules! match_plus_minus {
 
 macro_rules! match_digit {
     () => {
-        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+        '0'..='9'
     };
 }
 
 macro_rules! match_non_zero_digit {
     () => {
-        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+        '1'..='9'
     };
 }
 
