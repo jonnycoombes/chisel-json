@@ -6,7 +6,7 @@ use std::io::{BufRead, Read};
 use std::rc::Rc;
 
 use crate::coords::Span;
-use crate::errors::{Details, ParserError, ParserResult, Stage};
+use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
 use crate::paths::{PathElement, PathElementStack};
@@ -44,8 +44,8 @@ impl Parser {
             (Token::Num(value), _) => Ok(JsonValue::Number(value)),
             (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
-            (_, span) => {
-                parser_error!(Details::UnexpectedToken, span.start)
+            (token, span) => {
+                parser_error!(Details::UnexpectedToken(token), span.start)
             }
         }
     }

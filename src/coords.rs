@@ -29,6 +29,16 @@ impl Coords {
     }
 }
 
+impl Display for Coords {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[abs: {}, line: {}, column: {}]",
+            self.absolute, self.line, self.column
+        )
+    }
+}
+
 /// Extract the line number from a [Coords]
 #[macro_export]
 macro_rules! line {
@@ -61,16 +71,6 @@ impl Default for Coords {
             line: 1,
             column: 0,
         }
-    }
-}
-
-impl Display for Coords {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "(line: {}, column: {}, absolute: {})",
-            self.line, self.column, self.absolute
-        )
     }
 }
 
