@@ -313,7 +313,9 @@ impl<B: BufRead> Lexer<B> {
     /// Convert the contents of the buffer into an owned [String]
     #[inline]
     fn buffer_to_string(&self) -> String {
-        String::from_iter(self.buffer.iter())
+        let mut s = String::with_capacity(self.buffer.len());
+        self.buffer.iter().for_each(|ch| s.push(*ch));
+        s
     }
 
     /// Use the fast float library to try and parse out an [f64] from the current buffer contents
