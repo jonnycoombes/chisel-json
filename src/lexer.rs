@@ -1,11 +1,12 @@
 use crate::coords::{Coords, Span};
-use crate::errors::{Details, ParserError, ParserResult, Stage};
+use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::parser::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
+use std::fmt::{Display, Formatter};
 use std::io::BufRead;
 use std::rc::Rc;
 
@@ -32,6 +33,24 @@ pub enum Token {
     Null,
     Bool(bool),
     EndOfInput,
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::StartObject => write!(f, "StartObject"),
+            Token::EndObject => write!(f, "EndObject"),
+            Token::StartArray => write!(f, "StartArray"),
+            Token::EndArray => write!(f, "EndArray"),
+            Token::Colon => write!(f, "Colon"),
+            Token::Comma => write!(f, "Comma"),
+            Token::Str(str) => write!(f, "String(\"{}\")", str),
+            Token::Num(num) => write!(f, "Num({})", num),
+            Token::Null => write!(f, "Null"),
+            Token::Bool(bool) => write!(f, "Bool({})", bool),
+            Token::EndOfInput => write!(f, "EndOfInput"),
+        }
+    }
 }
 
 /// A packed token consists of a [Token] and the [Span] associated with it
@@ -67,13 +86,13 @@ macro_rules! match_plus_minus {
 
 macro_rules! match_digit {
     () => {
-        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+        '0'..='9'
     };
 }
 
 macro_rules! match_non_zero_digit {
     () => {
-        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+        '1'..='9'
     };
 }
 
@@ -171,7 +190,7 @@ impl<B: BufRead> Lexer<B> {
                 Details::EndOfInput => {
                     packed_token!(Token::EndOfInput, self.coords)
                 }
-                _ => lexer_error!(err.details, err.coords.unwrap()),
+                _ => lexer_error!(err.details, err.coords),
             },
         }
     }
@@ -194,7 +213,7 @@ impl<B: BufRead> Lexer<B> {
                             }
                         },
                         Err(err) => {
-                            return lexer_error!(err.details, err.coords.unwrap());
+                            return lexer_error!(err.details, err.coords);
                         }
                     },
                     match_quote!() => {
@@ -206,7 +225,7 @@ impl<B: BufRead> Lexer<B> {
                     }
                     _ => (),
                 },
-                Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
+                Err(err) => return lexer_error!(err.details, err.coords),
             }
         }
     }
@@ -287,11 +306,11 @@ impl<B: BufRead> Lexer<B> {
                             );
                         }
                     },
-                    Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
+                    Err(err) => return lexer_error!(err.details, err.coords),
                 }
             },
             Err(err) => {
-                return lexer_error!(err.details, err.coords.unwrap());
+                return lexer_error!(err.details, err.coords);
             }
         }
 
@@ -360,7 +379,7 @@ impl<B: BufRead> Lexer<B> {
     }
 
     #[inline]
-    fn check_following_zero(&mut self) -> Result<(), ParserError> {
+    fn check_following_zero(&mut self) -> Result<(), Error> {
         match self.buffer[1] {
             match_period!() => Ok(()),
             match_digit!() => lexer_error!(
@@ -375,7 +394,7 @@ impl<B: BufRead> Lexer<B> {
     }
 
     #[inline]
-    fn check_following_minus(&mut self) -> Result<(), ParserError> {
+    fn check_following_minus(&mut self) -> Result<(), Error> {
         match self.buffer[1] {
             match_non_zero_digit!() => Ok(()),
             match_zero!() => self.advance(false).and_then(|_| {
@@ -401,7 +420,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=3] == NULL_PATTERN {
                 packed_token!(Token::Null, start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(NULL_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
@@ -413,7 +438,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=3] == TRUE_PATTERN {
                 packed_token!(Token::Bool(true), start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(TRUE_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
@@ -425,7 +456,13 @@ impl<B: BufRead> Lexer<B> {
             if self.buffer[0..=4] == FALSE_PATTERN {
                 packed_token!(Token::Bool(false), start_coords, self.coords)
             } else {
-                lexer_error!(Details::MatchFailed, start_coords)
+                lexer_error!(
+                    Details::MatchFailed(
+                        String::from_iter(FALSE_PATTERN.iter()),
+                        self.buffer_to_string()
+                    ),
+                    start_coords
+                )
             }
         })
     }
@@ -510,7 +547,7 @@ mod tests {
     use std::time::Instant;
 
     use crate::coords::{Coords, Span};
-    use crate::errors::{ParserError, ParserResult};
+    use crate::errors::{Error, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
     use crate::{lines_from_relative_file, reader_from_bytes};
 
@@ -619,7 +656,7 @@ mod tests {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
                 let mut lexer = Lexer::new(reader);
-                let mut error_token: Option<ParserError> = None;
+                let mut error_token: Option<Error> = None;
                 loop {
                     let token = lexer.consume();
                     match token {
@@ -630,7 +667,7 @@ mod tests {
                         }
                         Err(err) => {
                             error_token = Some(err.clone());
-                            println!("Dodgy string found: {} : {}", l, err.coords.unwrap());
+                            println!("Dodgy string found: {} : {}", l, err.coords);
                             break;
                         }
                     }
