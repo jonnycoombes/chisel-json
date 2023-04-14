@@ -667,7 +667,7 @@ mod tests {
                         }
                         Err(err) => {
                             error_token = Some(err.clone());
-                            println!("Dodgy string found: {} : {}", l, err.coords.unwrap());
+                            println!("Dodgy string found: {} : {}", l, err.coords);
                             break;
                         }
                     }
