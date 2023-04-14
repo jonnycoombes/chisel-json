@@ -318,6 +318,11 @@ impl<B: BufRead> Lexer<B> {
         s
     }
 
+    #[inline]
+    fn buffer_to_bytes_unchecked(&self) -> Vec<u8> {
+        self.buffer.iter().map(|ch| *ch as u8).collect()
+    }
+
     /// Use the fast float library to try and parse out an [f64] from the current buffer contents
     #[inline]
     fn try_parse_buffer_to_float(
@@ -325,7 +330,7 @@ impl<B: BufRead> Lexer<B> {
         start_coords: Coords,
         end_coords: Coords,
     ) -> ParserResult<PackedToken> {
-        match fast_float::parse(self.buffer_to_string()) {
+        match fast_float::parse(self.buffer_to_bytes_unchecked()) {
             Ok(n) => packed_token!(Token::Num(n), start_coords, end_coords),
             Err(_) => lexer_error!(
                 Details::InvalidNumericRepresentation(self.buffer_to_string()),
