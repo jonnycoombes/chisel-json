@@ -20,7 +20,7 @@ criterion = {version ="0.4.0", features = ["html_reports"]}
 pprof = {version = "0.11.1", features = ["flamegraph", "criterion", "protobuf"]}
 
 [[bench]]
-name = "parsing"
+name = "dom_parsing"
 harness = false
 
 [[bench]]

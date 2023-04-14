@@ -10,7 +10,7 @@ macro_rules! build_parse_benchmark {
             let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
             let parser = Parser::default();
-            let _ = parser.parse(reader);
+            let _ = parser.parse_dom(reader);
         }
     };
 }
@@ -23,27 +23,27 @@ build_parse_benchmark!(schema, "schema");
 build_parse_benchmark!(rota, "rota");
 
 fn benchmark_citm_catalog(c: &mut Criterion) {
-    c.bench_function("parse of citm_catalog", |b| b.iter(citm_catalog));
+    c.bench_function("DOM parse of citm_catalog", |b| b.iter(citm_catalog));
 }
 
 fn benchmark_twitter(c: &mut Criterion) {
-    c.bench_function("parse of twitter", |b| b.iter(twitter));
+    c.bench_function("DOM parse of twitter", |b| b.iter(twitter));
 }
 
 fn benchmark_canada(c: &mut Criterion) {
-    c.bench_function("parse of canada", |b| b.iter(canada));
+    c.bench_function("DOM parse of canada", |b| b.iter(canada));
 }
 
 fn benchmark_simple(c: &mut Criterion) {
-    c.bench_function("parse of simple", |b| b.iter(simple));
+    c.bench_function("DOM parse of simple", |b| b.iter(simple));
 }
 
 fn benchmark_schema(c: &mut Criterion) {
-    c.bench_function("parse of schema", |b| b.iter(schema));
+    c.bench_function("DOM parse of schema", |b| b.iter(schema));
 }
 
 fn benchmark_rota(c: &mut Criterion) {
-    c.bench_function("parse of rota", |b| b.iter(rota));
+    c.bench_function("DOM parse of rota", |b| b.iter(rota));
 }
 
 criterion_group! {

@@ -31,7 +31,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<B: BufRead>(&self, input: B) -> ParserResult<JsonValue> {
+    pub fn parse_dom<B: BufRead>(&self, input: B) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
         self.parse_value(&mut lexer)
     }
@@ -109,7 +109,7 @@ mod tests {
     fn should_parse_lengthy_arrays() {
         let reader = reader_from_file!("fixtures/json/valid/bc_block.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader);
+        let parsed = parser.parse_dom(reader);
         assert!(parsed.is_ok());
         println!("{parsed:?}")
     }
@@ -118,7 +118,7 @@ mod tests {
     fn should_parse_simple_schema() {
         let reader = reader_from_file!("fixtures/json/valid/simple_schema.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader);
+        let parsed = parser.parse_dom(reader);
         assert!(parsed.is_ok());
         println!("{parsed:?}")
     }
@@ -133,7 +133,7 @@ mod tests {
                 let start = Instant::now();
                 let reader = reader_from_file!(path.to_str().unwrap());
                 let parser = Parser::default();
-                let parsed = parser.parse(reader);
+                let parsed = parser.parse_dom(reader);
                 if parsed.is_err() {
                     println!("Parse of {:?} failed!", &path);
                     println!("Parse failed with errors: {:?}", &parsed)
