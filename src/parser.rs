@@ -24,14 +24,13 @@ macro_rules! is_token_colon {
 
 /// Main JSON parser struct
 #[derive(Default)]
-pub struct Parser {
+pub struct DomParser {
     /// A stack for tracking the current path within the parsed JSON
     path: PathElementStack,
-    last_span: Span,
 }
 
-impl Parser {
-    pub fn parse_dom<B: BufRead>(&self, input: B) -> ParserResult<JsonValue> {
+impl DomParser {
+    pub fn parse<B: BufRead>(&self, input: B) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
         self.parse_value(&mut lexer)
     }
@@ -41,7 +40,8 @@ impl Parser {
             (Token::StartObject, _) => self.parse_object(lexer),
             (Token::StartArray, _) => self.parse_array(lexer),
             (Token::Str(str), _) => Ok(JsonValue::String(Cow::Owned(str))),
-            (Token::Num(value), _) => Ok(JsonValue::Number(value)),
+            (Token::Float(value), _) => Ok(JsonValue::Float(value)),
+            (Token::Integer(value), _) => Ok(JsonValue::Integer(value)),
             (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
             (token, span) => {
@@ -81,7 +81,8 @@ impl Parser {
                 (Token::EndArray, _) => return Ok(JsonValue::Array(values)),
                 (Token::StartObject, _) => values.push(self.parse_object(lexer)?),
                 (Token::Str(str), _) => values.push(JsonValue::String(Cow::Owned(str))),
-                (Token::Num(value), _) => values.push(JsonValue::Number(value)),
+                (Token::Float(value), _) => values.push(JsonValue::Float(value)),
+                (Token::Integer(value), _) => values.push(JsonValue::Integer(value)),
                 (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
                 (Token::Null, _) => values.push(JsonValue::Null),
                 (Token::Comma, _) => (),
@@ -97,7 +98,7 @@ impl Parser {
 mod tests {
     #![allow(unused_macros)]
 
-    use crate::parser::Parser;
+    use crate::parser::DomParser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
@@ -108,8 +109,8 @@ mod tests {
     #[test]
     fn should_parse_lengthy_arrays() {
         let reader = reader_from_file!("fixtures/json/valid/bc_block.json");
-        let parser = Parser::default();
-        let parsed = parser.parse_dom(reader);
+        let parser = DomParser::default();
+        let parsed = parser.parse(reader);
         assert!(parsed.is_ok());
         println!("{parsed:?}")
     }
@@ -117,8 +118,8 @@ mod tests {
     #[test]
     fn should_parse_simple_schema() {
         let reader = reader_from_file!("fixtures/json/valid/simple_schema.json");
-        let parser = Parser::default();
-        let parsed = parser.parse_dom(reader);
+        let parser = DomParser::default();
+        let parsed = parser.parse(reader);
         assert!(parsed.is_ok());
         println!("{parsed:?}")
     }
@@ -132,8 +133,8 @@ mod tests {
                 let len = fs::metadata(&path).unwrap().len();
                 let start = Instant::now();
                 let reader = reader_from_file!(path.to_str().unwrap());
-                let parser = Parser::default();
-                let parsed = parser.parse_dom(reader);
+                let parser = DomParser::default();
+                let parsed = parser.parse(reader);
                 if parsed.is_err() {
                     println!("Parse of {:?} failed!", &path);
                     println!("Parse failed with errors: {:?}", &parsed)
