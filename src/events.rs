@@ -38,12 +38,3 @@ pub struct Event<'a> {
     /// The [Span] associated with the [matched]
     pub span: Span,
 }
-
-/// Trait that should be implemented by anything sinking events from the parser
-pub trait EventSink {
-    /// Called when the parser emits a new event
-    fn on_parse_event(event: &Event);
-
-    /// Called when the parser encounters an error
-    fn on_parse_error(error: &Error);
-}
