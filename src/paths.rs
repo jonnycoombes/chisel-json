@@ -15,7 +15,7 @@ pub enum PathElement {
 }
 
 /// A stack structure for managing path elements as they are synthesised by the parser. Really just
-/// a wrapper around a vec with some additional fairings to make life easier when transposing 
+/// a wrapper around a vec with some additional fairings to make life easier when transposing
 /// path components into strings
 #[derive(Default, Clone)]
 pub struct PathElementStack {
@@ -24,7 +24,6 @@ pub struct PathElementStack {
 }
 
 impl PathElementStack {
-    
     /// Push a new [PathElement] onto the stack
     pub fn push(&mut self, element: PathElement) {
         self.vec.push(element);
@@ -32,7 +31,7 @@ impl PathElementStack {
 
     /// Pop the front [PathElement] off the stack
     pub fn pop(&mut self) -> Option<PathElement> {
-       self.vec.pop() 
+        self.vec.pop()
     }
 
     /// Take a peek at the tos of the stack
@@ -44,15 +43,14 @@ impl PathElementStack {
     pub fn clear(&mut self) {
         self.vec.clear()
     }
-    
+
     /// Retrieves the length of the stack
     pub fn len(&self) -> usize {
         self.vec.len()
     }
-    
+
     /// Checks whether the stack is empty or not
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
     }
-    
 }

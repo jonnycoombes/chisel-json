@@ -1,17 +1,42 @@
+use crate::coords::Span;
+use crate::errors::Error;
 use std::borrow::Cow;
 
-/// Enumeration of the various different event types emitted by the parser
-pub enum EventType {
+/// Enumeration of the various different matches that can be produced during a parse
+#[derive(Debug)]
+pub enum Match<'a> {
+    /// Start of the input Emitted prior to anything else
+    StartOfInput,
+    /// End of the input Emitted after everything else
+    EndOfInput,
+    /// Emitted when the start of a new object is matched
     StartObject,
+    /// Emitted when a new key within an object is matched
+    ObjectKey(Cow<'a, str>),
+    /// Emitted after an object has been fully parsed
     EndObject,
+    /// Emitted when the start of an array is matched
     StartArray,
+    /// Emitted when the end of an array is matched
     EndArray,
+    /// Emitted when a string is matched
+    String(Cow<'a, str>),
+    /// Emitted when an integer is matched
+    Integer(i64),
+    /// Emitted when a float is matched
+    Float(f64),
+    /// Emitted when a boolean is matched
+    Bool(bool),
+    /// Emitted when a null is matched
+    Null,
 }
 
+/// A general event produced by the parser during a parse
+#[derive(Debug)]
 pub struct Event<'a> {
-    /// The type of the event
-    pub event_type: EventType,
+    /// The [Match] associated with the event
+    pub matched: Match<'a>,
 
-    /// An in-document path for relating to the event
-    pub path: Cow<'a, str>,
+    /// The [Span] associated with the [matched]
+    pub span: Span,
 }

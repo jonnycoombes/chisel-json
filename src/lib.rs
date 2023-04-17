@@ -25,8 +25,10 @@ pub enum JsonValue<'a> {
     Array(Vec<JsonValue<'a>>),
     /// Canonical string value
     String(Cow<'a, str>),
-    /// Canonical number value
-    Number(f64),
+    /// Floating point numeric value
+    Float(f64),
+    /// Integer numeric value
+    Integer(i64),
     /// Canonical boolean value
     Boolean(bool),
     /// Canonical null value
