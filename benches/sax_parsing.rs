@@ -10,7 +10,7 @@ macro_rules! build_parse_benchmark {
             let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
             let parser = Parser::default();
-            let _ = parser.parse(reader, &mut |_evt| {Ok(())}, &mut |_err| {});
+            let _ = parser.parse(reader, &mut |_evt| Ok(()), &mut |_err| {});
         }
     };
 }

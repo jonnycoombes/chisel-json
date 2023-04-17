@@ -8,6 +8,15 @@ use crate::Span;
 use std::borrow::Cow;
 use std::io::BufRead;
 
+macro_rules! emit_event {
+    ($cb : expr, $m : expr, $span : expr) => {
+        $cb(&Event {
+            matched: $m,
+            span: $span,
+        })
+    };
+}
+
 /// Main JSON parser struct
 #[derive(Default)]
 pub struct Parser {
@@ -42,39 +51,18 @@ impl Parser {
     {
         match lexer.consume()? {
             (Token::StartObject, span) => {
-                cb(&Event {
-                    matched: Match::StartObject,
-                    span,
-                })?;
+                emit_event!(cb, Match::StartObject, span)?;
                 self.parse_object(lexer, cb, err_cb)
             }
             (Token::StartArray, span) => {
-                cb(&Event {
-                    matched: Match::StartArray,
-                    span,
-                })?;
+                emit_event!(cb, Match::StartArray, span)?;
                 self.parse_array(lexer, cb, err_cb)
             }
-            (Token::Str(str), span) => cb(&Event {
-                matched: Match::String(Cow::Borrowed(&str)),
-                span,
-            }),
-            (Token::Float(value), span) => cb(&Event {
-                matched: Match::Float(value),
-                span,
-            }),
-            (Token::Integer(value), span) => cb(&Event {
-                matched: Match::Integer(value),
-                span,
-            }),
-            (Token::Bool(value), span) => cb(&Event {
-                matched: Match::Bool(value),
-                span,
-            }),
-            (Token::Null, span) => cb(&Event {
-                matched: Match::Null,
-                span,
-            }),
+            (Token::Str(str), span) => emit_event!(cb, Match::String(Cow::Borrowed(&str)), span),
+            (Token::Float(value), span) => emit_event!(cb, Match::Float(value), span),
+            (Token::Integer(value), span) => emit_event!(cb, Match::Integer(value), span),
+            (Token::Bool(value), span) => emit_event!(cb, Match::Bool(value), span),
+            (Token::Null, span) => emit_event!(cb, Match::Null, span),
             (token, span) => {
                 parser_error!(Details::UnexpectedToken(token), span.start)
             }
@@ -95,10 +83,7 @@ impl Parser {
         loop {
             match lexer.consume()? {
                 (Token::Str(str), span) => {
-                    cb(&Event {
-                        matched: Match::ObjectKey(Cow::Borrowed(&str)),
-                        span,
-                    })?;
+                    emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span)?;
                     let should_be_colon = lexer.consume()?;
                     match should_be_colon {
                         (Token::Colon, _) => self.parse_value(lexer, cb, err_cb)?,
@@ -109,10 +94,7 @@ impl Parser {
                 }
                 (Token::Comma, _) => (),
                 (Token::EndObject, span) => {
-                    return cb(&Event {
-                        matched: Match::EndObject,
-                        span,
-                    })
+                    return emit_event!(cb, Match::EndObject, span);
                 }
                 (_token, span) => return parser_error!(Details::InvalidArray, span.start),
             }
@@ -133,45 +115,26 @@ impl Parser {
         loop {
             match lexer.consume()? {
                 (Token::StartArray, span) => {
-                    cb(&Event {
-                        matched: Match::StartArray,
-                        span,
-                    })?;
+                    emit_event!(cb, Match::StartArray, span)?;
                     self.parse_array(lexer, cb, err_cb)?
                 }
                 (Token::EndArray, span) => {
-                    return cb(&Event {
-                        matched: Match::EndArray,
-                        span,
-                    })
+                    return emit_event!(cb, Match::EndArray, span);
                 }
                 (Token::StartObject, span) => {
-                    cb(&Event {
-                        matched: Match::StartObject,
-                        span,
-                    })?;
+                    emit_event!(cb, Match::StartObject, span)?;
                     self.parse_object(lexer, cb, err_cb)?
                 }
-                (Token::Str(str), span) => cb(&Event {
-                    matched: Match::String(Cow::Borrowed(&str)),
-                    span,
-                })?,
+                (Token::Str(str), span) => {
+                    emit_event!(cb, Match::String(Cow::Borrowed(&str)), span)?
+                }
                 (Token::Float(value), span) => cb(&Event {
                     matched: Match::Float(value),
                     span,
                 })?,
-                (Token::Integer(value), span) => cb(&Event {
-                    matched: Match::Integer(value),
-                    span,
-                })?,
-                (Token::Bool(value), span) => cb(&Event {
-                    matched: Match::Bool(value),
-                    span,
-                })?,
-                (Token::Null, span) => cb(&Event {
-                    matched: Match::Null,
-                    span,
-                })?,
+                (Token::Integer(value), span) => emit_event!(cb, Match::Integer(value), span)?,
+                (Token::Bool(value), span) => emit_event!(cb, Match::Bool(value), span)?,
+                (Token::Null, span) => emit_event!(cb, Match::Null, span)?,
                 (Token::Comma, _) => (),
                 (_token, span) => {
                     return parser_error!(Details::InvalidArray, span.start);
