@@ -29,5 +29,9 @@ name = "dom_parsing"
 harness = false
 
 [[bench]]
+name = "sax_parsing"
+harness = false
+
+[[bench]]
 name = "lexing"
 harness = false
