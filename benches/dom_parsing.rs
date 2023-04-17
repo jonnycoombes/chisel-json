@@ -42,8 +42,8 @@ fn benchmark_schema(c: &mut Criterion) {
 }
 
 criterion_group! {
-    name = benches;
+    name = dom_benches;
     config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
     targets = benchmark_citm_catalog, benchmark_twitter, benchmark_canada, benchmark_simple, benchmark_schema
 }
-criterion_main!(benches);
+criterion_main!(dom_benches);
