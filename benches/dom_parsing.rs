@@ -1,4 +1,4 @@
-use chisel_json::parser::DomParser;
+use chisel_json::parser::dom::Parser;
 use criterion::{criterion_group, criterion_main, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
 use std::fs::File;
@@ -9,7 +9,7 @@ macro_rules! build_parse_benchmark {
         fn $func() {
             let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
             let reader = BufReader::new(f);
-            let parser = DomParser::default();
+            let parser = Parser::default();
             let _ = parser.parse(reader);
         }
     };

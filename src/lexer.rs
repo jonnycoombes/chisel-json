@@ -3,7 +3,7 @@
 #![allow(unreachable_code)]
 use crate::coords::{Coords, Span};
 use crate::errors::{Details, Error, ParserResult, Stage};
-use crate::parser::DomParser;
+use crate::parser::dom::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
