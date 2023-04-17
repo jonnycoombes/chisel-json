@@ -20,12 +20,12 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<B: BufRead>(&self, input: B) -> ParserResult<JsonValue> {
+    pub fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
         self.parse_value(&mut lexer)
     }
 
-    fn parse_value<B: BufRead>(&self, lexer: &mut Lexer<B>) -> ParserResult<JsonValue> {
+    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
         match lexer.consume()? {
             (Token::StartObject, _) => self.parse_object(lexer),
             (Token::StartArray, _) => self.parse_array(lexer),
@@ -41,7 +41,7 @@ impl Parser {
     }
 
     /// An object is just a list of comma separated KV pairs
-    fn parse_object<B: BufRead>(&self, lexer: &mut Lexer<B>) -> ParserResult<JsonValue> {
+    fn parse_object<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
         let mut pairs = vec![];
         loop {
             match lexer.consume()? {
@@ -64,7 +64,7 @@ impl Parser {
     }
 
     /// An array is just a list of comma separated values
-    fn parse_array<B: BufRead>(&self, lexer: &mut Lexer<B>) -> ParserResult<JsonValue> {
+    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
         let mut values: Vec<JsonValue> = vec![];
         loop {
             match lexer.consume()? {

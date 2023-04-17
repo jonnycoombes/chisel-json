@@ -3,6 +3,7 @@ use crate::errors::Error;
 use std::borrow::Cow;
 
 /// Enumeration of the various different matches that can be produced during a parse
+#[derive(Debug)]
 pub enum Match<'a> {
     /// Start of the input Emitted prior to anything else
     StartOfInput,
@@ -31,6 +32,7 @@ pub enum Match<'a> {
 }
 
 /// A general event produced by the parser during a parse
+#[derive(Debug)]
 pub struct Event<'a> {
     /// The [Match] associated with the event
     pub matched: Match<'a>,
