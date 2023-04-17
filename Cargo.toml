@@ -1,6 +1,6 @@
 [package]
 name = "chisel-json"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Jonny Coombes <jcoombes@jcs-software.co.uk>"]
 rust-version = "1.56"
@@ -12,6 +12,7 @@ repository = "https://github.com/jonnycoombes/chisel-json"
 
 [dependencies]
 fast-float = "0.2.0"
+lexical={version = "6.1.1", features = ["parse-floats", "parse-integers"], optional = true}
 chisel-decoders = "1.0.1"
 
 [dev-dependencies]
@@ -19,8 +20,16 @@ bytesize = "1.2.0"
 criterion = {version ="0.4.0", features = ["html_reports"]}
 pprof = {version = "0.11.1", features = ["flamegraph", "criterion", "protobuf"]}
 
+[features]
+default = ["mixed_numerics"]
+mixed_numerics = ["lexical"]
+
 [[bench]]
-name = "parsing"
+name = "dom_parsing"
+harness = false
+
+[[bench]]
+name = "sax_parsing"
 harness = false
 
 [[bench]]

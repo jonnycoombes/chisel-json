@@ -30,9 +30,14 @@ main() {
 	cargo bench --bench lexing -- --save-baseline trunk --verbose
 
 	echo -e "$ansiGreen"
-	echo 'Creating baseline benchmarking for trunk (parser)'
+	echo 'Creating baseline benchmarking for trunk (parser - DOM)'
 	echo -e "$ansiNoColour"
-	cargo bench --bench parsing -- --save-baseline trunk --verbose
+	cargo bench --bench dom_parsing -- --save-baseline trunk --verbose
+
+	echo -e "$ansiGreen"
+	echo 'Creating baseline benchmarking for trunk (parser - SAX)'
+	echo -e "$ansiNoColour"
+	cargo bench --bench sax_parsing -- --save-baseline trunk --verbose
 }
 
 main "$@"

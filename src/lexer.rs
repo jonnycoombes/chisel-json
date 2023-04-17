@@ -1,6 +1,9 @@
+#![allow(unused_assignments)]
+#![allow(unused_variables)]
+#![allow(unreachable_code)]
 use crate::coords::{Coords, Span};
 use crate::errors::{Details, Error, ParserResult, Stage};
-use crate::parser::Parser;
+use crate::parser::dom::Parser;
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
@@ -29,7 +32,8 @@ pub enum Token {
     Colon,
     Comma,
     Str(String),
-    Num(f64),
+    Float(f64),
+    Integer(i64),
     Null,
     Bool(bool),
     EndOfInput,
@@ -45,7 +49,8 @@ impl Display for Token {
             Token::Colon => write!(f, "Colon"),
             Token::Comma => write!(f, "Comma"),
             Token::Str(str) => write!(f, "String(\"{}\")", str),
-            Token::Num(num) => write!(f, "Num({})", num),
+            Token::Float(num) => write!(f, "Num({})", num),
+            Token::Integer(num) => write!(f, "Num({})", num),
             Token::Null => write!(f, "Null"),
             Token::Bool(bool) => write!(f, "Bool({})", bool),
             Token::EndOfInput => write!(f, "EndOfInput"),
@@ -259,62 +264,70 @@ impl<B: BufRead> Lexer<B> {
         let start_coords = self.coords;
         let mut have_exponent = false;
         let mut have_decimal = false;
+
         match self.match_valid_number_prefix() {
-            Ok(_) => loop {
-                match self.advance(false) {
-                    Ok(_) => match self.buffer.last().unwrap() {
-                        match_digit!() => (),
-                        match_exponent!() => {
-                            if !have_exponent {
-                                self.check_following_exponent()?;
-                                have_exponent = true;
-                            } else {
+            Ok(integral) => {
+                have_decimal = !integral;
+                loop {
+                    match self.advance(false) {
+                        Ok(_) => match self.buffer.last().unwrap() {
+                            match_digit!() => (),
+                            match_exponent!() => {
+                                if !have_exponent {
+                                    self.check_following_exponent()?;
+                                    have_exponent = true;
+                                } else {
+                                    return lexer_error!(
+                                        Details::InvalidNumericRepresentation(
+                                            self.buffer_to_string()
+                                        ),
+                                        self.coords
+                                    );
+                                }
+                            }
+                            match_period!() => {
+                                if !have_decimal {
+                                    have_decimal = true;
+                                } else {
+                                    return lexer_error!(
+                                        Details::InvalidNumericRepresentation(
+                                            self.buffer_to_string()
+                                        ),
+                                        self.coords
+                                    );
+                                }
+                            }
+                            match_numeric_terminator!() => {
+                                self.pushback();
+                                break;
+                            }
+                            ch if ch.is_ascii_whitespace() => {
+                                self.pushback();
+                                break;
+                            }
+                            ch if ch.is_alphabetic() => {
                                 return lexer_error!(
                                     Details::InvalidNumericRepresentation(self.buffer_to_string()),
                                     self.coords
                                 );
                             }
-                        }
-                        match_period!() => {
-                            if !have_decimal {
-                                have_decimal = true;
-                            } else {
+                            _ => {
                                 return lexer_error!(
                                     Details::InvalidNumericRepresentation(self.buffer_to_string()),
                                     self.coords
                                 );
                             }
-                        }
-                        match_numeric_terminator!() => {
-                            self.pushback();
-                            break;
-                        }
-                        ch if ch.is_ascii_whitespace() => {
-                            self.pushback();
-                            break;
-                        }
-                        ch if ch.is_alphabetic() => {
-                            return lexer_error!(
-                                Details::InvalidNumericRepresentation(self.buffer_to_string()),
-                                self.coords
-                            );
-                        }
-                        _ => {
-                            return lexer_error!(
-                                Details::InvalidNumericRepresentation(self.buffer_to_string()),
-                                self.coords
-                            );
-                        }
-                    },
-                    Err(err) => return lexer_error!(err.details, err.coords),
+                        },
+                        Err(err) => return lexer_error!(err.details, err.coords),
+                    }
                 }
-            },
+            }
             Err(err) => {
                 return lexer_error!(err.details, err.coords);
             }
         }
 
-        self.try_parse_buffer_to_float(start_coords, self.coords)
+        self.parse_numeric(!have_decimal, start_coords, self.coords)
     }
 
     fn check_following_exponent(&mut self) -> ParserResult<()> {
@@ -342,19 +355,41 @@ impl<B: BufRead> Lexer<B> {
         self.buffer.iter().map(|ch| *ch as u8).collect()
     }
 
-    /// Use the fast float library to try and parse out an [f64] from the current buffer contents
+    #[cfg(not(feature = "mixed_numerics"))]
     #[inline]
-    fn try_parse_buffer_to_float(
+    fn parse_numeric(
         &mut self,
+        integral: bool,
         start_coords: Coords,
         end_coords: Coords,
     ) -> ParserResult<PackedToken> {
-        match fast_float::parse(self.buffer_to_bytes_unchecked()) {
-            Ok(n) => packed_token!(Token::Num(n), start_coords, end_coords),
-            Err(_) => lexer_error!(
-                Details::InvalidNumericRepresentation(self.buffer_to_string()),
-                start_coords
-            ),
+        packed_token!(
+            Token::Float(fast_float::parse(self.buffer_to_bytes_unchecked()).unwrap()),
+            start_coords,
+            end_coords
+        )
+    }
+
+    #[cfg(feature = "mixed_numerics")]
+    #[inline]
+    fn parse_numeric(
+        &mut self,
+        integral: bool,
+        start_coords: Coords,
+        end_coords: Coords,
+    ) -> ParserResult<PackedToken> {
+        if integral {
+            packed_token!(
+                Token::Integer(lexical::parse(self.buffer_to_bytes_unchecked()).unwrap()),
+                start_coords,
+                end_coords
+            )
+        } else {
+            packed_token!(
+                Token::Float(fast_float::parse(self.buffer_to_bytes_unchecked()).unwrap()),
+                start_coords,
+                end_coords
+            )
         }
     }
 
@@ -365,7 +400,7 @@ impl<B: BufRead> Lexer<B> {
     /// - A leading minus must be followed by at most one zero before a period
     /// - Any number > zero can't have a leading zero in the representation
     #[inline]
-    fn match_valid_number_prefix(&mut self) -> ParserResult<()> {
+    fn match_valid_number_prefix(&mut self) -> ParserResult<bool> {
         assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
         match self.buffer[0] {
             match_minus!() => self
@@ -374,29 +409,29 @@ impl<B: BufRead> Lexer<B> {
             match_zero!() => self
                 .advance(false)
                 .and_then(|_| self.check_following_zero()),
-            _ => Ok(()),
+            _ => Ok(true),
         }
     }
 
     #[inline]
-    fn check_following_zero(&mut self) -> Result<(), Error> {
+    fn check_following_zero(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
-            match_period!() => Ok(()),
+            match_period!() => Ok(false),
             match_digit!() => lexer_error!(
                 Details::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
             ),
             _ => {
                 self.pushback();
-                Ok(())
+                Ok(true)
             }
         }
     }
 
     #[inline]
-    fn check_following_minus(&mut self) -> Result<(), Error> {
+    fn check_following_minus(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
-            match_non_zero_digit!() => Ok(()),
+            match_non_zero_digit!() => Ok(true),
             match_zero!() => self.advance(false).and_then(|_| {
                 if self.buffer[2] != '.' {
                     return lexer_error!(
@@ -404,7 +439,7 @@ impl<B: BufRead> Lexer<B> {
                         self.coords
                     );
                 }
-                Ok(())
+                Ok(false)
             }),
             _ => lexer_error!(
                 Details::InvalidNumericRepresentation(self.buffer_to_string()),
@@ -624,13 +659,25 @@ mod tests {
         let lines = lines_from_relative_file!("fixtures/utf-8/numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
+                println!("Parsing {}", l);
                 let reader = reader_from_bytes!(l);
                 let mut lexer = Lexer::new(reader);
                 let token = lexer.consume().unwrap();
-                assert_eq!(
-                    token.0,
-                    Token::Num(fast_float::parse(l.replace(',', "")).unwrap())
-                );
+                match token.0 {
+                    Token::Integer(_) => {
+                        assert_eq!(
+                            token.0,
+                            Token::Integer(l.replace(',', "").parse::<i64>().unwrap())
+                        );
+                    }
+                    Token::Float(_) => {
+                        assert_eq!(
+                            token.0,
+                            Token::Float(fast_float::parse(l.replace(',', "")).unwrap())
+                        );
+                    }
+                    _ => panic!(),
+                }
             }
         }
         println!("Parsed numerics in {:?}", start.elapsed());

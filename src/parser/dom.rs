@@ -1,0 +1,144 @@
+use std::borrow::Cow;
+use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::io::{BufRead, Read};
+use std::rc::Rc;
+
+use crate::coords::Span;
+use crate::errors::{Details, Error, ParserResult, Stage};
+use crate::lexer::{Lexer, Token};
+use crate::parser_error;
+use crate::paths::{PathElement, PathElementStack};
+use crate::JsonValue;
+
+/// Main JSON parser struct
+#[derive(Default)]
+pub struct Parser {
+    /// A stack for tracking the current path within the parsed JSON
+    path: PathElementStack,
+}
+
+impl Parser {
+    pub fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
+        let mut lexer = Lexer::new(input);
+        self.parse_value(&mut lexer)
+    }
+
+    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+        match lexer.consume()? {
+            (Token::StartObject, _) => self.parse_object(lexer),
+            (Token::StartArray, _) => self.parse_array(lexer),
+            (Token::Str(str), _) => Ok(JsonValue::String(Cow::Owned(str))),
+            (Token::Float(value), _) => Ok(JsonValue::Float(value)),
+            (Token::Integer(value), _) => Ok(JsonValue::Integer(value)),
+            (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
+            (Token::Null, _) => Ok(JsonValue::Null),
+            (token, span) => {
+                parser_error!(Details::UnexpectedToken(token), span.start)
+            }
+        }
+    }
+
+    /// An object is just a list of comma separated KV pairs
+    fn parse_object<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+        let mut pairs = vec![];
+        loop {
+            match lexer.consume()? {
+                (Token::Str(str), _) => {
+                    let should_be_colon = lexer.consume()?;
+                    match should_be_colon {
+                        (Token::Colon, _) => pairs.push((str, self.parse_value(lexer)?)),
+                        (_, _) => {
+                            return parser_error!(Details::PairExpected, should_be_colon.1.start)
+                        }
+                    }
+                }
+                (Token::Comma, _) => (),
+                (Token::EndObject, _) => return Ok(JsonValue::Object(pairs)),
+                (_token, span) => {
+                    return parser_error!(Details::InvalidObject, span.start);
+                }
+            }
+        }
+    }
+
+    /// An array is just a list of comma separated values
+    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+        let mut values: Vec<JsonValue> = vec![];
+        loop {
+            match lexer.consume()? {
+                (Token::StartArray, _) => values.push(self.parse_array(lexer)?),
+                (Token::EndArray, _) => return Ok(JsonValue::Array(values)),
+                (Token::StartObject, _) => values.push(self.parse_object(lexer)?),
+                (Token::Str(str), _) => values.push(JsonValue::String(Cow::Owned(str))),
+                (Token::Float(value), _) => values.push(JsonValue::Float(value)),
+                (Token::Integer(value), _) => values.push(JsonValue::Integer(value)),
+                (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
+                (Token::Null, _) => values.push(JsonValue::Null),
+                (Token::Comma, _) => (),
+                (_token, span) => {
+                    return parser_error!(Details::InvalidArray, span.start);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(unused_macros)]
+
+    use crate::parser::dom::Parser;
+    use crate::{reader_from_file, reader_from_relative_file};
+    use bytesize::ByteSize;
+    use std::fs::File;
+    use std::io::BufReader;
+    use std::path::PathBuf;
+    use std::time::Instant;
+    use std::{env, fs};
+
+    #[test]
+    fn should_parse_lengthy_arrays() {
+        let reader = reader_from_relative_file!("fixtures/json/valid/bc_block.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader);
+        println!("{parsed:?}");
+        assert!(parsed.is_ok());
+    }
+
+    #[test]
+    fn should_parse_simple_schema() {
+        let reader = reader_from_relative_file!("fixtures/json/valid/simple_schema.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader);
+        println!("{parsed:?}");
+        assert!(parsed.is_ok());
+    }
+
+    #[test]
+    fn should_parse_basic_test_files() {
+        for f in fs::read_dir("fixtures/json/valid").unwrap() {
+            let path = f.unwrap().path();
+            println!("Parsing {:?}", &path);
+            if path.is_file() {
+                let len = fs::metadata(&path).unwrap().len();
+                let start = Instant::now();
+                let reader = reader_from_file!(path.to_str().unwrap());
+                let parser = Parser::default();
+                let parsed = parser.parse(reader);
+                if parsed.is_err() {
+                    println!("Parse of {:?} failed!", &path);
+                    println!("Parse failed with errors: {:?}", &parsed)
+                }
+                assert!(parsed.is_ok());
+                println!(
+                    "Parsed {} in {:?} [{:?}]",
+                    ByteSize(len),
+                    start.elapsed(),
+                    path,
+                );
+            }
+        }
+    }
+}

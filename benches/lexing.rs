@@ -30,7 +30,6 @@ build_lex_benchmark!(canada, "canada");
 build_lex_benchmark!(citm_catalog, "citm_catalog");
 build_lex_benchmark!(twitter, "twitter");
 build_lex_benchmark!(simple, "simple");
-build_lex_benchmark!(rota, "rota");
 
 fn benchmark_canada(c: &mut Criterion) {
     c.bench_function("lex of canada", |b| b.iter(canada));
@@ -45,13 +44,9 @@ fn benchmark_simple(c: &mut Criterion) {
     c.bench_function("lex of simple", |b| b.iter(simple));
 }
 
-fn benchmark_rota(c: &mut Criterion) {
-    c.bench_function("lex of rota", |b| b.iter(rota));
-}
-
 criterion_group! {
     name = benches;
     config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
-    targets= benchmark_twitter, benchmark_citm_catalog, benchmark_canada, benchmark_simple, benchmark_rota
+    targets= benchmark_twitter, benchmark_citm_catalog, benchmark_canada, benchmark_simple
 }
 criterion_main!(benches);

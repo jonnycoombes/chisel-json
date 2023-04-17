@@ -5,7 +5,6 @@ use std::fmt::{Display, Formatter};
 
 use crate::coords::Coords;
 use crate::lexer::Token;
-use crate::parser::Parser;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, Error>;
