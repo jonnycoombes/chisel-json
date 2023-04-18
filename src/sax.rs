@@ -191,11 +191,12 @@ impl Parser {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
 
     use crate::errors::Details;
-    use crate::parser::sax::Parser;
+    use crate::sax::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;

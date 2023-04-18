@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use chisel_json::parser::sax::Parser;
+use chisel_json::sax::Parser;
 use criterion::{criterion_group, criterion_main, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
 
