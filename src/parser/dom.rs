@@ -31,7 +31,7 @@ impl Parser {
                 self.parse_array(&mut lexer)
             }
             (_, span) => {
-                parser_error!(Details::InvalidJson, span.start)
+                parser_error!(Details::InvalidRootObject, span.start)
             }
         }
     }
@@ -134,7 +134,7 @@ mod tests {
         let parsed = parser.parse(reader);
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
-        assert!(parsed.err().unwrap().details == Details::InvalidJson);
+        assert!(parsed.err().unwrap().details == Details::InvalidRootObject);
     }
     #[test]
     fn should_parse_basic_test_files() {
