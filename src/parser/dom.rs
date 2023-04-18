@@ -1,12 +1,12 @@
 use crate::coords::Coords;
-use std::io::BufReader;
-use std::path::Path;
-use std::fs::File;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::fs::File;
+use std::io::BufReader;
 use std::io::{BufRead, Read};
+use std::path::Path;
 use std::rc::Rc;
 
 use crate::coords::Span;
@@ -24,9 +24,8 @@ pub struct Parser {
 }
 
 impl Parser {
-
-    pub fn parse_file<PathLike : AsRef<Path>>(&self, path : PathLike) -> ParserResult<JsonValue> {
-       match File::open(&path) {
+    pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {
+        match File::open(&path) {
             Ok(f) => {
                 let reader = BufReader::new(f);
                 self.parse(reader)
@@ -34,15 +33,15 @@ impl Parser {
             Err(_) => {
                 parser_error!(Details::InvalidFile, Coords::default())
             }
-       }
+        }
     }
 
-    pub fn parse_bytes(&self, bytes : &[u8]) -> ParserResult<JsonValue> {
+    pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {
         let reader = BufReader::new(bytes);
         self.parse(reader)
     }
 
-    pub fn parse_str(&self, str : &str) -> ParserResult<JsonValue> {
+    pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {
         let reader = BufReader::new(str.as_bytes());
         self.parse(reader)
     }
@@ -51,12 +50,8 @@ impl Parser {
         let mut lexer = Lexer::new(input);
 
         match lexer.consume()? {
-            (Token::StartObject, _) => {
-                self.parse_object(&mut lexer)
-            }
-            (Token::StartArray, _) => {
-                self.parse_array(&mut lexer)
-            }
+            (Token::StartObject, _) => self.parse_object(&mut lexer),
+            (Token::StartArray, _) => self.parse_array(&mut lexer),
             (_, span) => {
                 parser_error!(Details::InvalidRootObject, span.start)
             }
@@ -154,7 +149,7 @@ mod tests {
         println!("{parsed:?}");
         assert!(parsed.is_ok());
     }
-#[test]
+    #[test]
     fn should_successfully_bail() {
         let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
