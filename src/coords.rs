@@ -39,29 +39,6 @@ impl Display for Coords {
     }
 }
 
-/// Extract the line number from a [Coords]
-#[macro_export]
-macro_rules! line {
-    ($coords : expr) => {
-        $coords.line
-    };
-}
-
-/// Extract the column number from a [Coords]
-#[macro_export]
-macro_rules! column {
-    ($coords : expr) => {
-        $coords.column
-    };
-}
-
-/// Extract the absolute number from a [Coords]
-#[macro_export]
-macro_rules! absolute {
-    ($coords : expr) => {
-        $coords.absolute
-    };
-}
 
 impl Default for Coords {
     /// The default set of coordinates are positioned at the start of the first row

@@ -1,16 +1,16 @@
+use std::path::PathBuf;
 use chisel_json::parser::sax::Parser;
 use criterion::{criterion_group, criterion_main, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
-use std::fs::File;
-use std::io::BufReader;
+
 
 macro_rules! build_parse_benchmark {
     ($func : tt, $filename : expr) => {
         fn $func() {
-            let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
-            let reader = BufReader::new(f);
+            let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let path = base.join(format!("fixtures/json/bench/{}.json", $filename));
             let parser = Parser::default();
-            let _ = parser.parse(reader, &mut |_evt| Ok(()));
+            let _ = parser.parse_file(path, &mut |_evt| Ok(()));
         }
     };
 }

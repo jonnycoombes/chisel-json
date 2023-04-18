@@ -26,7 +26,7 @@ pub enum Match<'a> {
     /// Emitted when a float is matched
     Float(f64),
     /// Emitted when a boolean is matched
-    Bool(bool),
+    Boolean(bool),
     /// Emitted when a null is matched
     Null,
 }
