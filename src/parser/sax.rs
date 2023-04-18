@@ -28,22 +28,36 @@ impl Parser {
     pub fn parse<Buffer: BufRead, Callback>(
         &self,
         input: Buffer,
-        cb: &mut Callback
+        cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event) -> ParserResult<()>
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         let mut lexer = Lexer::new(input);
-        self.parse_value(&mut lexer, cb)
+        match lexer.consume()? {
+            (Token::StartObject, span) => {
+                emit_event!(cb, Match::StartOfInput, span)?;
+                emit_event!(cb, Match::StartObject, span)?;
+                self.parse_object(&mut lexer, cb)
+            }
+            (Token::StartArray, span) => {
+                emit_event!(cb, Match::StartOfInput, span)?;
+                emit_event!(cb, Match::StartArray, span)?;
+                self.parse_array(&mut lexer, cb)
+            }
+            (_, span) => {
+                parser_error!(Details::InvalidJson, span.start)
+            }
+        }
     }
 
     fn parse_value<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
-        cb: &mut Callback
+        cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event) -> ParserResult<()>
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         match lexer.consume()? {
             (Token::StartObject, span) => {
@@ -69,10 +83,10 @@ impl Parser {
     fn parse_object<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
-        cb: &mut Callback
+        cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event) -> ParserResult<()>
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         loop {
             match lexer.consume()? {
@@ -99,10 +113,10 @@ impl Parser {
     fn parse_array<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
-        cb: &mut Callback
+        cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event) -> ParserResult<()>
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         loop {
             match lexer.consume()? {
@@ -140,6 +154,7 @@ impl Parser {
 mod tests {
 
     use crate::parser::sax::Parser;
+    use crate::errors::Details;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
@@ -153,14 +168,24 @@ mod tests {
         let mut counter = 0;
         let reader = reader_from_relative_file!("fixtures/json/valid/canada.json");
         let parser = Parser::default();
-        let parsed = parser.parse(
-            reader,
-            &mut |_e| {
-                counter += 1;
-                Ok(())
-            }
-        );
+        let parsed = parser.parse(reader, &mut |_e| {
+            counter += 1;
+            Ok(())
+        });
         println!("{} SAX events processed", counter);
         assert!(parsed.is_ok());
+    }
+
+    #[test]
+    fn should_successfully_bail() {
+        let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader, &mut |e| {
+            println!("SAX event = {:?}", e);
+            Ok(())
+        });
+        println!("Parse result = {:?}", parsed);
+        assert!(parsed.is_err());
+        assert!(parsed.err().unwrap().details == Details::InvalidJson);
     }
 }
