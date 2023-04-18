@@ -22,7 +22,18 @@ pub struct Parser {
 impl Parser {
     pub fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
-        self.parse_value(&mut lexer)
+
+        match lexer.consume()? {
+            (Token::StartObject, _) => {
+                self.parse_object(&mut lexer)
+            }
+            (Token::StartArray, _) => {
+                self.parse_array(&mut lexer)
+            }
+            (_, span) => {
+                parser_error!(Details::InvalidJson, span.start)
+            }
+        }
     }
 
     fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
@@ -89,6 +100,7 @@ impl Parser {
 mod tests {
     #![allow(unused_macros)]
 
+    use crate::errors::Details;
     use crate::parser::dom::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
@@ -115,7 +127,15 @@ mod tests {
         println!("{parsed:?}");
         assert!(parsed.is_ok());
     }
-
+#[test]
+    fn should_successfully_bail() {
+        let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader);
+        println!("Parse result = {:?}", parsed);
+        assert!(parsed.is_err());
+        assert!(parsed.err().unwrap().details == Details::InvalidJson);
+    }
     #[test]
     fn should_parse_basic_test_files() {
         for f in fs::read_dir("fixtures/json/valid").unwrap() {
