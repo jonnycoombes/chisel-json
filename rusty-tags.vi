@@ -742,7 +742,6 @@ abs_distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823
 abs_distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/distributions.rs	/^pub(crate) fn abs_distributions($/;"	f
 abs_distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/mod.rs	/^    fn abs_distributions(&mut self, ctx: PlotContext<'_>, data: PlotData<'_>) {$/;"	P	implementation:PlottersBackend
 absolute	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    pub absolute: usize,$/;"	m	struct:Coords
-absolute	/home/jcoombes/Src/chisel-json/src/coords.rs	/^macro_rules! absolute {$/;"	M
 absolute_estimates	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub absolute_estimates: Estimates,$/;"	m	struct:MeasurementData
 active_profiler	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/criterion.rs	/^    active_profiler: Option<ProfilerGuard<'a>>,$/;"	m	struct:PProfProfiler
 add	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    fn add(self, rhs: ByteSize) -> ByteSize {$/;"	P	implementation:ByteSize
@@ -879,7 +878,6 @@ code	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decod
 collector	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/lib.rs	/^mod collector;$/;"	n
 collector_test	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^    fn collector_test() {$/;"	f	module:tests
 column	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    pub column: usize,$/;"	m	struct:Coords
-column	/home/jcoombes/Src/chisel-json/src/coords.rs	/^macro_rules! column {$/;"	M
 common	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/lib.rs	/^pub mod common;$/;"	n
 common	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/analysis/compare.rs	/^pub(crate) fn common<M: Measurement>($/;"	f
 common	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/analysis/mod.rs	/^pub(crate) fn common<M: Measurement, T: ?Sized>($/;"	f
@@ -1281,7 +1279,6 @@ lexer_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! lexer_er
 libc	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/addr_validate.rs	/^    const CHECK_LENGTH: usize = 2 * size_of::<*const libc::c_void>() \/ size_of::<u8>();$/;"	C	function:validate
 libc	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/backtrace/frame_pointer.rs	/^            if !validate(frame_pointer as *const libc::c_void) {$/;"	C	method:Trace::trace
 line	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    pub line: usize,$/;"	m	struct:Coords
-line	/home/jcoombes/Src/chisel-json/src/coords.rs	/^macro_rules! line {$/;"	M
 line_chart	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    line_chart: Option<String>,$/;"	m	struct:SummaryContext
 line_comparison	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^    fn line_comparison($/;"	P	implementation:Gnuplot
 line_comparison	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/summary.rs	/^pub fn line_comparison($/;"	f
