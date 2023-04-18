@@ -28,13 +28,14 @@ impl Display for Stage {
 }
 
 /// A global enumeration of error codes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Details {
     EndOfInput,
     StreamFailure,
     NonUtf8InputDetected,
     UnexpectedToken(Token),
     PairExpected,
+    InvalidJson,
     InvalidObject,
     InvalidArray,
     InvalidCharacter(char),
@@ -52,6 +53,7 @@ impl Display for Details {
             Details::NonUtf8InputDetected => write!(f, "non-UTF8 input"),
             Details::UnexpectedToken(token) => write!(f, "unexpected token found: {}", token),
             Details::PairExpected => write!(f, "pair expected, something else was found"),
+            Details::InvalidJson => write!(f, "invalid JSON"),
             Details::InvalidObject => write!(f, "invalid object"),
             Details::InvalidArray => write!(f, "invalid array"),
             Details::InvalidCharacter(ch) => write!(f, "invalid character: \'{}\'", ch),
