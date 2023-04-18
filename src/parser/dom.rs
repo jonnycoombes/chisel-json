@@ -1,8 +1,12 @@
+use crate::coords::Coords;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::fs::File;
+use std::io::BufReader;
 use std::io::{BufRead, Read};
+use std::path::Path;
 use std::rc::Rc;
 
 use crate::coords::Span;
@@ -20,16 +24,34 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
+    pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {
+        match File::open(&path) {
+            Ok(f) => {
+                let reader = BufReader::new(f);
+                self.parse(reader)
+            }
+            Err(_) => {
+                parser_error!(Details::InvalidFile, Coords::default())
+            }
+        }
+    }
+
+    pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {
+        let reader = BufReader::new(bytes);
+        self.parse(reader)
+    }
+
+    pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {
+        let reader = BufReader::new(str.as_bytes());
+        self.parse(reader)
+    }
+
+    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
 
         match lexer.consume()? {
-            (Token::StartObject, _) => {
-                self.parse_object(&mut lexer)
-            }
-            (Token::StartArray, _) => {
-                self.parse_array(&mut lexer)
-            }
+            (Token::StartObject, _) => self.parse_object(&mut lexer),
+            (Token::StartArray, _) => self.parse_array(&mut lexer),
             (_, span) => {
                 parser_error!(Details::InvalidRootObject, span.start)
             }
@@ -43,7 +65,7 @@ impl Parser {
             (Token::Str(str), _) => Ok(JsonValue::String(Cow::Owned(str))),
             (Token::Float(value), _) => Ok(JsonValue::Float(value)),
             (Token::Integer(value), _) => Ok(JsonValue::Integer(value)),
-            (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
+            (Token::Boolean(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
             (token, span) => {
                 parser_error!(Details::UnexpectedToken(token), span.start)
@@ -85,7 +107,7 @@ impl Parser {
                 (Token::Str(str), _) => values.push(JsonValue::String(Cow::Owned(str))),
                 (Token::Float(value), _) => values.push(JsonValue::Float(value)),
                 (Token::Integer(value), _) => values.push(JsonValue::Integer(value)),
-                (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
+                (Token::Boolean(value), _) => values.push(JsonValue::Boolean(value)),
                 (Token::Null, _) => values.push(JsonValue::Null),
                 (Token::Comma, _) => (),
                 (_token, span) => {
@@ -127,7 +149,7 @@ mod tests {
         println!("{parsed:?}");
         assert!(parsed.is_ok());
     }
-#[test]
+    #[test]
     fn should_successfully_bail() {
         let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
