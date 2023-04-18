@@ -1,3 +1,7 @@
+use crate::coords::Coords;
+use std::io::BufReader;
+use std::path::Path;
+use std::fs::File;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -20,7 +24,30 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
+
+    pub fn parse_file<PathLike : AsRef<Path>>(&self, path : PathLike) -> ParserResult<JsonValue> {
+       match File::open(&path) {
+            Ok(f) => {
+                let reader = BufReader::new(f);
+                self.parse(reader)
+            }
+            Err(_) => {
+                parser_error!(Details::InvalidFile, Coords::default())
+            }
+       }
+    }
+
+    pub fn parse_bytes(&self, bytes : &[u8]) -> ParserResult<JsonValue> {
+        let reader = BufReader::new(bytes);
+        self.parse(reader)
+    }
+
+    pub fn parse_str(&self, str : &str) -> ParserResult<JsonValue> {
+        let reader = BufReader::new(str.as_bytes());
+        self.parse(reader)
+    }
+
+    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(input);
 
         match lexer.consume()? {
