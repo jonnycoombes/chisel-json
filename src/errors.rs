@@ -30,6 +30,7 @@ impl Display for Stage {
 /// A global enumeration of error codes
 #[derive(Debug, Clone, PartialEq)]
 pub enum Details {
+    InvalidFile,
     EndOfInput,
     StreamFailure,
     NonUtf8InputDetected,
@@ -48,6 +49,7 @@ pub enum Details {
 impl Display for Details {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            Details::InvalidFile => write!(f, "invalid file specified"),
             Details::EndOfInput => write!(f, "end of input reached"),
             Details::StreamFailure => write!(f, "failure in the underlying stream"),
             Details::NonUtf8InputDetected => write!(f, "non-UTF8 input"),
