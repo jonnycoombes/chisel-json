@@ -1474,15 +1474,17 @@ parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^pub fn parse<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<T> {$/;"	f
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse<N: FromLexical, Bytes: AsRef<[u8]>>(bytes: Bytes) -> Result<N> {$/;"	f
 parse	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_8digits_le	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^fn parse_8digits_le(mut v: u64) -> u64 {$/;"	f
 parse_array	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
 parse_array	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse_array<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
-parse_bytes	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_bytes(&self, bytes : &[u8]) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_bytes	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_bytes	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_bytes<Callback>(&self, bytes: &[u8], cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
 parse_decimal	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/decimal.rs	/^pub fn parse_decimal(mut s: &[u8]) -> Decimal {$/;"	f
 parse_digits	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^    pub fn parse_digits(&mut self, mut func: impl FnMut(u8)) {$/;"	P	implementation:AsciiStr
 parse_digits	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^pub fn parse_digits(s: &mut &[u8], mut f: impl FnMut(u8)) {$/;"	f
-parse_file	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_file<PathLike : AsRef<Path>>(&self, path : PathLike) -> ParserResult<JsonValue>/;"	P	implementation:Parser
+parse_file	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_file	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_file<PathLike: AsRef<Path>, Callback>($/;"	P	implementation:Parser
 parse_float	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^    fn parse_float<S: AsRef<[u8]>>(s: S) -> Result<Self> {$/;"	P	interface:FastFloat
 parse_float	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^pub fn parse_float<F: Float>(s: &[u8]) -> Option<(F, usize)> {$/;"	f
 parse_float_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^    fn parse_float_partial<S: AsRef<[u8]>>(s: S) -> Result<(Self, usize)> {$/;"	P	interface:FastFloat
@@ -1498,7 +1500,8 @@ parse_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fas
 parse_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_partial<N: FromLexical, Bytes: AsRef<[u8]>>(bytes: Bytes) -> Result<(N, usize)> {$/;"	f
 parse_partial_with_options	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_partial_with_options<$/;"	f
 parse_scientific	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^fn parse_scientific(s: &mut AsciiStr<'_>) -> i64 {$/;"	f
-parse_str	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_str(&self, str : &str) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_str	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_str	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
 parse_value	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
 parse_value	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse_value<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_with_options	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_with_options<N: FromLexicalWithOptions, Bytes: AsRef<[u8]>, const FORMAT: u128>($/;"	f

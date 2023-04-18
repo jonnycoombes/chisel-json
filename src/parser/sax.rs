@@ -1,3 +1,4 @@
+use crate::coords::Coords;
 use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
@@ -6,7 +7,10 @@ use crate::paths::PathElementStack;
 use crate::JsonValue;
 use crate::Span;
 use std::borrow::Cow;
+use std::fs::File;
 use std::io::BufRead;
+use std::io::BufReader;
+use std::path::Path;
 
 macro_rules! emit_event {
     ($cb : expr, $m : expr, $span : expr) => {
@@ -25,7 +29,44 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Buffer: BufRead, Callback>(
+
+
+    pub fn parse_file<PathLike: AsRef<Path>, Callback>(
+        &self,
+        path: PathLike,
+        cb: &mut Callback,
+    ) -> ParserResult<()>
+    where
+        Callback: FnMut(&Event) -> ParserResult<()>,
+    {
+        match File::open(&path) {
+            Ok(f) => {
+                let reader = BufReader::new(f);
+                self.parse(reader, cb)
+            }
+            Err(_) => {
+                parser_error!(Details::InvalidFile, Coords::default())
+            }
+        }
+    }
+
+    pub fn parse_bytes<Callback>(&self, bytes: &[u8], cb: &mut Callback) -> ParserResult<()>
+    where
+        Callback: FnMut(&Event) -> ParserResult<()>,
+    {
+        let reader = BufReader::new(bytes);
+        self.parse(reader, cb)
+    }
+
+    pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>
+    where
+        Callback: FnMut(&Event) -> ParserResult<()>,
+    {
+        let reader = BufReader::new(str.as_bytes());
+        self.parse(reader, cb)
+    }
+
+    fn parse<Buffer: BufRead, Callback>(
         &self,
         input: Buffer,
         cb: &mut Callback,
@@ -153,8 +194,8 @@ impl Parser {
 #[cfg(test)]
 mod tests {
 
-    use crate::parser::sax::Parser;
     use crate::errors::Details;
+    use crate::parser::sax::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
