@@ -1,4 +1,4 @@
-use chisel_json::parser::dom::Parser;
+use chisel_json::dom::Parser;
 use criterion::{criterion_group, criterion_main, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
 use std::path::PathBuf;

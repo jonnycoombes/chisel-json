@@ -487,11 +487,11 @@ Pair	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decod
 PairExpected	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    PairExpected,$/;"	e	enum:Details
 Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^impl<'a, X, Y> Iterator for Pairs<'a, X, Y> {$/;"	c
 Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^pub struct Pairs<'a, X: 'a, Y: 'a> {$/;"	s
+Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^impl Parser {$/;"	c
+Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^pub struct Parser {$/;"	s
 Parser	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    Parser,$/;"	e	enum:Stage
-Parser	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^impl Parser {$/;"	c
-Parser	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^pub struct Parser {$/;"	s
-Parser	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^impl Parser {$/;"	c
-Parser	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^pub struct Parser {$/;"	s
+Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^impl Parser {$/;"	c
+Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^pub struct Parser {$/;"	s
 ParserResult	/home/jcoombes/Src/chisel-json/src/errors.rs	/^pub type ParserResult<T> = Result<T, Error>;$/;"	t
 PartialBenchmarkConfig	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark.rs	/^impl PartialBenchmarkConfig {$/;"	c
 PartialBenchmarkConfig	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark.rs	/^pub(crate) struct PartialBenchmarkConfig {$/;"	s
@@ -974,7 +974,7 @@ directory_name	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cr
 distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^mod distributions;$/;"	n
 distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/mod.rs	/^mod distributions;$/;"	n
 distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub distributions: Distributions,$/;"	m	struct:MeasurementData
-dom	/home/jcoombes/Src/chisel-json/src/parser/mod.rs	/^pub mod dom;$/;"	n
+dom	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod dom;$/;"	n
 dot	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/mod.rs	/^fn dot<A>(xs: &[A], ys: &[A]) -> A$/;"	f
 double_byte_sequence	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^macro_rules! double_byte_sequence {$/;"	M
 draw_line_comarision_figure	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/summary.rs	/^fn draw_line_comarision_figure<XR: AsRangedCoord<Value = f64>, YR: AsRangedCoord<Value = f64>>($/;"	f
@@ -987,7 +987,7 @@ duration	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.
 elapsed	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/analysis/mod.rs	/^macro_rules! elapsed {$/;"	M
 elapsed_time	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/bencher.rs	/^    pub(crate) elapsed_time: Duration, \/\/ How much time did it take to perform the iteration? /;"	m	struct:Bencher
 elements_per_second	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn elements_per_second(&self, elems: f64, typical: f64, values: &mut [f64]) -> &'static str /;"	P	implementation:DurationFormatter
-emit_event	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^macro_rules! emit_event {$/;"	M
+emit_event	/home/jcoombes/Src/chisel-json/src/sax.rs	/^macro_rules! emit_event {$/;"	M
 enable_text_coloring	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub enable_text_coloring: bool,$/;"	m	struct:CliReport
 enable_text_overwrite	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub enable_text_overwrite: bool,$/;"	m	struct:CliReport
 end	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn end(&self, i: Self::Intermediate) -> Self::Value {$/;"	P	implementation:WallTime
@@ -1470,18 +1470,18 @@ parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^mod parse;$/;"	n
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^pub fn parse<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<T> {$/;"	f
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse<N: FromLexical, Bytes: AsRef<[u8]>>(bytes: Bytes) -> Result<N> {$/;"	f
-parse	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_8digits_le	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^fn parse_8digits_le(mut v: u64) -> u64 {$/;"	f
-parse_array	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
-parse_array	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse_array<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
-parse_bytes	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse_bytes	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_bytes<Callback>(&self, bytes: &[u8], cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
+parse_array	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
+parse_array	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse_array<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse_bytes	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_bytes	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    pub fn parse_bytes<Callback>(&self, bytes: &[u8], cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
 parse_decimal	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/decimal.rs	/^pub fn parse_decimal(mut s: &[u8]) -> Decimal {$/;"	f
 parse_digits	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^    pub fn parse_digits(&mut self, mut func: impl FnMut(u8)) {$/;"	P	implementation:AsciiStr
 parse_digits	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^pub fn parse_digits(s: &mut &[u8], mut f: impl FnMut(u8)) {$/;"	f
-parse_file	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse_file	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_file<PathLike: AsRef<Path>, Callback>($/;"	P	implementation:Parser
+parse_file	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_file	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    pub fn parse_file<PathLike: AsRef<Path>, Callback>($/;"	P	implementation:Parser
 parse_float	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^    fn parse_float<S: AsRef<[u8]>>(s: S) -> Result<Self> {$/;"	P	interface:FastFloat
 parse_float	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^pub fn parse_float<F: Float>(s: &[u8]) -> Option<(F, usize)> {$/;"	f
 parse_float_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^    fn parse_float_partial<S: AsRef<[u8]>>(s: S) -> Result<(Self, usize)> {$/;"	P	interface:FastFloat
@@ -1490,27 +1490,26 @@ parse_inf_rest	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fa
 parse_long_mantissa	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/simple.rs	/^pub fn parse_long_mantissa<F: Float>(s: &[u8]) -> AdjustedMantissa {$/;"	f
 parse_number	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^pub fn parse_number(s: &[u8]) -> Option<(Number, usize)> {$/;"	f
 parse_numeric	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn parse_numeric($/;"	P	implementation:Lexer
-parse_object	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse_object<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue/;"	P	implementation:Parser
-parse_object	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse_object<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse_object	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse_object<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue/;"	P	implementation:Parser
+parse_object	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse_object<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_opt	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^        fn parse_opt(os: &Option<&str>) -> Option<f64> {$/;"	f	method:BenchmarkGroup::new
 parse_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^pub fn parse_partial<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<(T, usize)> {$/;"	f
 parse_partial	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_partial<N: FromLexical, Bytes: AsRef<[u8]>>(bytes: Bytes) -> Result<(N, usize)> {$/;"	f
 parse_partial_with_options	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_partial_with_options<$/;"	f
 parse_scientific	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^fn parse_scientific(s: &mut AsciiStr<'_>) -> i64 {$/;"	f
-parse_str	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse_str	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
-parse_value	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
-parse_value	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn parse_value<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse_str	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
+parse_str	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>$/;"	P	implementation:Parser
+parse_value	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
+parse_value	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse_value<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_with_options	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_with_options<N: FromLexicalWithOptions, Bytes: AsRef<[u8]>, const FORMAT: u128>($/;"	f
-parser	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod parser;$/;"	n
 parser_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! parser_error {$/;"	M
 partial_cmp	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {$/;"	P	implementation:Coords
 partial_config	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark_group.rs	/^    partial_config: PartialBenchmarkConfig,$/;"	m	struct:BenchmarkGroup
 pass_a_fuzz_test	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^    fn pass_a_fuzz_test() {$/;"	f	module:tests
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: Option<String>,$/;"	m	struct:ReportLink
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: String,$/;"	m	struct:IndividualBenchmark
-path	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
-path	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
+path	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
+path	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
 paths	/home/jcoombes/Src/chisel-json/src/lib.rs	/^mod paths;$/;"	n
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn pb(size: u64) -> ByteSize {$/;"	P	implementation:ByteSize
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^pub fn pb<V: Into<u64>>(size: V) -> u64 {$/;"	f
@@ -1667,7 +1666,7 @@ sampling_mode	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cri
 save	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/fs.rs	/^pub fn save<D, P>(data: &D, path: &P) -> Result<()>$/;"	f
 save_baseline	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    pub fn save_baseline(mut self, baseline: String) -> Criterion<M> {$/;"	P	implementation:Criterion
 save_string	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/fs.rs	/^pub fn save_string<P>(data: &str, path: &P) -> Result<()>$/;"	f
-sax	/home/jcoombes/Src/chisel-json/src/parser/mod.rs	/^pub mod sax;$/;"	n
+sax	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod sax;$/;"	n
 scale_for_machines	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_for_machines(&self, _values: &mut [f64]) -> &'static str {$/;"	P	implementation:DurationFormatter
 scale_for_machines	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_for_machines(&self, values: &mut [f64]) -> &'static str;$/;"	P	interface:ValueFormatter
 scale_throughputs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_throughputs($/;"	P	implementation:DurationFormatter
@@ -1689,17 +1688,17 @@ should_be_an_iterator	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9e
 should_correctly_handle_invalid_numbers	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_correctly_handle_invalid_numbers() {$/;"	f	module:tests
 should_correctly_identity_dodgy_strings	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_correctly_identity_dodgy_strings() {$/;"	f	module:tests
 should_correctly_report_errors_for_booleans	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_correctly_report_errors_for_booleans() {$/;"	f	module:tests
-should_parse_basic_test_files	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn should_parse_basic_test_files() {$/;"	f	module:tests
+should_parse_basic_test_files	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_parse_basic_test_files() {$/;"	f	module:tests
 should_parse_basic_tokens	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_parse_basic_tokens() {$/;"	f	module:tests
-should_parse_lengthy_arrays	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn should_parse_lengthy_arrays() {$/;"	f	module:tests
+should_parse_lengthy_arrays	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_parse_lengthy_arrays() {$/;"	f	module:tests
 should_parse_null_and_booleans	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_parse_null_and_booleans() {$/;"	f	module:tests
 should_parse_numerics	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_parse_numerics() {$/;"	f	module:tests
-should_parse_simple_schema	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn should_parse_simple_schema() {$/;"	f	module:tests
+should_parse_simple_schema	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_parse_simple_schema() {$/;"	f	module:tests
 should_parse_strings	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_parse_strings() {$/;"	f	module:tests
-should_parse_successfully	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn should_parse_successfully() {$/;"	f	module:tests
+should_parse_successfully	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn should_parse_successfully() {$/;"	f	module:tests
 should_save_baseline	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    fn should_save_baseline(&self) -> bool {$/;"	P	implementation:Criterion
-should_successfully_bail	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests
-should_successfully_bail	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests
+should_successfully_bail	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests
+should_successfully_bail	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests
 signed_short	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/format.rs	/^fn signed_short(n: f64) -> String {$/;"	f
 signed_short_max_len	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/format.rs	/^    fn signed_short_max_len() {$/;"	f	module:test
 significance_level	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark.rs	/^    pub significance_level: f64,$/;"	m	struct:BenchmarkConfig
@@ -1831,9 +1830,9 @@ tests	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-
 tests	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/table.rs	/^mod tests {$/;"	n
 tests	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^mod tests {$/;"	n
 tests	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/frames.rs	/^mod tests {$/;"	n
+tests	/home/jcoombes/Src/chisel-json/src/dom.rs	/^mod tests {$/;"	n
 tests	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^mod tests {$/;"	n
-tests	/home/jcoombes/Src/chisel-json/src/parser/dom.rs	/^mod tests {$/;"	n
-tests	/home/jcoombes/Src/chisel-json/src/parser/sax.rs	/^mod tests {$/;"	n
+tests	/home/jcoombes/Src/chisel-json/src/sax.rs	/^mod tests {$/;"	n
 text_overwrite	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    fn text_overwrite(&self) {$/;"	P	implementation:CliReport
 thread_id	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/frames.rs	/^    pub thread_id: u64,$/;"	m	struct:Frames
 thread_id	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/frames.rs	/^    pub thread_id: u64,$/;"	m	struct:UnresolvedFrames
