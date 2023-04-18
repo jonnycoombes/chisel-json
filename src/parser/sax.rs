@@ -25,38 +25,48 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse<Buffer: BufRead, Callback, OnError>(
+    pub fn parse<Buffer: BufRead, Callback>(
         &self,
         input: Buffer,
         cb: &mut Callback,
-        err_cb: &mut OnError,
     ) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
-        OnError: FnMut(&Error),
     {
         let mut lexer = Lexer::new(input);
-        self.parse_value(&mut lexer, cb, err_cb)
+        match lexer.consume()? {
+            (Token::StartObject, span) => {
+                emit_event!(cb, Match::StartOfInput, span)?;
+                emit_event!(cb, Match::StartObject, span)?;
+                self.parse_object(&mut lexer, cb)
+            }
+            (Token::StartArray, span) => {
+                emit_event!(cb, Match::StartOfInput, span)?;
+                emit_event!(cb, Match::StartArray, span)?;
+                self.parse_array(&mut lexer, cb)
+            }
+            (_, span) => {
+                parser_error!(Details::InvalidRootObject, span.start)
+            }
+        }
     }
 
-    fn parse_value<Buffer: BufRead, Callback, OnError>(
+    fn parse_value<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
         cb: &mut Callback,
-        err_cb: &mut OnError,
     ) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
-        OnError: FnMut(&Error),
     {
         match lexer.consume()? {
             (Token::StartObject, span) => {
                 emit_event!(cb, Match::StartObject, span)?;
-                self.parse_object(lexer, cb, err_cb)
+                self.parse_object(lexer, cb)
             }
             (Token::StartArray, span) => {
                 emit_event!(cb, Match::StartArray, span)?;
-                self.parse_array(lexer, cb, err_cb)
+                self.parse_array(lexer, cb)
             }
             (Token::Str(str), span) => emit_event!(cb, Match::String(Cow::Borrowed(&str)), span),
             (Token::Float(value), span) => emit_event!(cb, Match::Float(value), span),
@@ -70,15 +80,13 @@ impl Parser {
     }
 
     /// An object is just a list of comma separated KV pairs
-    fn parse_object<Buffer: BufRead, Callback, OnError>(
+    fn parse_object<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
         cb: &mut Callback,
-        err_cb: &mut OnError,
     ) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
-        OnError: FnMut(&Error),
     {
         loop {
             match lexer.consume()? {
@@ -86,7 +94,7 @@ impl Parser {
                     emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span)?;
                     let should_be_colon = lexer.consume()?;
                     match should_be_colon {
-                        (Token::Colon, _) => self.parse_value(lexer, cb, err_cb)?,
+                        (Token::Colon, _) => self.parse_value(lexer, cb)?,
                         (_, _) => {
                             return parser_error!(Details::PairExpected, should_be_colon.1.start)
                         }
@@ -102,28 +110,26 @@ impl Parser {
     }
 
     /// An array is just a list of comma separated values
-    fn parse_array<Buffer: BufRead, Callback, OnError>(
+    fn parse_array<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
         cb: &mut Callback,
-        err_cb: &mut OnError,
     ) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
-        OnError: FnMut(&Error),
     {
         loop {
             match lexer.consume()? {
                 (Token::StartArray, span) => {
                     emit_event!(cb, Match::StartArray, span)?;
-                    self.parse_array(lexer, cb, err_cb)?
+                    self.parse_array(lexer, cb)?
                 }
                 (Token::EndArray, span) => {
                     return emit_event!(cb, Match::EndArray, span);
                 }
                 (Token::StartObject, span) => {
                     emit_event!(cb, Match::StartObject, span)?;
-                    self.parse_object(lexer, cb, err_cb)?
+                    self.parse_object(lexer, cb)?
                 }
                 (Token::Str(str), span) => {
                     emit_event!(cb, Match::String(Cow::Borrowed(&str)), span)?
@@ -148,6 +154,7 @@ impl Parser {
 mod tests {
 
     use crate::parser::sax::Parser;
+    use crate::errors::Details;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
@@ -161,15 +168,24 @@ mod tests {
         let mut counter = 0;
         let reader = reader_from_relative_file!("fixtures/json/valid/canada.json");
         let parser = Parser::default();
-        let parsed = parser.parse(
-            reader,
-            &mut |e| {
-                counter += 1;
-                println!("(Event: {:?}, Counter: {})", e.matched, counter);
-                Ok(())
-            },
-            &mut |_err| (),
-        );
+        let parsed = parser.parse(reader, &mut |_e| {
+            counter += 1;
+            Ok(())
+        });
+        println!("{} SAX events processed", counter);
         assert!(parsed.is_ok());
+    }
+
+    #[test]
+    fn should_successfully_bail() {
+        let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
+        let parser = Parser::default();
+        let parsed = parser.parse(reader, &mut |e| {
+            println!("SAX event = {:?}", e);
+            Ok(())
+        });
+        println!("Parse result = {:?}", parsed);
+        assert!(parsed.is_err());
+        assert!(parsed.err().unwrap().details == Details::InvalidRootObject);
     }
 }
