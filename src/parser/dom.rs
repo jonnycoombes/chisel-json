@@ -65,7 +65,7 @@ impl Parser {
             (Token::Str(str), _) => Ok(JsonValue::String(Cow::Owned(str))),
             (Token::Float(value), _) => Ok(JsonValue::Float(value)),
             (Token::Integer(value), _) => Ok(JsonValue::Integer(value)),
-            (Token::Bool(value), _) => Ok(JsonValue::Boolean(value)),
+            (Token::Boolean(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
             (token, span) => {
                 parser_error!(Details::UnexpectedToken(token), span.start)
@@ -107,7 +107,7 @@ impl Parser {
                 (Token::Str(str), _) => values.push(JsonValue::String(Cow::Owned(str))),
                 (Token::Float(value), _) => values.push(JsonValue::Float(value)),
                 (Token::Integer(value), _) => values.push(JsonValue::Integer(value)),
-                (Token::Bool(value), _) => values.push(JsonValue::Boolean(value)),
+                (Token::Boolean(value), _) => values.push(JsonValue::Boolean(value)),
                 (Token::Null, _) => values.push(JsonValue::Null),
                 (Token::Comma, _) => (),
                 (_token, span) => {

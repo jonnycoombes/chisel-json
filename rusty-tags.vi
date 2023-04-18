@@ -57,8 +57,8 @@ BenchmarkId	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/crite
 BenchmarkId	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^impl fmt::Display for BenchmarkId {$/;"	c
 BenchmarkId	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^pub struct BenchmarkId {$/;"	s
 BenchmarkValueGroup	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^struct BenchmarkValueGroup<'a> {$/;"	s
-Bool	/home/jcoombes/Src/chisel-json/src/events.rs	/^    Bool(bool),$/;"	e	enum:Match
-Bool	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    Bool(bool),$/;"	e	enum:Token
+Boolean	/home/jcoombes/Src/chisel-json/src/events.rs	/^    Boolean(bool),$/;"	e	enum:Match
+Boolean	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    Boolean(bool),$/;"	e	enum:Token
 Boolean	/home/jcoombes/Src/chisel-json/src/lib.rs	/^    Boolean(bool),$/;"	e	enum:JsonValue
 Bucket	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^impl<T: Eq + Default> Default for Bucket<T> {$/;"	c
 Bucket	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^impl<T: Eq> Bucket<T> {$/;"	c

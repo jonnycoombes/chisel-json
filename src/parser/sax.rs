@@ -112,7 +112,7 @@ impl Parser {
             (Token::Str(str), span) => emit_event!(cb, Match::String(Cow::Borrowed(&str)), span),
             (Token::Float(value), span) => emit_event!(cb, Match::Float(value), span),
             (Token::Integer(value), span) => emit_event!(cb, Match::Integer(value), span),
-            (Token::Bool(value), span) => emit_event!(cb, Match::Bool(value), span),
+            (Token::Boolean(value), span) => emit_event!(cb, Match::Boolean(value), span),
             (Token::Null, span) => emit_event!(cb, Match::Null, span),
             (token, span) => {
                 parser_error!(Details::UnexpectedToken(token), span.start)
@@ -180,7 +180,7 @@ impl Parser {
                     span,
                 })?,
                 (Token::Integer(value), span) => emit_event!(cb, Match::Integer(value), span)?,
-                (Token::Bool(value), span) => emit_event!(cb, Match::Bool(value), span)?,
+                (Token::Boolean(value), span) => emit_event!(cb, Match::Boolean(value), span)?,
                 (Token::Null, span) => emit_event!(cb, Match::Null, span)?,
                 (Token::Comma, _) => (),
                 (_token, span) => {

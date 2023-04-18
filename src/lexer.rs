@@ -35,7 +35,7 @@ pub enum Token {
     Float(f64),
     Integer(i64),
     Null,
-    Bool(bool),
+    Boolean(bool),
     EndOfInput,
 }
 
@@ -49,10 +49,10 @@ impl Display for Token {
             Token::Colon => write!(f, "Colon"),
             Token::Comma => write!(f, "Comma"),
             Token::Str(str) => write!(f, "String(\"{}\")", str),
-            Token::Float(num) => write!(f, "Num({})", num),
-            Token::Integer(num) => write!(f, "Num({})", num),
+            Token::Float(num) => write!(f, "Float({})", num),
+            Token::Integer(num) => write!(f, "Integer({})", num),
             Token::Null => write!(f, "Null"),
-            Token::Bool(bool) => write!(f, "Bool({})", bool),
+            Token::Boolean(bool) => write!(f, "Boolean({})", bool),
             Token::EndOfInput => write!(f, "EndOfInput"),
         }
     }
@@ -471,7 +471,7 @@ impl<B: BufRead> Lexer<B> {
         let start_coords = self.coords;
         self.advance_n(3, false).and_then(|_| {
             if self.buffer[0..=3] == TRUE_PATTERN {
-                packed_token!(Token::Bool(true), start_coords, self.coords)
+                packed_token!(Token::Boolean(true), start_coords, self.coords)
             } else {
                 lexer_error!(
                     Details::MatchFailed(
@@ -489,7 +489,7 @@ impl<B: BufRead> Lexer<B> {
         let start_coords = self.coords;
         self.advance_n(4, false).and_then(|_| {
             if self.buffer[0..=4] == FALSE_PATTERN {
-                packed_token!(Token::Bool(false), start_coords, self.coords)
+                packed_token!(Token::Boolean(false), start_coords, self.coords)
             } else {
                 lexer_error!(
                     Details::MatchFailed(
@@ -626,10 +626,10 @@ mod tests {
             tokens,
             [
                 Token::Null,
-                Token::Bool(true),
-                Token::Bool(false),
-                Token::Bool(true),
-                Token::Bool(false),
+                Token::Boolean(true),
+                Token::Boolean(false),
+                Token::Boolean(true),
+                Token::Boolean(false),
                 Token::EndOfInput
             ]
         );
