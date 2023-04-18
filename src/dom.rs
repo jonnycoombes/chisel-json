@@ -16,6 +16,8 @@ use crate::parser_error;
 use crate::paths::{PathElement, PathElementStack};
 use crate::JsonValue;
 
+
+
 /// Main JSON parser struct
 #[derive(Default)]
 pub struct Parser {
@@ -123,7 +125,7 @@ mod tests {
     #![allow(unused_macros)]
 
     use crate::errors::Details;
-    use crate::parser::dom::Parser;
+    use crate::dom::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;

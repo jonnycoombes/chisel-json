@@ -11,7 +11,8 @@ pub mod coords;
 pub mod errors;
 mod events;
 pub mod lexer;
-pub mod parser;
+pub mod dom;
+pub mod sax;
 mod paths;
 #[cfg(test)]
 mod test_macros;
