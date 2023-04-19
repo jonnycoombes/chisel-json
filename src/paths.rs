@@ -128,7 +128,7 @@ impl<'a> Display for JsonPath<'a> {
 impl<'a> Add<&JsonPath<'a>> for JsonPath<'a> {
     type Output = Self;
 
-    /// Concatenate two [JsonPath] instances.  Does some basic checking to ensure that you don't 
+    /// Concatenate two [JsonPath] instances.  Does some basic checking to ensure that you don't
     /// try and concatenate two rooted paths, or concatenate a rooted path to a partial path
     fn add(mut self, rhs: &JsonPath<'a>) -> Self {
         if !self.is_partial() && !rhs.is_partial() {
@@ -218,7 +218,7 @@ mod tests {
     fn concatenating_two_rooted_paths_should_panic() {
         let root1 = JsonPath::new();
         let root2 = JsonPath::new();
-        let _combined= root1 + &root2;
+        let _combined = root1 + &root2;
     }
 
     #[test]
@@ -226,7 +226,6 @@ mod tests {
     fn concatenating_a_root_path_to_a_partial_should_panic() {
         let partial = JsonPath::new_partial();
         let root = JsonPath::new();
-        let _combined= partial + &root;
+        let _combined = partial + &root;
     }
-
 }
