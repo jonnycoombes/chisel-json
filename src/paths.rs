@@ -81,7 +81,7 @@ impl<'a> JsonPath<'a> {
     /// Push a new [JsonPathComponent::NameSelector] based on a string slice.  Note that no
     /// validation is carried out (as of yet) to check whether the name is actually valid and not
     /// full of crap
-    pub fn push_name_selector(mut self, name: &'a str) -> Self {
+    pub fn push_str_selector(mut self, name: &'a str) -> Self {
         self.components
             .push(JsonPathComponent::NameSelector(Cow::from(name)));
         self
@@ -188,17 +188,17 @@ mod tests {
     #[test]
     fn simple_paths_should_have_correct_representations() {
         let path = JsonPath::new()
-            .push_name_selector("a")
-            .push_name_selector("b")
-            .push_name_selector("c")
-            .push_name_selector("d");
+            .push_str_selector("a")
+            .push_str_selector("b")
+            .push_str_selector("c")
+            .push_str_selector("d");
         assert_eq!(&path.as_string(), "$.a.b.c.d")
     }
 
     #[test]
     fn complex_paths_should_have_correct_representations() {
         let path = JsonPath::new()
-            .push_name_selector("array")
+            .push_str_selector("array")
             .push_wildcard_selector()
             .push_index_select(4)
             .push_range_selector(6, 7);
@@ -208,7 +208,7 @@ mod tests {
     #[test]
     fn a_root_and_partial_paths_can_be_concatenated_correctly() {
         let mut root = JsonPath::new();
-        let partial = JsonPath::new_partial().push_name_selector("a");
+        let partial = JsonPath::new_partial().push_str_selector("a");
         root = root + &partial;
         assert_eq!(root.as_string(), "$.a")
     }
