@@ -1561,6 +1561,7 @@ plotting_backend	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/
 point	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    point: String,$/;"	m	struct:ConfidenceInterval
 point_estimate	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^    pub point_estimate: f64,$/;"	m	struct:Estimate
 pop	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn pop(&mut self) -> Option<JsonPathComponent<'a>> {$/;"	P	implementation:JsonPath
+popping_elements_should_correctly_alter_representation	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    fn popping_elements_should_correctly_alter_representation() {$/;"	f	module:tests
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self {$/;"	P	implementation:f32
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self {$/;"	P	implementation:f64
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self;$/;"	P	interface:Float

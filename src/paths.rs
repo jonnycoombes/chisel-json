@@ -206,6 +206,18 @@ mod tests {
     }
 
     #[test]
+    fn popping_elements_should_correctly_alter_representation() {
+        let mut path = JsonPath::new()
+            .push_str_selector("a")
+            .push_str_selector("b")
+            .push_str_selector("c")
+            .push_str_selector("d");
+        path.pop();
+        path.pop();
+        assert_eq!(&path.as_string(), "$.a.b")
+    }
+
+    #[test]
     fn a_root_and_partial_paths_can_be_concatenated_correctly() {
         let mut root = JsonPath::new();
         let partial = JsonPath::new_partial().push_str_selector("a");
