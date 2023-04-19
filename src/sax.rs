@@ -3,7 +3,6 @@ use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
-use crate::paths::PathElementStack;
 use crate::JsonValue;
 use crate::Span;
 use std::borrow::Cow;
@@ -23,14 +22,9 @@ macro_rules! emit_event {
 
 /// Main JSON parser struct
 #[derive(Default)]
-pub struct Parser {
-    /// A stack for tracking the current path within the parsed JSON
-    path: PathElementStack,
-}
+pub struct Parser {}
 
 impl Parser {
-
-
     pub fn parse_file<PathLike: AsRef<Path>, Callback>(
         &self,
         path: PathLike,
@@ -66,11 +60,7 @@ impl Parser {
         self.parse(reader, cb)
     }
 
-    fn parse<Buffer: BufRead, Callback>(
-        &self,
-        input: Buffer,
-        cb: &mut Callback,
-    ) -> ParserResult<()>
+    fn parse<Buffer: BufRead, Callback>(&self, input: Buffer, cb: &mut Callback) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
@@ -190,7 +180,6 @@ impl Parser {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

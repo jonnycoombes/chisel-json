@@ -39,7 +39,6 @@ impl Display for Coords {
     }
 }
 
-
 impl Default for Coords {
     /// The default set of coordinates are positioned at the start of the first row
     fn default() -> Self {

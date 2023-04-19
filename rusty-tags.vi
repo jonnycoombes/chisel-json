@@ -8,7 +8,6 @@ AdjustedMantissa	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/
 AdjustedMantissa	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^pub struct AdjustedMantissa {$/;"	s
 Append	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^trait Append<T> {$/;"	i
 Array	/home/jcoombes/Src/chisel-json/src/lib.rs	/^    Array(Vec<JsonValue<'a>>),$/;"	e	enum:JsonValue
-ArrayElement	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    ArrayElement(usize),$/;"	e	enum:PathElement
 AsciiStr	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^impl<'a> AsciiStr<'a> {$/;"	c
 AsciiStr	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^pub struct AsciiStr<'a> {$/;"	s
 AsyncBencher	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/bencher.rs	/^impl<'a, 'b, A: AsyncExecutor, M: Measurement> AsyncBencher<'a, 'b, A, M> {$/;"	c
@@ -294,6 +293,7 @@ Improved	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterio
 Improved	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    Improved,$/;"	e	enum:ComparisonResult
 IncomingMessage	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^pub enum IncomingMessage {$/;"	g
 IndexContext	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^struct IndexContext<'a> {$/;"	s
+IndexSelector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    IndexSelector(usize),$/;"	e	enum:JsonPathComponent
 IndividualBenchmark	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^impl IndividualBenchmark {$/;"	c
 IndividualBenchmark	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^struct IndividualBenchmark {$/;"	s
 InnerConnection	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^impl InnerConnection {$/;"	c
@@ -330,6 +330,9 @@ Item	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1
 Iter	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^impl<'a, A> Iterator for Iter<'a, A>$/;"	c
 Iter	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^pub struct Iter<'a, A>$/;"	s
 Itimerval	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/timer.rs	/^struct Itimerval {$/;"	s
+JsonPath	/home/jcoombes/Src/chisel-json/src/paths.rs	/^pub struct JsonPath {}$/;"	s
+JsonPathComponent	/home/jcoombes/Src/chisel-json/src/paths.rs	/^impl<'a> Display for JsonPathComponent<'a> {$/;"	c
+JsonPathComponent	/home/jcoombes/Src/chisel-json/src/paths.rs	/^pub enum JsonPathComponent<'a> {$/;"	g
 JsonValue	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub enum JsonValue<'a> {$/;"	g
 KB	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^pub const KB: u64 = 1_000;$/;"	C
 KDE_POINTS	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^static KDE_POINTS: usize = 500;$/;"	v
@@ -440,6 +443,7 @@ NUM_COLORS	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criter
 NUM_COLORS	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/summary.rs	/^const NUM_COLORS: usize = 8;$/;"	C
 NUM_POWERS	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/simple.rs	/^    const NUM_POWERS: usize = 19;$/;"	C	function:parse_long_mantissa
 N_POWERS_OF_FIVE	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/table.rs	/^pub const N_POWERS_OF_FIVE: usize = (LARGEST_POWER_OF_FIVE - SMALLEST_POWER_OF_FIVE + 1) as usiz/;"	C
+NameSelector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    NameSelector(Cow<'a, str>),$/;"	e	enum:JsonPathComponent
 NixError	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/error.rs	/^    NixError(#[from] nix::Error),$/;"	e	enum:Error
 NonSignificant	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    NonSignificant,$/;"	e	enum:ComparisonResult
 NonSignificant	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    NonSignificant,$/;"	e	enum:ComparisonResult
@@ -457,8 +461,6 @@ Number	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float
 Number	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^pub struct Number {$/;"	s
 Object	/home/jcoombes/Src/chisel-json/src/lib.rs	/^    Object(Vec<(String, JsonValue<'a>)>),$/;"	e	enum:JsonValue
 ObjectKey	/home/jcoombes/Src/chisel-json/src/events.rs	/^    ObjectKey(Cow<'a, str>),$/;"	e	enum:Match
-ObjectKey	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    ObjectKey(u64),$/;"	e	enum:PathElement
-ObjectRoot	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    ObjectRoot,$/;"	e	enum:PathElement
 One	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/mod.rs	/^    One,$/;"	e	enum:Tails
 OutgoingMessage	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^pub enum OutgoingMessage<'a> {$/;"	g
 Output	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    type Output = ByteSize;$/;"	t
@@ -488,16 +490,13 @@ PairExpected	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    PairExpected,$/;
 Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^impl<'a, X, Y> Iterator for Pairs<'a, X, Y> {$/;"	c
 Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^pub struct Pairs<'a, X: 'a, Y: 'a> {$/;"	s
 Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^impl Parser {$/;"	c
-Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^pub struct Parser {$/;"	s
+Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^pub struct Parser {}$/;"	s
 Parser	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    Parser,$/;"	e	enum:Stage
 Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^impl Parser {$/;"	c
-Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^pub struct Parser {$/;"	s
+Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^pub struct Parser {}$/;"	s
 ParserResult	/home/jcoombes/Src/chisel-json/src/errors.rs	/^pub type ParserResult<T> = Result<T, Error>;$/;"	t
 PartialBenchmarkConfig	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark.rs	/^impl PartialBenchmarkConfig {$/;"	c
 PartialBenchmarkConfig	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark.rs	/^pub(crate) struct PartialBenchmarkConfig {$/;"	s
-PathElement	/home/jcoombes/Src/chisel-json/src/paths.rs	/^pub enum PathElement {$/;"	g
-PathElementStack	/home/jcoombes/Src/chisel-json/src/paths.rs	/^impl PathElementStack {$/;"	c
-PathElementStack	/home/jcoombes/Src/chisel-json/src/paths.rs	/^pub struct PathElementStack {$/;"	s
 PebiByte	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/parse.rs	/^    PebiByte,$/;"	e	enum:Unit
 PerIteration	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    PerIteration,$/;"	e	enum:BatchSize
 Percentiles	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/percentiles.rs	/^impl<A> Percentiles<A>$/;"	c
@@ -540,6 +539,7 @@ Quiet	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0
 REPORT_STATS	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/mod.rs	/^const REPORT_STATS: [Statistic; 7] = [$/;"	C
 RUNNER_HELLO_SIZE	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^const RUNNER_HELLO_SIZE: usize = 15 \/\/RUNNER_MAGIC_NUMBER.len() \/\/ magic number$/;"	C
 RUNNER_MAGIC_NUMBER	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^const RUNNER_MAGIC_NUMBER: &str = "cargo-criterion";$/;"	C
+RangeSelector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    RangeSelector(usize, usize),$/;"	e	enum:JsonPathComponent
 RawBenchmarkId	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^impl From<&InternalBenchmarkId> for RawBenchmarkId {$/;"	c
 RawBenchmarkId	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^pub struct RawBenchmarkId {$/;"	s
 Regressed	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    Regressed,$/;"	e	enum:ComparisonResult
@@ -567,7 +567,7 @@ Result	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-
 Result	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^pub type Result<T> = core::result::Result<T, Error>;$/;"	t
 Result	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/error.rs	/^pub type Result<T> = std::result::Result<T, Error>;$/;"	t
 Rng	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/rand_util.rs	/^pub type Rng = Rand64;$/;"	t
-Root	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    Root,$/;"	e	enum:PathElement
+Root	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    Root,$/;"	e	enum:JsonPathComponent
 Routine	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/routine.rs	/^pub(crate) trait Routine<M: Measurement, T: ?Sized> {$/;"	i
 Running	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/error.rs	/^    Running,$/;"	e	enum:Error
 Runtime	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/async_executor.rs	/^impl AsyncExecutor for &tokio::runtime::Runtime {$/;"	c
@@ -724,6 +724,7 @@ Verbose	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion
 WallTime	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^impl Measurement for WallTime {$/;"	c
 WallTime	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^pub struct WallTime;$/;"	s
 Warmup	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^    Warmup {$/;"	e	enum:OutgoingMessage
+WildcardSelector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    WildcardSelector,$/;"	e	enum:JsonPathComponent
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^        let src = &value as *const _ as *const u8;$/;"	C	method:ByteSlice::write_u64
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^            *(&word as *const _ as *const F)$/;"	C	function:parse_float
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^            *(&word as *const _ as *const F).add(1)$/;"	C	function:parse_float
@@ -868,7 +869,6 @@ check_len	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-fl
 check_unicode_sequence	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn check_unicode_sequence(&mut self) -> ParserResult<()> {$/;"	P	implementation:Lexer
 choose_sampling_mode	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    pub(crate) fn choose_sampling_mode($/;"	P	implementation:SamplingMode
 classify	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^pub fn classify<A>(sample: &Sample<A>) -> LabeledSample<'_, A>$/;"	f
-clear	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn clear(&mut self) {$/;"	P	implementation:PathElementStack
 cli	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub(crate) cli: CliReport,$/;"	m	struct:Reports
 cli_enabled	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub(crate) cli_enabled: bool,$/;"	m	struct:Reports
 clone	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^    fn clone(&self) -> Data<'a, X, Y> {$/;"	P	implementation:Data
@@ -1081,6 +1081,7 @@ fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut For
 fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Error
 fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Stage
 fmt	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Token
+fmt	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:JsonPathComponent
 fn	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn as_u64(&self) -> u64 {$/;"	C	implementation:ByteSize
 fn	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn b(size: u64) -> ByteSize {$/;"	C	implementation:ByteSize
 fn	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn gb(size: u64) -> ByteSize {$/;"	C	implementation:ByteSize
@@ -1210,7 +1211,6 @@ is_benchmark	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/crit
 is_blocklisted	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/profiler.rs	/^    fn is_blocklisted(&self, addr: usize) -> bool {$/;"	P	implementation:Profiler
 is_dir	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/fs.rs	/^pub fn is_dir<P>(path: &P) -> bool$/;"	f
 is_empty	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^    pub fn is_empty(&self) -> bool {$/;"	P	implementation:AsciiStr
-is_empty	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn is_empty(&self) -> bool {$/;"	P	implementation:PathElementStack
 is_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^    fn is_fast_path<F: Float>(&self) -> bool {$/;"	P	implementation:Number
 is_high	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^    pub fn is_high(&self) -> bool {$/;"	P	implementation:Label
 is_linear	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    fn is_linear(&self) -> bool {$/;"	P	implementation:ActualSamplingMode
@@ -1272,7 +1272,6 @@ kib	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.
 left_shift	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/decimal.rs	/^    pub fn left_shift(&mut self, shift: usize) {$/;"	P	implementation:Decimal
 len	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^    pub fn len(&self) -> usize {$/;"	P	implementation:Data
 len	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    pub fn len(&self) -> usize {$/;"	P	implementation:Span
-len	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn len(&self) -> usize {$/;"	P	implementation:PathElementStack
 length	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^    pub length: usize,$/;"	m	struct:Bucket
 lexer	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod lexer;$/;"	n
 lexer_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! lexer_error {$/;"	M
@@ -1471,7 +1470,7 @@ parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/lib.rs	/^pub fn parse<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<T> {$/;"	f
 parse	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse<N: FromLexical, Bytes: AsRef<[u8]>>(bytes: Bytes) -> Result<N> {$/;"	f
 parse	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {$/;"	P	implementation:Parser
-parse	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
+parse	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse<Buffer: BufRead, Callback>(&self, input: Buffer, cb: &mut Callback) -> ParserResult/;"	P	implementation:Parser
 parse_8digits_le	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^fn parse_8digits_le(mut v: u64) -> u64 {$/;"	f
 parse_array	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
 parse_array	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse_array<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
@@ -1508,8 +1507,6 @@ partial_config	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cr
 pass_a_fuzz_test	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^    fn pass_a_fuzz_test() {$/;"	f	module:tests
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: Option<String>,$/;"	m	struct:ReportLink
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: String,$/;"	m	struct:IndividualBenchmark
-path	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
-path	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    path: PathElementStack,$/;"	m	struct:Parser
 paths	/home/jcoombes/Src/chisel-json/src/lib.rs	/^mod paths;$/;"	n
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn pb(size: u64) -> ByteSize {$/;"	P	implementation:ByteSize
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^pub fn pb<V: Into<u64>>(size: V) -> u64 {$/;"	f
@@ -1526,7 +1523,6 @@ pdf_comparison_figure	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9e
 pdf_comparison_small	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/pdf.rs	/^pub(crate) fn pdf_comparison_small($/;"	f
 pdf_small	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/pdf.rs	/^pub(crate) fn pdf_small($/;"	f
 pdf_small	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/pdf.rs	/^pub(crate) fn pdf_small($/;"	f
-peek	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn peek(&self) -> Option<&PathElement> {$/;"	P	implementation:PathElementStack
 percentiles	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/mod.rs	/^mod percentiles;$/;"	n
 percentiles	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/sample.rs	/^    pub fn percentiles(&self) -> Percentiles<A>$/;"	f
 perf_signal_handler	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/profiler.rs	/^extern "C" fn perf_signal_handler($/;"	f
@@ -1541,7 +1537,6 @@ plotters_backend	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/
 plotting_backend	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    pub fn plotting_backend(mut self, backend: PlottingBackend) -> Criterion<M> {$/;"	P	implementation:Criterion
 point	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    point: String,$/;"	m	struct:ConfidenceInterval
 point_estimate	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^    pub point_estimate: f64,$/;"	m	struct:Estimate
-pop	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn pop(&mut self) -> Option<PathElement> {$/;"	P	implementation:PathElementStack
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self {$/;"	P	implementation:f32
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self {$/;"	P	implementation:f64
 pow10_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    fn pow10_fast_path(exponent: usize) -> Self;$/;"	P	interface:Float
@@ -1570,7 +1565,6 @@ push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    fn push(&mut self, tuple: (A,)) {$/;"	f
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    fn push(&mut self, tuple: Self::Item);$/;"	P	interface:TupledDistributionsBuilder
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^    fn push(&mut self, entry: T) -> std::io::Result<()> {$/;"	P	implementation:TempFdArray
-push	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push(&mut self, element: PathElement) {$/;"	P	implementation:PathElementStack
 pushback	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn pushback(&mut self) {$/;"	P	implementation:Lexer
 pushback	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    pushback: Option<char>,$/;"	m	struct:Lexer
 quad_byte_sequence	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^macro_rules! quad_byte_sequence {$/;"	M
@@ -1926,7 +1920,6 @@ value_type	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criter
 values	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    values: Option<Vec<ReportLink<'a>>>,$/;"	m	struct:BenchmarkGroup
 var	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/sample.rs	/^    pub fn var(&self, mean: Option<A>) -> A {$/;"	f
 vec	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/test.rs	/^pub fn vec<T>(size: usize, start: usize) -> Option<Vec<T>>$/;"	f
-vec	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    vec: Vec<PathElement>,$/;"	m	struct:PathElementStack
 vector_as_slice	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^unsafe fn vector_as_slice<T>(buf: &mut Vec<T>) -> &mut [T] {$/;"	f
 verbosity	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub verbosity: CliVerbosity,$/;"	m	struct:CliReport
 violin	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^    fn violin($/;"	P	implementation:Gnuplot

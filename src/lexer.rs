@@ -2,8 +2,8 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 use crate::coords::{Coords, Span};
-use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::dom::Parser;
+use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::{lexer_error, parser_error};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
