@@ -13,17 +13,11 @@ use crate::coords::Span;
 use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
-use crate::paths::{PathElement, PathElementStack};
 use crate::JsonValue;
-
-
 
 /// Main JSON parser struct
 #[derive(Default)]
-pub struct Parser {
-    /// A stack for tracking the current path within the parsed JSON
-    path: PathElementStack,
-}
+pub struct Parser {}
 
 impl Parser {
     pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {
@@ -124,8 +118,8 @@ impl Parser {
 mod tests {
     #![allow(unused_macros)]
 
-    use crate::errors::Details;
     use crate::dom::Parser;
+    use crate::errors::Details;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
