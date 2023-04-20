@@ -3,6 +3,7 @@ use crate::errors::{Details, Error, ParserResult, Stage};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
+use crate::paths::JsonPath;
 use crate::JsonValue;
 use crate::Span;
 use std::borrow::Cow;
@@ -70,17 +71,18 @@ impl Parser {
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
+        let mut path = JsonPath::new();
         let mut lexer = Lexer::new(input);
         match lexer.consume()? {
             (Token::StartObject, span) => {
                 emit_event!(cb, Match::StartOfInput, span)?;
                 emit_event!(cb, Match::StartObject, span)?;
-                self.parse_object(&mut lexer, cb)
+                self.parse_object(&mut lexer, &mut path, cb)
             }
             (Token::StartArray, span) => {
                 emit_event!(cb, Match::StartOfInput, span)?;
                 emit_event!(cb, Match::StartArray, span)?;
-                self.parse_array(&mut lexer, cb)
+                self.parse_array(&mut lexer, &mut path, cb)
             }
             (_, span) => {
                 parser_error!(Details::InvalidRootObject, span.start)
@@ -91,6 +93,7 @@ impl Parser {
     fn parse_value<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
+        path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -99,11 +102,11 @@ impl Parser {
         match lexer.consume()? {
             (Token::StartObject, span) => {
                 emit_event!(cb, Match::StartObject, span)?;
-                self.parse_object(lexer, cb)
+                self.parse_object(lexer, path, cb)
             }
             (Token::StartArray, span) => {
                 emit_event!(cb, Match::StartArray, span)?;
-                self.parse_array(lexer, cb)
+                self.parse_array(lexer, path, cb)
             }
             (Token::Str(str), span) => emit_event!(cb, Match::String(Cow::Borrowed(&str)), span),
             (Token::Float(value), span) => emit_event!(cb, Match::Float(value), span),
@@ -120,6 +123,7 @@ impl Parser {
     fn parse_object<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
+        path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -131,7 +135,7 @@ impl Parser {
                     emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span)?;
                     let should_be_colon = lexer.consume()?;
                     match should_be_colon {
-                        (Token::Colon, _) => self.parse_value(lexer, cb)?,
+                        (Token::Colon, _) => self.parse_value(lexer, path, cb)?,
                         (_, _) => {
                             return parser_error!(Details::PairExpected, should_be_colon.1.start)
                         }
@@ -150,6 +154,7 @@ impl Parser {
     fn parse_array<Buffer: BufRead, Callback>(
         &self,
         lexer: &mut Lexer<Buffer>,
+        path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -159,14 +164,14 @@ impl Parser {
             match lexer.consume()? {
                 (Token::StartArray, span) => {
                     emit_event!(cb, Match::StartArray, span)?;
-                    self.parse_array(lexer, cb)?
+                    self.parse_array(lexer, path, cb)?
                 }
                 (Token::EndArray, span) => {
                     return emit_event!(cb, Match::EndArray, span);
                 }
                 (Token::StartObject, span) => {
                     emit_event!(cb, Match::StartObject, span)?;
-                    self.parse_object(lexer, cb)?
+                    self.parse_object(lexer, path, cb)?
                 }
                 (Token::Str(str), span) => {
                     emit_event!(cb, Match::String(Cow::Borrowed(&str)), span)?
