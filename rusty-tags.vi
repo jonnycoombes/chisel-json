@@ -730,6 +730,7 @@ WallTime	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterio
 WallTime	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^pub struct WallTime;$/;"	s
 Warmup	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^    Warmup {$/;"	e	enum:OutgoingMessage
 WildcardSelector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    WildcardSelector,$/;"	e	enum:JsonPathComponent
+ZeroLengthInput	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    ZeroLengthInput,$/;"	e	enum:Details
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^        let src = &value as *const _ as *const u8;$/;"	C	method:ByteSlice::write_u64
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^            *(&word as *const _ as *const F)$/;"	C	function:parse_float
 _	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/parse.rs	/^            *(&word as *const _ as *const F).add(1)$/;"	C	function:parse_float
@@ -1720,6 +1721,7 @@ should_parse_numerics	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn shoul
 should_parse_simple_schema	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_parse_simple_schema() {$/;"	f	module:tests
 should_parse_strings	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn should_parse_strings() {$/;"	f	module:tests
 should_parse_successfully	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn should_parse_successfully() {$/;"	f	module:tests
+should_puke_on_empty_input	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn should_puke_on_empty_input() {$/;"	f	module:tests
 should_save_baseline	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    fn should_save_baseline(&self) -> bool {$/;"	P	implementation:Criterion
 should_successfully_bail	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests
 should_successfully_bail	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn should_successfully_bail() {$/;"	f	module:tests

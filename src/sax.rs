@@ -48,6 +48,7 @@ impl Parser {
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
+        if bytes.is_empty()  {return parser_error!(Details::ZeroLengthInput, Coords::default());}
         let reader = BufReader::new(bytes);
         self.parse(reader, cb)
     }
@@ -56,6 +57,7 @@ impl Parser {
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
+        if str.is_empty() {return parser_error!(Details::ZeroLengthInput, Coords::default());}
         let reader = BufReader::new(str.as_bytes());
         self.parse(reader, cb)
     }
@@ -193,6 +195,15 @@ mod tests {
     use std::path::PathBuf;
     use std::time::Instant;
     use std::{env, fs};
+
+    #[test]
+    fn should_puke_on_empty_input() {
+        let input = "";
+        let parser = Parser::default();
+        let parsed = parser.parse_str(input, &mut |_e| {Ok(())} );
+        assert!(parsed.is_err());
+        assert_eq!(parsed.err().unwrap().details , Details::ZeroLengthInput);
+    }
 
     #[test]
     fn should_parse_successfully() {
