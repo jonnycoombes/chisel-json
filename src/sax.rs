@@ -20,6 +20,13 @@ macro_rules! emit_event {
             path: Some(&$path),
         })
     };
+    ($cb : expr, $m : expr, $span : expr) => {
+        $cb(&Event {
+            matched: $m,
+            span: $span,
+            path: None,
+        })
+    };
 }
 
 /// Main JSON parser struct
@@ -76,7 +83,7 @@ impl Parser {
         let mut lexer = Lexer::new(input);
         match lexer.consume()? {
             (Token::StartObject, span) => {
-                emit_event!(cb, Match::StartOfInput, span, path)?;
+                emit_event!(cb, Match::StartOfInput, span)?;
                 emit_event!(cb, Match::StartObject, span, path)?;
                 self.parse_object(&mut lexer, &mut path, cb)
             }
