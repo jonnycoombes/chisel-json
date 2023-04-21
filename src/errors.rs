@@ -31,6 +31,7 @@ impl Display for Stage {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Details {
     InvalidFile,
+    ZeroLengthInput,
     EndOfInput,
     StreamFailure,
     NonUtf8InputDetected,
@@ -50,6 +51,7 @@ impl Display for Details {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Details::InvalidFile => write!(f, "invalid file specified"),
+            Details::ZeroLengthInput => write!(f, "zero length input"),
             Details::EndOfInput => write!(f, "end of input reached"),
             Details::StreamFailure => write!(f, "failure in the underlying stream"),
             Details::NonUtf8InputDetected => write!(f, "non-UTF8 input"),
