@@ -1,5 +1,5 @@
 use crate::coords::Span;
-use crate::errors::Error;
+use crate::errors::ParserError;
 use crate::paths::JsonPath;
 use std::borrow::Cow;
 use std::fmt::Display;

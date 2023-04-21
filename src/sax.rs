@@ -1,5 +1,5 @@
 use crate::coords::Coords;
-use crate::errors::{Details, Error, ParserResult, Stage};
+use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
 use crate::parser_error;
@@ -48,7 +48,7 @@ impl Parser {
                 self.parse(reader, cb)
             }
             Err(_) => {
-                parser_error!(Details::InvalidFile, Coords::default())
+                parser_error!(ParserErrorDetails::InvalidFile, Coords::default())
             }
         }
     }
@@ -58,7 +58,7 @@ impl Parser {
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if bytes.is_empty() {
-            return parser_error!(Details::ZeroLengthInput, Coords::default());
+            return parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
         let reader = BufReader::new(bytes);
         self.parse(reader, cb)
@@ -69,7 +69,7 @@ impl Parser {
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if str.is_empty() {
-            return parser_error!(Details::ZeroLengthInput, Coords::default());
+            return parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
         let reader = BufReader::new(str.as_bytes());
         self.parse(reader, cb)
@@ -93,7 +93,7 @@ impl Parser {
                 self.parse_array(&mut lexer, &mut path, cb)
             }
             (_, span) => {
-                parser_error!(Details::InvalidRootObject, span.start)
+                parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
             }
         }
     }
@@ -132,7 +132,7 @@ impl Parser {
                 emit_event!(cb, Match::Null, span, path)
             }
             (token, span) => {
-                parser_error!(Details::UnexpectedToken(token), span.start)
+                parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
             }
         }
     }
@@ -159,7 +159,10 @@ impl Parser {
                             path.pop();
                         }
                         (_, _) => {
-                            return parser_error!(Details::PairExpected, should_be_colon.1.start)
+                            return parser_error!(
+                                ParserErrorDetails::PairExpected,
+                                should_be_colon.1.start
+                            )
                         }
                     }
                 }
@@ -167,7 +170,9 @@ impl Parser {
                 (Token::EndObject, span) => {
                     return emit_event!(cb, Match::EndObject, span, path);
                 }
-                (_token, span) => return parser_error!(Details::InvalidArray, span.start),
+                (_token, span) => {
+                    return parser_error!(ParserErrorDetails::InvalidArray, span.start)
+                }
             }
         }
     }
@@ -213,7 +218,7 @@ impl Parser {
                 (Token::Null, span) => emit_event!(cb, Match::Null, span, path)?,
                 (Token::Comma, _) => index += 1,
                 (_token, span) => {
-                    return parser_error!(Details::InvalidArray, span.start);
+                    return parser_error!(ParserErrorDetails::InvalidArray, span.start);
                 }
             }
             path.pop();
@@ -224,7 +229,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
 
-    use crate::errors::Details;
+    use crate::errors::ParserErrorDetails;
     use crate::sax::Parser;
     use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
@@ -240,7 +245,10 @@ mod tests {
         let parser = Parser::default();
         let parsed = parser.parse_str(input, &mut |_e| Ok(()));
         assert!(parsed.is_err());
-        assert_eq!(parsed.err().unwrap().details, Details::ZeroLengthInput);
+        assert_eq!(
+            parsed.err().unwrap().details,
+            ParserErrorDetails::ZeroLengthInput
+        );
     }
 
     #[test]
@@ -263,6 +271,6 @@ mod tests {
         let parsed = parser.parse(reader, &mut |_e| Ok(()));
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
-        assert!(parsed.err().unwrap().details == Details::InvalidRootObject);
+        assert!(parsed.err().unwrap().details == ParserErrorDetails::InvalidRootObject);
     }
 }
