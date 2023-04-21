@@ -9,7 +9,7 @@ macro_rules! build_parse_benchmark {
             let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             let path = base.join(format!("fixtures/json/bench/{}.json", $filename));
             let parser = Parser::default();
-            let _ = parser.parse_file(path, &mut |_evt| Ok(()));
+            let _ = parser.parse_file(path, &mut |_evt, _path| Ok(()));
         }
     };
 }
