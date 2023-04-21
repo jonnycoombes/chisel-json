@@ -63,6 +63,13 @@ pub struct Event<'a> {
     pub path: Option<&'a JsonPath<'a>>,
 }
 
+impl<'a> Event<'a> {
+    /// Checks whether an event has a path or not
+    fn has_path(&self) -> bool {
+        self.path.is_some()
+    }
+}
+
 impl<'a> Display for Event<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.path.is_some() {
