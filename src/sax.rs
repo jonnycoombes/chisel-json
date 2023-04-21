@@ -14,13 +14,18 @@ use std::path::Path;
 
 macro_rules! emit_event {
     ($cb : expr, $m : expr, $span : expr, $path : expr) => {
-        $cb(
-            &Event {
-                matched: $m,
-                span: $span,
-            },
-            &$path,
-        )
+        $cb(&Event {
+            matched: $m,
+            span: $span,
+            path: Some(&$path),
+        })
+    };
+    ($cb : expr, $m : expr, $span : expr) => {
+        $cb(&Event {
+            matched: $m,
+            span: $span,
+            path: None,
+        })
     };
 }
 
@@ -35,7 +40,7 @@ impl Parser {
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         match File::open(&path) {
             Ok(f) => {
@@ -50,7 +55,7 @@ impl Parser {
 
     pub fn parse_bytes<Callback>(&self, bytes: &[u8], cb: &mut Callback) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if bytes.is_empty() {
             return parser_error!(Details::ZeroLengthInput, Coords::default());
@@ -61,7 +66,7 @@ impl Parser {
 
     pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if str.is_empty() {
             return parser_error!(Details::ZeroLengthInput, Coords::default());
@@ -72,13 +77,13 @@ impl Parser {
 
     fn parse<Buffer: BufRead, Callback>(&self, input: Buffer, cb: &mut Callback) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         let mut path = JsonPath::new();
         let mut lexer = Lexer::new(input);
         match lexer.consume()? {
             (Token::StartObject, span) => {
-                emit_event!(cb, Match::StartOfInput, span, path)?;
+                emit_event!(cb, Match::StartOfInput, span)?;
                 emit_event!(cb, Match::StartObject, span, path)?;
                 self.parse_object(&mut lexer, &mut path, cb)
             }
@@ -100,7 +105,7 @@ impl Parser {
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         match lexer.consume()? {
             (Token::StartObject, span) => {
@@ -140,7 +145,7 @@ impl Parser {
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         loop {
             match lexer.consume()? {
@@ -175,7 +180,7 @@ impl Parser {
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
-        Callback: FnMut(&Event, &JsonPath) -> ParserResult<()>,
+        Callback: FnMut(&Event) -> ParserResult<()>,
     {
         let mut index = 0;
         loop {
@@ -233,7 +238,7 @@ mod tests {
     fn should_puke_on_empty_input() {
         let input = "";
         let parser = Parser::default();
-        let parsed = parser.parse_str(input, &mut |_e, _p| Ok(()));
+        let parsed = parser.parse_str(input, &mut |_e| Ok(()));
         assert!(parsed.is_err());
         assert_eq!(parsed.err().unwrap().details, Details::ZeroLengthInput);
     }
@@ -243,7 +248,7 @@ mod tests {
         let mut counter = 0;
         let reader = reader_from_relative_file!("fixtures/json/valid/events.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |_e, _p| {
+        let parsed = parser.parse(reader, &mut |_e| {
             counter += 1;
             Ok(())
         });
@@ -255,7 +260,7 @@ mod tests {
     fn should_successfully_bail() {
         let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |_e, _p| Ok(()));
+        let parsed = parser.parse(reader, &mut |_e| Ok(()));
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
         assert!(parsed.err().unwrap().details == Details::InvalidRootObject);

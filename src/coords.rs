@@ -4,7 +4,7 @@
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
-/// A [Coord] represents a single location within the parser input
+/// A [Coords] represents a single location within the parser input
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Coords {
     /// The absolute character position
