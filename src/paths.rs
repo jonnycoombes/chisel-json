@@ -7,7 +7,7 @@ use std::ops::Add;
 const PATH_SEPARATOR: char = '.';
 
 /// An enumeration fo various different path components
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum JsonPathComponent<'a> {
     /// The root element '$'
     Root,
