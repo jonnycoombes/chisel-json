@@ -1,9 +1,10 @@
 use crate::coords::Span;
 use crate::errors::Error;
+use crate::paths::JsonPath;
 use std::borrow::Cow;
+use std::fmt::Display;
 
 /// Enumeration of the various different matches that can be produced during a parse
-#[derive(Debug)]
 pub enum Match<'a> {
     /// Start of the input Emitted prior to anything else
     StartOfInput,
@@ -31,12 +32,49 @@ pub enum Match<'a> {
     Null,
 }
 
+impl<'a> Display for Match<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Match::StartOfInput => write!(f, "StartOfInput"),
+            Match::EndOfInput => write!(f, "EndOfInput"),
+            Match::StartObject => write!(f, "StartObject"),
+            Match::ObjectKey(_) => write!(f, "ObjectKey"),
+            Match::EndObject => write!(f, "EndObject"),
+            Match::StartArray => write!(f, "StartArray"),
+            Match::EndArray => write!(f, "EndArray"),
+            Match::String(value) => write!(f, "String({})", value),
+            Match::Integer(value) => write!(f, "Integer({})", value),
+            Match::Float(value) => write!(f, "Float({})", value),
+            Match::Boolean(b) => write!(f, "Boolean({})", b),
+            Match::Null => write!(f, "Null"),
+        }
+    }
+}
+
 /// A general event produced by the parser during a parse
-#[derive(Debug)]
 pub struct Event<'a> {
     /// The [Match] associated with the event
     pub matched: Match<'a>,
 
     /// The [Span] associated with the [matched]
     pub span: Span,
+
+    /// Optional [JsonPath] information relating to the event
+    pub path: Option<&'a JsonPath<'a>>,
+}
+
+impl<'a> Display for Event<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.path.is_some() {
+            write!(
+                f,
+                "Event[{}, {}, {}]",
+                self.matched,
+                self.span,
+                self.path.unwrap()
+            )
+        } else {
+            write!(f, "Event[{}, {}]", self.matched, self.span)
+        }
+    }
 }
