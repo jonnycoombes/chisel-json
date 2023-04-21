@@ -33,8 +33,18 @@ impl<'a> Display for JsonPathComponent<'a> {
     }
 }
 
+macro_rules! is_index_selector {
+    ($comp : expr) => {
+        match $comp {
+            JsonPathComponent::IndexSelector(_) => true,
+            _ => false,
+        }
+    };
+}
+
 /// Struct for creating and manipulating Json paths vaguely compatible with a subset of RFC 8259.
-/// Each instance of [JsonPath] comprises of multiple [JsonPathComponent]s
+/// Each instance of [JsonPath] comprises of multiple [JsonPathComponent]
+#[derive(Debug)]
 pub struct JsonPath<'a> {
     /// The path components
     components: Vec<JsonPathComponent<'a>>,
@@ -113,6 +123,14 @@ impl<'a> JsonPath<'a> {
     /// Pops the last [JsonPathComponent] from the end of the path (if it exists)
     pub fn pop(&mut self) -> Option<JsonPathComponent<'a>> {
         self.components.pop()
+    }
+
+    /// Checks whether a path points to an array element within the source JSON
+    pub fn is_array_path(&self) -> bool {
+        if self.is_empty() {
+            return false;
+        }
+        is_index_selector!(self.components.last().unwrap())
     }
 }
 
