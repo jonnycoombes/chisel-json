@@ -7,29 +7,29 @@ use crate::coords::Coords;
 use crate::lexer::Token;
 
 /// Global result type used throughout the parser stages
-pub type ParserResult<T> = Result<T, Error>;
+pub type ParserResult<T> = Result<T, ParserError>;
 
 /// Enumeration of the various different parser stages that can produce an error
 #[derive(Debug, Copy, Clone)]
-pub enum Stage {
+pub enum ParserErrorSource {
     /// The lexer stage of the parser
     Lexer,
     /// The parsing/AST construction stage of the parser
     Parser,
 }
 
-impl Display for Stage {
+impl Display for ParserErrorSource {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Stage::Lexer => write!(f, "lexing"),
-            Stage::Parser => write!(f, "parsing"),
+            ParserErrorSource::Lexer => write!(f, "lexing"),
+            ParserErrorSource::Parser => write!(f, "parsing"),
         }
     }
 }
 
 /// A global enumeration of error codes
 #[derive(Debug, Clone, PartialEq)]
-pub enum Details {
+pub enum ParserErrorDetails {
     InvalidFile,
     ZeroLengthInput,
     EndOfInput,
@@ -47,32 +47,36 @@ pub enum Details {
     InvalidUnicodeEscapeSequence(String),
 }
 
-impl Display for Details {
+impl Display for ParserErrorDetails {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Details::InvalidFile => write!(f, "invalid file specified"),
-            Details::ZeroLengthInput => write!(f, "zero length input"),
-            Details::EndOfInput => write!(f, "end of input reached"),
-            Details::StreamFailure => write!(f, "failure in the underlying stream"),
-            Details::NonUtf8InputDetected => write!(f, "non-UTF8 input"),
-            Details::UnexpectedToken(token) => write!(f, "unexpected token found: {}", token),
-            Details::PairExpected => write!(f, "pair expected, something else was found"),
-            Details::InvalidRootObject => write!(f, "invalid JSON"),
-            Details::InvalidObject => write!(f, "invalid object"),
-            Details::InvalidArray => write!(f, "invalid array"),
-            Details::InvalidCharacter(ch) => write!(f, "invalid character: \'{}\'", ch),
-            Details::MatchFailed(first, second) => write!(
+            ParserErrorDetails::InvalidFile => write!(f, "invalid file specified"),
+            ParserErrorDetails::ZeroLengthInput => write!(f, "zero length input"),
+            ParserErrorDetails::EndOfInput => write!(f, "end of input reached"),
+            ParserErrorDetails::StreamFailure => write!(f, "failure in the underlying stream"),
+            ParserErrorDetails::NonUtf8InputDetected => write!(f, "non-UTF8 input"),
+            ParserErrorDetails::UnexpectedToken(token) => {
+                write!(f, "unexpected token found: {}", token)
+            }
+            ParserErrorDetails::PairExpected => {
+                write!(f, "pair expected, something else was found")
+            }
+            ParserErrorDetails::InvalidRootObject => write!(f, "invalid JSON"),
+            ParserErrorDetails::InvalidObject => write!(f, "invalid object"),
+            ParserErrorDetails::InvalidArray => write!(f, "invalid array"),
+            ParserErrorDetails::InvalidCharacter(ch) => write!(f, "invalid character: \'{}\'", ch),
+            ParserErrorDetails::MatchFailed(first, second) => write!(
                 f,
                 "a match failed. Looking for \"{}\", found \"{}\"",
                 first, second
             ),
-            Details::InvalidNumericRepresentation(repr) => {
+            ParserErrorDetails::InvalidNumericRepresentation(repr) => {
                 write!(f, "invalid number representation: \"{}\"", repr)
             }
-            Details::InvalidEscapeSequence(seq) => {
+            ParserErrorDetails::InvalidEscapeSequence(seq) => {
                 write!(f, "invalid escape sequence: \"{}\"", seq)
             }
-            Details::InvalidUnicodeEscapeSequence(seq) => {
+            ParserErrorDetails::InvalidUnicodeEscapeSequence(seq) => {
                 write!(f, "invalid unicode escape sequence: \"{}\"", seq)
             }
         }
@@ -81,21 +85,21 @@ impl Display for Details {
 
 /// The general error structure
 #[derive(Debug, Clone)]
-pub struct Error {
-    /// The originating stage for the error
-    pub stage: Stage,
+pub struct ParserError {
+    /// The originating source for the error
+    pub source: ParserErrorSource,
     /// The global error code for the error
-    pub details: Details,
+    pub details: ParserErrorDetails,
     /// Parser [Coords]
     pub coords: Coords,
 }
 
-impl Display for Error {
+impl Display for ParserError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Stage: {}, Details: {}, Coords: {}",
-            self.stage, self.details, self.coords
+            "Source: {}, Details: {}, Coords: {}",
+            self.source, self.details, self.coords
         )
     }
 }
@@ -103,8 +107,8 @@ impl Display for Error {
 #[macro_export]
 macro_rules! lexer_error {
     ($details: expr, $coords : expr) => {
-        Err(Error {
-            stage: Stage::Lexer,
+        Err(ParserError {
+            source: ParserErrorSource::Lexer,
             details: $details,
             coords: $coords,
         })
@@ -114,8 +118,8 @@ macro_rules! lexer_error {
 #[macro_export]
 macro_rules! parser_error {
     ($details: expr, $coords: expr) => {
-        Err(Error {
-            stage: Stage::Parser,
+        Err(ParserError {
+            source: ParserErrorSource::Parser,
             details: $details,
             coords: $coords,
         })
