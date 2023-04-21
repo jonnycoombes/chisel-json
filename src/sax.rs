@@ -233,7 +233,7 @@ mod tests {
     fn should_puke_on_empty_input() {
         let input = "";
         let parser = Parser::default();
-        let parsed = parser.parse_str(input, &mut |_e| Ok(()));
+        let parsed = parser.parse_str(input, &mut |_e, _p| Ok(()));
         assert!(parsed.is_err());
         assert_eq!(parsed.err().unwrap().details, Details::ZeroLengthInput);
     }
@@ -241,9 +241,9 @@ mod tests {
     #[test]
     fn should_parse_successfully() {
         let mut counter = 0;
-        let reader = reader_from_relative_file!("fixtures/json/valid/canada.json");
+        let reader = reader_from_relative_file!("fixtures/json/valid/events.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |_e| {
+        let parsed = parser.parse(reader, &mut |_e, _p| {
             counter += 1;
             Ok(())
         });
@@ -255,10 +255,7 @@ mod tests {
     fn should_successfully_bail() {
         let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |e| {
-            println!("SAX event = {:?}", e);
-            Ok(())
-        });
+        let parsed = parser.parse(reader, &mut |_e, _p| Ok(()));
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
         assert!(parsed.err().unwrap().details == Details::InvalidRootObject);
