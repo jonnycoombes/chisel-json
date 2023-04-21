@@ -220,6 +220,8 @@ Error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^pub struct Error {$/;"	s
 Estimate	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^pub struct Estimate {$/;"	s
 Estimates	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^impl Estimates {$/;"	c
 Estimates	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^pub struct Estimates {$/;"	s
+Event	/home/jcoombes/Src/chisel-json/src/events.rs	/^impl<'a> Display for Event<'a> {$/;"	c
+Event	/home/jcoombes/Src/chisel-json/src/events.rs	/^impl<'a> Event<'a> {$/;"	c
 Event	/home/jcoombes/Src/chisel-json/src/events.rs	/^pub struct Event<'a> {$/;"	s
 ExternalProfiler	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/profiler.rs	/^impl Profiler for ExternalProfiler {$/;"	c
 ExternalProfiler	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/profiler.rs	/^pub struct ExternalProfiler;$/;"	s
@@ -409,6 +411,7 @@ MIN_EXPONENT_ROUND_TO_EVEN	/home/jcoombes/.cargo/registry/src/github.com-1ecc629
 MIN_EXPONENT_ROUND_TO_EVEN	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/float.rs	/^    const MIN_EXPONENT_ROUND_TO_EVEN: i32;$/;"	C	interface:Float
 MUL1	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^    const MUL1: u64 = 0x000F_4240_0000_0064;$/;"	C	function:parse_8digits_le
 MUL2	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^    const MUL2: u64 = 0x0000_2710_0000_0001;$/;"	C	function:parse_8digits_le
+Match	/home/jcoombes/Src/chisel-json/src/events.rs	/^impl<'a> Display for Match<'a> {$/;"	c
 Match	/home/jcoombes/Src/chisel-json/src/events.rs	/^pub enum Match<'a> {$/;"	g
 MatchFailed	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    MatchFailed(String, String),$/;"	e	enum:Details
 Mean	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/estimate.rs	/^    Mean,$/;"	e	enum:Statistic
@@ -791,6 +794,7 @@ analysis	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterio
 any_matched	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark_group.rs	/^    any_matched: bool,$/;"	m	struct:BenchmarkGroup
 append_	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^    fn append_(mut self, item: T) -> Vec<T> {$/;"	P	implementation:Vec
 append_	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/gnuplot_backend/mod.rs	/^    fn append_(self, item: T) -> Self;$/;"	P	interface:Append
+array_paths_should_be_identified_as_such	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    fn array_paths_should_be_identified_as_such() {$/;"	f	module:tests
 as_directory_name	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub fn as_directory_name(&self) -> &str {$/;"	P	implementation:BenchmarkId
 as_number	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub fn as_number(&self) -> Option<f64> {$/;"	P	implementation:BenchmarkId
 as_string	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn as_string(&self) -> Cow<'a, str> {$/;"	P	implementation:JsonPath
@@ -1099,6 +1103,8 @@ fmt	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    fn fmt(&self, f: &mut For
 fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Details
 fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Error
 fmt	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Stage
+fmt	/home/jcoombes/Src/chisel-json/src/events.rs	/^    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Event
+fmt	/home/jcoombes/Src/chisel-json/src/events.rs	/^    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Match
 fmt	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:Token
 fmt	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:JsonPath
 fmt	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {$/;"	P	implementation:JsonPathComponent
@@ -1190,6 +1196,7 @@ group_separator	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/c
 group_separator	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    fn group_separator(&self) {$/;"	P	implementation:CliReport
 group_separator	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    fn group_separator(&self) {}$/;"	P	interface:Report
 groups	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    groups: Vec<BenchmarkGroup<'a>>,$/;"	m	struct:IndexContext
+has_path	/home/jcoombes/Src/chisel-json/src/events.rs	/^    fn has_path(&self) -> bool {$/;"	P	implementation:Event
 hash	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^    fn hash(key: &T) -> u64 {$/;"	P	implementation:HashCounter
 hash	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/frames.rs	/^    fn hash<H: Hasher>(&self, state: &mut H) {$/;"	P	implementation:Symbol
 hash	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/frames.rs	/^    fn hash<H: Hasher>(&self, state: &mut H) {$/;"	P	implementation:UnresolvedFrames
@@ -1226,6 +1233,7 @@ ip	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/s
 iqr	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/percentiles.rs	/^    pub fn iqr(&self) -> A {$/;"	f
 iqr	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/sample.rs	/^    pub fn iqr(&self) -> A$/;"	f
 is_8digits_le	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/common.rs	/^pub fn is_8digits_le(v: u64) -> bool {$/;"	f
+is_array_path	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn is_array_path(&self) -> bool {$/;"	P	implementation:JsonPath
 is_benchmark	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/fs.rs	/^    fn is_benchmark(entry: &DirEntry) -> bool {$/;"	f	function:list_existing_benchmarks
 is_benchmark	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    pub fn is_benchmark(&self) -> bool {$/;"	P	implementation:Mode
 is_blocklisted	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/profiler.rs	/^    fn is_blocklisted(&self, addr: usize) -> bool {$/;"	P	implementation:Profiler
@@ -1234,6 +1242,7 @@ is_empty	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-flo
 is_empty	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn is_empty(&self) -> bool {$/;"	P	implementation:JsonPath
 is_fast_path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/fast-float-0.2.0/src/number.rs	/^    fn is_fast_path<F: Float>(&self) -> bool {$/;"	P	implementation:Number
 is_high	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^    pub fn is_high(&self) -> bool {$/;"	P	implementation:Label
+is_index_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^macro_rules! is_index_selector {$/;"	M
 is_linear	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    fn is_linear(&self) -> bool {$/;"	P	implementation:ActualSamplingMode
 is_low	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^    pub fn is_low(&self) -> bool {$/;"	P	implementation:Label
 is_mild	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/univariate/outliers/tukey.rs	/^    pub fn is_mild(&self) -> bool {$/;"	P	implementation:Label
@@ -1531,6 +1540,7 @@ partial_config	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cr
 pass_a_fuzz_test	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^    fn pass_a_fuzz_test() {$/;"	f	module:tests
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: Option<String>,$/;"	m	struct:ReportLink
 path	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/html/mod.rs	/^    path: String,$/;"	m	struct:IndividualBenchmark
+path	/home/jcoombes/Src/chisel-json/src/events.rs	/^    pub path: Option<&'a JsonPath<'a>>,$/;"	m	struct:Event
 paths	/home/jcoombes/Src/chisel-json/src/lib.rs	/^mod paths;$/;"	n
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^    pub const fn pb(size: u64) -> ByteSize {$/;"	P	implementation:ByteSize
 pb	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/bytesize-1.2.0/src/lib.rs	/^pub fn pb<V: Into<u64>>(size: V) -> u64 {$/;"	f
