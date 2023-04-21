@@ -22,5 +22,3 @@ jobs:
       run: cargo test --verbose -- --nocapture
     - name: Run release tests
       run: cargo test --release --verbose -- --nocapture
-    - name: Run benchmarks
-      run: cargo bench
