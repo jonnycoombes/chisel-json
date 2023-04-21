@@ -233,6 +233,14 @@ mod tests {
     }
 
     #[test]
+    fn array_paths_should_be_identified_as_such() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_index_select(4);
+        assert!(path.is_array_path())
+    }
+
+    #[test]
     fn a_root_and_partial_paths_can_be_concatenated_correctly() {
         let mut root = JsonPath::new();
         let mut partial = JsonPath::new_partial();
