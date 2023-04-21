@@ -1591,11 +1591,11 @@ push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    fn push(&mut self, tuple: (A,)) {$/;"	f
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    fn push(&mut self, tuple: Self::Item);$/;"	P	interface:TupledDistributionsBuilder
 push	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/pprof-0.11.1/src/collector.rs	/^    fn push(&mut self, entry: T) -> std::io::Result<()> {$/;"	P	implementation:TempFdArray
-push	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push(mut self, component: JsonPathComponent<'a>) -> Self {$/;"	P	implementation:JsonPath
-push_index_select	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_index_select(mut self, index: usize) -> Self {$/;"	P	implementation:JsonPath
-push_range_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_range_selector(mut self, start: usize, end: usize) -> Self {$/;"	P	implementation:JsonPath
-push_str_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_str_selector(mut self, name: &'a str) -> Self {$/;"	P	implementation:JsonPath
-push_wildcard_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_wildcard_selector(mut self) -> Self {$/;"	P	implementation:JsonPath
+push	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push(&mut self, component: JsonPathComponent<'a>) {$/;"	P	implementation:JsonPath
+push_index_select	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_index_select(&mut self, index: usize) {$/;"	P	implementation:JsonPath
+push_range_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_range_selector(&mut self, start: usize, end: usize) {$/;"	P	implementation:JsonPath
+push_str_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_str_selector(&mut self, name: &str) {$/;"	P	implementation:JsonPath
+push_wildcard_selector	/home/jcoombes/Src/chisel-json/src/paths.rs	/^    pub fn push_wildcard_selector(&mut self) {$/;"	P	implementation:JsonPath
 pushback	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    fn pushback(&mut self) {$/;"	P	implementation:Lexer
 pushback	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    pushback: Option<char>,$/;"	m	struct:Lexer
 quad_byte_sequence	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^macro_rules! quad_byte_sequence {$/;"	M
