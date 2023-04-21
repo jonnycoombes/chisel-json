@@ -81,36 +81,33 @@ impl<'a> JsonPath<'a> {
     /// Push a new [JsonPathComponent::NameSelector] based on a string slice.  Note that no
     /// validation is carried out (as of yet) to check whether the name is actually valid and not
     /// full of crap
-    pub fn push_str_selector(mut self, name: &'a str) -> Self {
+    pub fn push_str_selector(&mut self, name: &str) {
         self.components
-            .push(JsonPathComponent::NameSelector(Cow::from(name)));
-        self
+            .push(JsonPathComponent::NameSelector(Cow::Owned(String::from(
+                name.replace("\"", ""),
+            ))));
     }
 
     /// Push a new [JsonPathComponent::IndexSelector] based on a given index
-    pub fn push_index_select(mut self, index: usize) -> Self {
+    pub fn push_index_select(&mut self, index: usize) {
         self.components
             .push(JsonPathComponent::IndexSelector(index));
-        self
     }
 
     /// Push a new [JsonPathComponent::RangeSelector] based on a given start and end index
-    pub fn push_range_selector(mut self, start: usize, end: usize) -> Self {
+    pub fn push_range_selector(&mut self, start: usize, end: usize) {
         self.components
             .push(JsonPathComponent::RangeSelector(start, end));
-        self
     }
 
     /// Push a new [JsonPathComponent::WildcardSelector]
-    pub fn push_wildcard_selector(mut self) -> Self {
+    pub fn push_wildcard_selector(&mut self) {
         self.components.push(JsonPathComponent::WildcardSelector);
-        self
     }
 
     /// Appends a new [JsonPathComponent] to the end of the path
-    pub fn push(mut self, component: JsonPathComponent<'a>) -> Self {
+    pub fn push(&mut self, component: JsonPathComponent<'a>) {
         self.components.push(component);
-        self
     }
 
     /// Pops the last [JsonPathComponent] from the end of the path (if it exists)
@@ -187,31 +184,31 @@ mod tests {
 
     #[test]
     fn simple_paths_should_have_correct_representations() {
-        let path = JsonPath::new()
-            .push_str_selector("a")
-            .push_str_selector("b")
-            .push_str_selector("c")
-            .push_str_selector("d");
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
         assert_eq!(&path.as_string(), "$.a.b.c.d")
     }
 
     #[test]
     fn complex_paths_should_have_correct_representations() {
-        let path = JsonPath::new()
-            .push_str_selector("array")
-            .push_wildcard_selector()
-            .push_index_select(4)
-            .push_range_selector(6, 7);
+        let mut path = JsonPath::new();
+        path.push_str_selector("array");
+        path.push_wildcard_selector();
+        path.push_index_select(4);
+        path.push_range_selector(6, 7);
         assert_eq!(path.as_string(), "$.array.[*].[4].[6..7]")
     }
 
     #[test]
     fn popping_elements_should_correctly_alter_representation() {
-        let mut path = JsonPath::new()
-            .push_str_selector("a")
-            .push_str_selector("b")
-            .push_str_selector("c")
-            .push_str_selector("d");
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
         path.pop();
         path.pop();
         assert_eq!(&path.as_string(), "$.a.b")
@@ -220,7 +217,8 @@ mod tests {
     #[test]
     fn a_root_and_partial_paths_can_be_concatenated_correctly() {
         let mut root = JsonPath::new();
-        let partial = JsonPath::new_partial().push_str_selector("a");
+        let mut partial = JsonPath::new_partial();
+        partial.push_str_selector("a");
         root = root + &partial;
         assert_eq!(root.as_string(), "$.a")
     }
