@@ -2,8 +2,8 @@ use crate::coords::Coords;
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
-use crate::parser_error;
 use crate::paths::JsonPath;
+use crate::sax_parser_error;
 use crate::JsonValue;
 use crate::Span;
 use std::borrow::Cow;
@@ -48,7 +48,7 @@ impl Parser {
                 self.parse(reader, cb)
             }
             Err(_) => {
-                parser_error!(ParserErrorDetails::InvalidFile, Coords::default())
+                sax_parser_error!(ParserErrorDetails::InvalidFile)
             }
         }
     }
@@ -58,7 +58,7 @@ impl Parser {
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if bytes.is_empty() {
-            return parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
+            return sax_parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
         let reader = BufReader::new(bytes);
         self.parse(reader, cb)
@@ -69,7 +69,7 @@ impl Parser {
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
         if str.is_empty() {
-            return parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
+            return sax_parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
         let reader = BufReader::new(str.as_bytes());
         self.parse(reader, cb)
@@ -93,7 +93,7 @@ impl Parser {
                 self.parse_array(&mut lexer, &mut path, cb)
             }
             (_, span) => {
-                parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
+                sax_parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
             }
         }
     }
@@ -132,7 +132,7 @@ impl Parser {
                 emit_event!(cb, Match::Null, span, path)
             }
             (token, span) => {
-                parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
+                sax_parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
             }
         }
     }
@@ -159,7 +159,7 @@ impl Parser {
                             path.pop();
                         }
                         (_, _) => {
-                            return parser_error!(
+                            return sax_parser_error!(
                                 ParserErrorDetails::PairExpected,
                                 should_be_colon.1.start
                             )
@@ -171,7 +171,7 @@ impl Parser {
                     return emit_event!(cb, Match::EndObject, span, path);
                 }
                 (_token, span) => {
-                    return parser_error!(ParserErrorDetails::InvalidArray, span.start)
+                    return sax_parser_error!(ParserErrorDetails::InvalidArray, span.start)
                 }
             }
         }
@@ -218,7 +218,7 @@ impl Parser {
                 (Token::Null, span) => emit_event!(cb, Match::Null, span, path)?,
                 (Token::Comma, _) => index += 1,
                 (_token, span) => {
-                    return parser_error!(ParserErrorDetails::InvalidArray, span.start);
+                    return sax_parser_error!(ParserErrorDetails::InvalidArray, span.start);
                 }
             }
             path.pop();
