@@ -1,4 +1,7 @@
-//! General error types for the parser
+//! Error types for:
+//! - The lexer
+//! - The DOM parser
+//! - The SAX parser
 
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
@@ -33,20 +36,37 @@ impl Display for ParserErrorSource {
 /// A global enumeration of error codes
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParserErrorDetails {
+    /// An invalid file has been specified.  It might not exist, or might not be accessible
     InvalidFile,
+    /// We can't parse nothing.
     ZeroLengthInput,
+    /// End of input has been reached. This is used as a stopping condition at various points.
     EndOfInput,
+    /// If pulling bytes from an underlying stream (or [BufRead]) of some description, and an
+    /// error occurs, this will be returned.
     StreamFailure,
+    /// Dodgy UTF8 has been found in the input.
     NonUtf8InputDetected,
+    /// Edge case error condition. This means that something has gone horribly wrong with the
+    /// parse.
     UnexpectedToken(Token),
+    /// KV pair is expected but not detected.
     PairExpected,
+    /// Supplied JSON doesn't have an object or array as a root object.
     InvalidRootObject,
+    /// The parse of an object has failed.
     InvalidObject,
+    /// The parse of an array has failed.
     InvalidArray,
+    /// An invalid character has been detected within the input.
     InvalidCharacter(char),
+    /// Whilst looking for a literal string token (null, true, false) a match couldn't be found
     MatchFailed(String, String),
+    /// A number has been found with an incorrect string representation.
     InvalidNumericRepresentation(String),
+    /// An invalid escape sequence has been found within the input.
     InvalidEscapeSequence(String),
+    /// An invalid unicode escape sequence (\uXXX) has been found within the input.
     InvalidUnicodeEscapeSequence(String),
 }
 
