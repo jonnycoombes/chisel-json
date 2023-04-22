@@ -91,19 +91,26 @@ pub struct ParserError {
     /// The global error code for the error
     pub details: ParserErrorDetails,
     /// Parser [Coords]
-    pub coords: Coords,
+    pub coords: Option<Coords>,
 }
 
 impl Display for ParserError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Source: {}, Details: {}, Coords: {}",
-            self.source, self.details, self.coords
-        )
+        if self.coords.is_some() {
+            write!(
+                f,
+                "Source: {}, Details: {}, Coords: {}",
+                self.source,
+                self.details,
+                self.coords.unwrap()
+            )
+        } else {
+            write!(f, "Source: {}, Details: {}", self.source, self.details)
+        }
     }
 }
 
+/// Helper macro for cooking up a [ParserError] specific to the lexer
 #[macro_export]
 macro_rules! lexer_error {
     ($details: expr, $coords : expr) => {
@@ -115,13 +122,40 @@ macro_rules! lexer_error {
     };
 }
 
+/// Helper macro for cooking up a [ParserError] specific to the DOM parser
 #[macro_export]
-macro_rules! parser_error {
+macro_rules! dom_parser_error {
     ($details: expr, $coords: expr) => {
         Err(ParserError {
-            source: ParserErrorSource::Parser,
+            source: ParserErrorSource::DomParser,
             details: $details,
-            coords: $coords,
+            coords: Some($coords),
+        })
+    };
+    ($details: expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::DomParser,
+            details: $details,
+            coords: None,
+        })
+    };
+}
+
+/// Helper macro for cooking up a [ParserError] specific to the SAX parser
+#[macro_export]
+macro_rules! sax_parser_error {
+    ($details: expr, $coords: expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::SaxParser,
+            details: $details,
+            coords: Some($coords),
+        })
+    };
+    ($details: expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::SaxParser,
+            details: $details,
+            coords: None,
         })
     };
 }
