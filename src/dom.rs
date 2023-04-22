@@ -10,9 +10,9 @@ use std::path::Path;
 use std::rc::Rc;
 
 use crate::coords::Span;
+use crate::dom_parser_error;
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::lexer::{Lexer, Token};
-use crate::parser_error;
 use crate::JsonValue;
 
 /// Main JSON parser struct
@@ -27,7 +27,7 @@ impl Parser {
                 self.parse(reader)
             }
             Err(_) => {
-                parser_error!(ParserErrorDetails::InvalidFile, Coords::default())
+                dom_parser_error!(ParserErrorDetails::InvalidFile)
             }
         }
     }
@@ -49,7 +49,7 @@ impl Parser {
             (Token::StartObject, _) => self.parse_object(&mut lexer),
             (Token::StartArray, _) => self.parse_array(&mut lexer),
             (_, span) => {
-                parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
+                dom_parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
             }
         }
     }
@@ -64,7 +64,7 @@ impl Parser {
             (Token::Boolean(value), _) => Ok(JsonValue::Boolean(value)),
             (Token::Null, _) => Ok(JsonValue::Null),
             (token, span) => {
-                parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
+                dom_parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
             }
         }
     }
@@ -79,7 +79,7 @@ impl Parser {
                     match should_be_colon {
                         (Token::Colon, _) => pairs.push((str, self.parse_value(lexer)?)),
                         (_, _) => {
-                            return parser_error!(
+                            return dom_parser_error!(
                                 ParserErrorDetails::PairExpected,
                                 should_be_colon.1.start
                             )
@@ -89,7 +89,7 @@ impl Parser {
                 (Token::Comma, _) => (),
                 (Token::EndObject, _) => return Ok(JsonValue::Object(pairs)),
                 (_token, span) => {
-                    return parser_error!(ParserErrorDetails::InvalidObject, span.start);
+                    return dom_parser_error!(ParserErrorDetails::InvalidObject, span.start);
                 }
             }
         }
@@ -110,7 +110,7 @@ impl Parser {
                 (Token::Null, _) => values.push(JsonValue::Null),
                 (Token::Comma, _) => (),
                 (_token, span) => {
-                    return parser_error!(ParserErrorDetails::InvalidArray, span.start);
+                    return dom_parser_error!(ParserErrorDetails::InvalidArray, span.start);
                 }
             }
         }
