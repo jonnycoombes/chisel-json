@@ -183,6 +183,7 @@ Distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cri
 Distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    type Distributions = (Distribution<A>, Distribution<B>, Distribution<C>);$/;"	t
 Distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    type Distributions = (Distribution<A>,);$/;"	t
 Distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/tuple.rs	/^    type Distributions: TupledDistributions<Item = Self>;$/;"	t	interface:Tuple
+DomParser	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    DomParser,$/;"	e	enum:ParserErrorSource
 Duration	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^impl From<std::time::Duration> for Duration {$/;"	c
 Duration	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^struct Duration {$/;"	s
 DurationFormatter	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^impl DurationFormatter {$/;"	c
@@ -495,7 +496,6 @@ Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0
 Pairs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/bivariate/mod.rs	/^pub struct Pairs<'a, X: 'a, Y: 'a> {$/;"	s
 Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^impl Parser {$/;"	c
 Parser	/home/jcoombes/Src/chisel-json/src/dom.rs	/^pub struct Parser {}$/;"	s
-Parser	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    Parser,$/;"	e	enum:ParserErrorSource
 Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^impl Parser {$/;"	c
 Parser	/home/jcoombes/Src/chisel-json/src/sax.rs	/^pub struct Parser {}$/;"	s
 ParserError	/home/jcoombes/Src/chisel-json/src/errors.rs	/^impl Display for ParserError {$/;"	c
@@ -608,6 +608,7 @@ SamplingMode	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/crit
 SamplingMode	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^pub enum SamplingMode {$/;"	g
 Save	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    Save,$/;"	e	enum:Baseline
 SavedSample	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^pub(crate) struct SavedSample {$/;"	s
+SaxParser	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    SaxParser,$/;"	e	enum:ParserErrorSource
 ScaleForMachines	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^    ScaleForMachines {$/;"	e	enum:IncomingMessage
 ScaleThroughputs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^    ScaleThroughputs {$/;"	e	enum:IncomingMessage
 ScaleValues	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/connection.rs	/^    ScaleValues {$/;"	e	enum:IncomingMessage
@@ -939,7 +940,7 @@ connection	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criter
 consume	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    pub fn consume(&mut self) -> ParserResult<PackedToken> {$/;"	P	implementation:Lexer
 context	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/mod.rs	/^    pub(crate) context: &'a ReportContext,$/;"	m	struct:PlotContext
 convert_size	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/mod.rs	/^fn convert_size(size: Option<(usize, usize)>) -> Option<(u32, u32)> {$/;"	f
-coords	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    pub coords: Coords,$/;"	m	struct:ParserError
+coords	/home/jcoombes/Src/chisel-json/src/errors.rs	/^    pub coords: Option<Coords>,$/;"	m	struct:ParserError
 coords	/home/jcoombes/Src/chisel-json/src/lexer.rs	/^    coords: Coords,$/;"	m	struct:Lexer
 coords	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod coords;$/;"	n
 copy_new_dir_to_base	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/analysis/mod.rs	/^fn copy_new_dir_to_base(id: &str, baseline: &str, output_directory: &Path) {$/;"	f
@@ -998,6 +999,7 @@ distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/cri
 distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/mod.rs	/^mod distributions;$/;"	n
 distributions	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/report.rs	/^    pub distributions: Distributions,$/;"	m	struct:MeasurementData
 dom	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod dom;$/;"	n
+dom_parser_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! dom_parser_error {$/;"	M
 dot	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/stats/mod.rs	/^fn dot<A>(xs: &[A], ys: &[A]) -> A$/;"	f
 double_byte_sequence	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^macro_rules! double_byte_sequence {$/;"	M
 draw_line_comarision_figure	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/plot/plotters_backend/summary.rs	/^fn draw_line_comarision_figure<XR: AsRangedCoord<Value = f64>, YR: AsRangedCoord<Value = f64>>($/;"	f
@@ -1534,7 +1536,6 @@ parse_str	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    pub fn parse_str<Callb
 parse_value	/home/jcoombes/Src/chisel-json/src/dom.rs	/^    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue>/;"	P	implementation:Parser
 parse_value	/home/jcoombes/Src/chisel-json/src/sax.rs	/^    fn parse_value<Buffer: BufRead, Callback>($/;"	P	implementation:Parser
 parse_with_options	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-6.1.1/src/lib.rs	/^pub fn parse_with_options<N: FromLexicalWithOptions, Bytes: AsRef<[u8]>, const FORMAT: u128>($/;"	f
-parser_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! parser_error {$/;"	M
 partial_cmp	/home/jcoombes/Src/chisel-json/src/coords.rs	/^    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {$/;"	P	implementation:Coords
 partial_config	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/benchmark_group.rs	/^    partial_config: PartialBenchmarkConfig,$/;"	m	struct:BenchmarkGroup
 pass_a_fuzz_test	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/chisel-decoders-1.0.1/src/utf8.rs	/^    fn pass_a_fuzz_test() {$/;"	f	module:tests
@@ -1702,6 +1703,7 @@ save	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.
 save_baseline	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/lib.rs	/^    pub fn save_baseline(mut self, baseline: String) -> Criterion<M> {$/;"	P	implementation:Criterion
 save_string	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/fs.rs	/^pub fn save_string<P>(data: &str, path: &P) -> Result<()>$/;"	f
 sax	/home/jcoombes/Src/chisel-json/src/lib.rs	/^pub mod sax;$/;"	n
+sax_parser_error	/home/jcoombes/Src/chisel-json/src/errors.rs	/^macro_rules! sax_parser_error {$/;"	M
 scale_for_machines	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_for_machines(&self, _values: &mut [f64]) -> &'static str {$/;"	P	implementation:DurationFormatter
 scale_for_machines	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_for_machines(&self, values: &mut [f64]) -> &'static str;$/;"	P	interface:ValueFormatter
 scale_throughputs	/home/jcoombes/.cargo/registry/src/github.com-1ecc6299db9ec823/criterion-0.4.0/src/measurement.rs	/^    fn scale_throughputs($/;"	P	implementation:DurationFormatter
