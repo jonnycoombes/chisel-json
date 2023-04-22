@@ -14,15 +14,18 @@ pub type ParserResult<T> = Result<T, ParserError>;
 pub enum ParserErrorSource {
     /// The lexer stage of the parser
     Lexer,
-    /// The parsing/AST construction stage of the parser
-    Parser,
+    /// The DOM parsing stage of the parser
+    DomParser,
+    /// The SAX parsing stage of the parser
+    SaxParser,
 }
 
 impl Display for ParserErrorSource {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             ParserErrorSource::Lexer => write!(f, "lexing"),
-            ParserErrorSource::Parser => write!(f, "parsing"),
+            ParserErrorSource::DomParser => write!(f, "DOM parsing"),
+            ParserErrorSource::SaxParser => write!(f, "SAX parsing"),
         }
     }
 }
