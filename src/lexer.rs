@@ -3,8 +3,10 @@
 #![allow(unreachable_code)]
 use crate::coords::{Coords, Span};
 use crate::dom::Parser;
-use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
-use crate::lexer_error;
+use crate::{
+    errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult},
+    lexer_error,
+};
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
