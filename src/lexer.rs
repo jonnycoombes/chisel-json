@@ -4,7 +4,7 @@
 use crate::coords::{Coords, Span};
 use crate::dom::Parser;
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
-use crate::{lexer_error, parser_error};
+use crate::lexer_error;
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
@@ -195,7 +195,10 @@ impl<B: BufRead> Lexer<B> {
                 ParserErrorDetails::EndOfInput => {
                     packed_token!(Token::EndOfInput, self.coords)
                 }
-                _ => lexer_error!(err.details, err.coords),
+                _ => match err.coords {
+                    Some(coords) => lexer_error!(err.details, coords),
+                    None => lexer_error!(err.details),
+                },
             },
         }
     }
@@ -220,7 +223,7 @@ impl<B: BufRead> Lexer<B> {
                             }
                         },
                         Err(err) => {
-                            return lexer_error!(err.details, err.coords);
+                            return lexer_error!(err.details, err.coords.unwrap());
                         }
                     },
                     match_quote!() => {
@@ -232,7 +235,7 @@ impl<B: BufRead> Lexer<B> {
                     }
                     _ => (),
                 },
-                Err(err) => return lexer_error!(err.details, err.coords),
+                Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
             }
         }
     }
@@ -324,13 +327,17 @@ impl<B: BufRead> Lexer<B> {
                                 );
                             }
                         },
-                        Err(err) => return lexer_error!(err.details, err.coords),
+                        Err(err) => match err.coords {
+                            Some(coords) => return lexer_error!(err.details, coords),
+                            None => return lexer_error!(err.details),
+                        },
                     }
                 }
             }
-            Err(err) => {
-                return lexer_error!(err.details, err.coords);
-            }
+            Err(err) => match err.coords {
+                Some(coords) => return lexer_error!(err.details, coords),
+                None => return lexer_error!(err.details),
+            },
         }
 
         self.parse_numeric(!have_decimal, start_coords, self.coords)
@@ -720,7 +727,7 @@ mod tests {
                         }
                         Err(err) => {
                             error_token = Some(err.clone());
-                            println!("Dodgy string found: {} : {}", l, err.coords);
+                            println!("Dodgy string found: {} : {}", l, err.coords.unwrap());
                             break;
                         }
                     }
