@@ -8,8 +8,7 @@ use crate::JsonValue;
 use crate::Span;
 use std::borrow::Cow;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 macro_rules! emit_event {
