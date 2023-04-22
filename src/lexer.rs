@@ -3,8 +3,8 @@
 #![allow(unreachable_code)]
 use crate::coords::{Coords, Span};
 use crate::dom::Parser;
-use crate::errors::{Details, Error, ParserResult, Stage};
-use crate::{lexer_error, parser_error};
+use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
+use crate::lexer_error;
 use chisel_decoders::common::{DecoderError, DecoderErrorCode, DecoderResult};
 use chisel_decoders::utf8::Utf8Decoder;
 use std::borrow::Cow;
@@ -189,13 +189,16 @@ impl<B: BufRead> Lexer<B> {
                 'f' => self.match_false(),
                 '-' => self.match_number(),
                 d if d.is_ascii_digit() => self.match_number(),
-                ch => lexer_error!(Details::InvalidCharacter(ch), self.coords),
+                ch => lexer_error!(ParserErrorDetails::InvalidCharacter(ch), self.coords),
             },
             Err(err) => match err.details {
-                Details::EndOfInput => {
+                ParserErrorDetails::EndOfInput => {
                     packed_token!(Token::EndOfInput, self.coords)
                 }
-                _ => lexer_error!(err.details, err.coords),
+                _ => match err.coords {
+                    Some(coords) => lexer_error!(err.details, coords),
+                    None => lexer_error!(err.details),
+                },
             },
         }
     }
@@ -212,13 +215,15 @@ impl<B: BufRead> Lexer<B> {
                             match_escape_unicode_suffix!() => self.check_unicode_sequence()?,
                             _ => {
                                 return lexer_error!(
-                                    Details::InvalidEscapeSequence(self.buffer_to_string()),
+                                    ParserErrorDetails::InvalidEscapeSequence(
+                                        self.buffer_to_string()
+                                    ),
                                     self.coords
                                 );
                             }
                         },
                         Err(err) => {
-                            return lexer_error!(err.details, err.coords);
+                            return lexer_error!(err.details, err.coords.unwrap());
                         }
                     },
                     match_quote!() => {
@@ -230,7 +235,7 @@ impl<B: BufRead> Lexer<B> {
                     }
                     _ => (),
                 },
-                Err(err) => return lexer_error!(err.details, err.coords),
+                Err(err) => return lexer_error!(err.details, err.coords.unwrap()),
             }
         }
     }
@@ -241,7 +246,7 @@ impl<B: BufRead> Lexer<B> {
             for i in 1..=4 {
                 if !self.buffer[self.buffer.len() - i].is_ascii_hexdigit() {
                     return lexer_error!(
-                        Details::InvalidUnicodeEscapeSequence(self.buffer_to_string()),
+                        ParserErrorDetails::InvalidUnicodeEscapeSequence(self.buffer_to_string()),
                         self.coords
                     );
                 }
@@ -278,7 +283,7 @@ impl<B: BufRead> Lexer<B> {
                                     have_exponent = true;
                                 } else {
                                     return lexer_error!(
-                                        Details::InvalidNumericRepresentation(
+                                        ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
                                         self.coords
@@ -290,7 +295,7 @@ impl<B: BufRead> Lexer<B> {
                                     have_decimal = true;
                                 } else {
                                     return lexer_error!(
-                                        Details::InvalidNumericRepresentation(
+                                        ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
                                         self.coords
@@ -307,24 +312,32 @@ impl<B: BufRead> Lexer<B> {
                             }
                             ch if ch.is_alphabetic() => {
                                 return lexer_error!(
-                                    Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                                    ParserErrorDetails::InvalidNumericRepresentation(
+                                        self.buffer_to_string()
+                                    ),
                                     self.coords
                                 );
                             }
                             _ => {
                                 return lexer_error!(
-                                    Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                                    ParserErrorDetails::InvalidNumericRepresentation(
+                                        self.buffer_to_string()
+                                    ),
                                     self.coords
                                 );
                             }
                         },
-                        Err(err) => return lexer_error!(err.details, err.coords),
+                        Err(err) => match err.coords {
+                            Some(coords) => return lexer_error!(err.details, coords),
+                            None => return lexer_error!(err.details),
+                        },
                     }
                 }
             }
-            Err(err) => {
-                return lexer_error!(err.details, err.coords);
-            }
+            Err(err) => match err.coords {
+                Some(coords) => return lexer_error!(err.details, coords),
+                None => return lexer_error!(err.details),
+            },
         }
 
         self.parse_numeric(!have_decimal, start_coords, self.coords)
@@ -335,7 +348,7 @@ impl<B: BufRead> Lexer<B> {
             return match self.buffer.last().unwrap() {
                 match_plus_minus!() => Ok(()),
                 _ => lexer_error!(
-                    Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                    ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                     self.coords
                 ),
             };
@@ -418,7 +431,7 @@ impl<B: BufRead> Lexer<B> {
         match self.buffer[1] {
             match_period!() => Ok(false),
             match_digit!() => lexer_error!(
-                Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
             ),
             _ => {
@@ -435,14 +448,14 @@ impl<B: BufRead> Lexer<B> {
             match_zero!() => self.advance(false).and_then(|_| {
                 if self.buffer[2] != '.' {
                     return lexer_error!(
-                        Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                        ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                         self.coords
                     );
                 }
                 Ok(false)
             }),
             _ => lexer_error!(
-                Details::InvalidNumericRepresentation(self.buffer_to_string()),
+                ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
             ),
         }
@@ -456,7 +469,7 @@ impl<B: BufRead> Lexer<B> {
                 packed_token!(Token::Null, start_coords, self.coords)
             } else {
                 lexer_error!(
-                    Details::MatchFailed(
+                    ParserErrorDetails::MatchFailed(
                         String::from_iter(NULL_PATTERN.iter()),
                         self.buffer_to_string()
                     ),
@@ -474,7 +487,7 @@ impl<B: BufRead> Lexer<B> {
                 packed_token!(Token::Boolean(true), start_coords, self.coords)
             } else {
                 lexer_error!(
-                    Details::MatchFailed(
+                    ParserErrorDetails::MatchFailed(
                         String::from_iter(TRUE_PATTERN.iter()),
                         self.buffer_to_string()
                     ),
@@ -492,7 +505,7 @@ impl<B: BufRead> Lexer<B> {
                 packed_token!(Token::Boolean(false), start_coords, self.coords)
             } else {
                 lexer_error!(
-                    Details::MatchFailed(
+                    ParserErrorDetails::MatchFailed(
                         String::from_iter(FALSE_PATTERN.iter()),
                         self.buffer_to_string()
                     ),
@@ -556,13 +569,13 @@ impl<B: BufRead> Lexer<B> {
                 Err(err) => {
                     return match err.code {
                         DecoderErrorCode::StreamFailure => {
-                            lexer_error!(Details::StreamFailure, self.coords)
+                            lexer_error!(ParserErrorDetails::StreamFailure, self.coords)
                         }
                         DecoderErrorCode::InvalidByteSequence => {
-                            lexer_error!(Details::NonUtf8InputDetected, self.coords)
+                            lexer_error!(ParserErrorDetails::NonUtf8InputDetected, self.coords)
                         }
                         DecoderErrorCode::EndOfInput => {
-                            lexer_error!(Details::EndOfInput, self.coords)
+                            lexer_error!(ParserErrorDetails::EndOfInput, self.coords)
                         }
                     };
                 }
@@ -582,7 +595,7 @@ mod tests {
     use std::time::Instant;
 
     use crate::coords::{Coords, Span};
-    use crate::errors::{Error, ParserResult};
+    use crate::errors::{ParserError, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
     use crate::{lines_from_relative_file, reader_from_bytes};
 
@@ -703,7 +716,7 @@ mod tests {
             if !l.is_empty() {
                 let reader = reader_from_bytes!(l);
                 let mut lexer = Lexer::new(reader);
-                let mut error_token: Option<Error> = None;
+                let mut error_token: Option<ParserError> = None;
                 loop {
                     let token = lexer.consume();
                     match token {
@@ -714,7 +727,7 @@ mod tests {
                         }
                         Err(err) => {
                             error_token = Some(err.clone());
-                            println!("Dodgy string found: {} : {}", l, err.coords);
+                            println!("Dodgy string found: {} : {}", l, err.coords.unwrap());
                             break;
                         }
                     }
