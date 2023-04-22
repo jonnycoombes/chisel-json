@@ -10,9 +10,9 @@ use std::collections::HashMap;
 pub mod coords;
 pub mod dom;
 pub mod errors;
-mod events;
+pub mod events;
 pub mod lexer;
-mod paths;
+pub mod paths;
 pub mod sax;
 #[cfg(test)]
 mod test_macros;
