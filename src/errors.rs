@@ -140,7 +140,14 @@ macro_rules! lexer_error {
         Err(ParserError {
             source: ParserErrorSource::Lexer,
             details: $details,
-            coords: $coords,
+            coords: Some($coords),
+        })
+    };
+    ($details: expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::Lexer,
+            details: $details,
+            coords: None,
         })
     };
 }
