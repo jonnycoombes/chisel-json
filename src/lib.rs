@@ -10,7 +10,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 pub mod coords;
-mod decoders;
+pub mod decoders;
 pub mod dom;
 pub mod errors;
 pub mod events;

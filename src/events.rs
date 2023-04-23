@@ -56,7 +56,7 @@ pub struct Event<'a> {
     /// The [Match] associated with the event
     pub matched: Match<'a>,
 
-    /// The [Span] associated with the [matched]
+    /// The [Span] associated with the current [Match]
     pub span: Span,
 
     /// Optional [JsonPath] information relating to the event
