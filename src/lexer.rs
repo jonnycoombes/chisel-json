@@ -145,9 +145,9 @@ macro_rules! match_quote {
     };
 }
 
-pub struct Lexer<B: BufRead> {
-    /// The input [Utf8Decoder]
-    decoder: Utf8Decoder<B>,
+pub struct Lexer<'a> {
+    /// An iterator producing `char` values
+    chars: &'a mut dyn Iterator<Item = char>,
 
     /// Lookahead buffer
     buffer: Vec<char>,
@@ -159,10 +159,10 @@ pub struct Lexer<B: BufRead> {
     coords: Coords,
 }
 
-impl<B: BufRead> Lexer<B> {
-    pub fn new(reader: B) -> Self {
+impl<'a> Lexer<'a> {
+    pub fn new(chars: &'a mut impl Iterator<Item = char>) -> Self {
         Lexer {
-            decoder: Utf8Decoder::new(reader),
+            chars,
             buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
             pushback: None,
             coords: Coords::default(),
@@ -519,13 +519,16 @@ impl<B: BufRead> Lexer<B> {
 
     /// Get the next character from either the pushback or from the decoder
     #[inline]
-    fn next_char(&mut self) -> DecoderResult<char> {
+    fn next_char(&mut self) -> ParserResult<char> {
         match self.pushback {
             Some(c) => {
                 self.pushback = None;
                 Ok(c)
             }
-            None => self.decoder.decode_next(),
+            None => match self.chars.next() {
+                Some(c) => Ok(c),
+                None => lexer_error!(ParserErrorDetails::EndOfInput),
+            },
         }
     }
 
@@ -569,16 +572,11 @@ impl<B: BufRead> Lexer<B> {
                     }
                 }
                 Err(err) => {
-                    return match err.code {
-                        DecoderErrorCode::StreamFailure => {
-                            lexer_error!(ParserErrorDetails::StreamFailure, self.coords)
-                        }
-                        DecoderErrorCode::InvalidByteSequence => {
-                            lexer_error!(ParserErrorDetails::NonUtf8InputDetected, self.coords)
-                        }
-                        DecoderErrorCode::EndOfInput => {
+                    return match err.details {
+                        ParserErrorDetails::EndOfInput => {
                             lexer_error!(ParserErrorDetails::EndOfInput, self.coords)
                         }
+                        _ => lexer_error!(err.details),
                     };
                 }
             }
@@ -596,6 +594,8 @@ mod tests {
     use std::rc::Rc;
     use std::time::Instant;
 
+    use chisel_decoders::utf8::Utf8Decoder;
+
     use crate::coords::{Coords, Span};
     use crate::errors::{ParserError, ParserResult};
     use crate::lexer::{Lexer, PackedToken, Token};
@@ -603,8 +603,9 @@ mod tests {
 
     #[test]
     fn should_parse_basic_tokens() {
-        let reader = reader_from_bytes!("{}[],:");
-        let mut lexer = Lexer::new(reader);
+        let mut reader = reader_from_bytes!("{}[],:");
+        let mut decoder = Utf8Decoder::new(&mut reader);
+        let mut lexer = Lexer::new(&mut decoder);
         let mut tokens: Vec<Token> = vec![];
         let mut spans: Vec<Span> = vec![];
         for _ in 1..=7 {
@@ -628,8 +629,9 @@ mod tests {
 
     #[test]
     fn should_parse_null_and_booleans() {
-        let reader = reader_from_bytes!("null true    falsetruefalse");
-        let mut lexer = Lexer::new(reader);
+        let mut reader = reader_from_bytes!("null true    falsetruefalse");
+        let mut decoder = Utf8Decoder::new(&mut reader);
+        let mut lexer = Lexer::new(&mut decoder);
         let mut tokens: Vec<Token> = vec![];
         let mut spans: Vec<Span> = vec![];
         for _ in 1..=6 {
@@ -655,8 +657,9 @@ mod tests {
         let lines = lines_from_relative_file!("fixtures/utf-8/strings.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(reader);
+                let mut reader = reader_from_bytes!(l);
+                let mut decoder = Utf8Decoder::new(&mut reader);
+                let mut lexer = Lexer::new(&mut decoder);
                 let token = lexer.consume().unwrap();
                 match token.0 {
                     Token::Str(str) => {
@@ -675,8 +678,9 @@ mod tests {
         for l in lines.flatten() {
             if !l.is_empty() {
                 println!("Parsing {}", l);
-                let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(reader);
+                let mut reader = reader_from_bytes!(l);
+                let mut decoder = Utf8Decoder::new(&mut reader);
+                let mut lexer = Lexer::new(&mut decoder);
                 let token = lexer.consume().unwrap();
                 match token.0 {
                     Token::Integer(_) => {
@@ -703,8 +707,9 @@ mod tests {
         let lines = lines_from_relative_file!("fixtures/utf-8/invalid_numbers.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(reader);
+                let mut reader = reader_from_bytes!(l);
+                let mut decoder = Utf8Decoder::new(&mut reader);
+                let mut lexer = Lexer::new(&mut decoder);
                 let token = lexer.consume();
                 assert!(token.is_err());
             }
@@ -716,8 +721,9 @@ mod tests {
         let lines = lines_from_relative_file!("fixtures/utf-8/dodgy_strings.txt");
         for l in lines.flatten() {
             if !l.is_empty() {
-                let reader = reader_from_bytes!(l);
-                let mut lexer = Lexer::new(reader);
+                let mut reader = reader_from_bytes!(l);
+                let mut decoder = Utf8Decoder::new(&mut reader);
+                let mut lexer = Lexer::new(&mut decoder);
                 let mut error_token: Option<ParserError> = None;
                 loop {
                     let token = lexer.consume();
@@ -741,8 +747,9 @@ mod tests {
 
     #[test]
     fn should_correctly_report_errors_for_booleans() {
-        let reader = reader_from_bytes!("true farse");
-        let mut lexer = Lexer::new(reader);
+        let mut reader = reader_from_bytes!("true farse");
+        let mut decoder = Utf8Decoder::new(&mut reader);
+        let mut lexer = Lexer::new(&mut decoder);
         let mut results: Vec<ParserResult<PackedToken>> = vec![];
         for _ in 1..=2 {
             results.push(lexer.consume());
