@@ -4,13 +4,12 @@
 
 [![crates.io](https://img.shields.io/crates/l/chisel-json)](https://crates.io/crates/chisel-json)
 
-# chisel-json
+# {{crate}}
 
-A description of the parser - what it is, why it's even here etc...will be coming soon.
+{{readme}}
 
-
-Current version: 0.1.9
+Current version: {{version}}
 
 Coming soon to a small wooden hut near you...
 
-License: MIT OR Apache-2.0
+License: {{license}}

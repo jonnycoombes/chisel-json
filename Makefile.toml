@@ -1,0 +1,29 @@
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+dependencies = ["clean", "readme"]
+
+[tasks.readme]
+command = "cargo"
+args = ["readme","-o","README.md"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = []
+
+[tasks.bench]
+command = "cargo"
+args = ["bench", "--bench"]
+
+[tasks.bench_sax]
+command = "cargo"
+args = ["bench", "--bench", "sax_parsing"]
+
+[tasks.bench_dom]
+command = "cargo"
+args = ["bench", "--bench", "dom_parsing"]

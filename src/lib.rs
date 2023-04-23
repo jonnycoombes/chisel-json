@@ -1,3 +1,5 @@
+//! A description of the parser - what it is, why it's even here etc...will be coming soon.
+//!
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
