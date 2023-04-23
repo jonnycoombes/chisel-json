@@ -137,6 +137,20 @@ mod tests {
     use std::{env, fs};
 
     #[test]
+    fn should_parse_char_iterators_directly() {
+        let source = r#"{
+            "test" : 1232.0,
+            "some other" : "thasdasd",
+            "a bool" : true,
+            "an array" : [1,2,3,4,5.8,6,7.2,7,8,10]
+        }"#;
+        let parser = Parser::default();
+        let parsed = parser.parse(&mut source.chars());
+        println!("{parsed:?}");
+        assert!(parsed.is_ok())
+    }
+
+    #[test]
     fn should_parse_lengthy_arrays() {
         let path = relative_file!("fixtures/json/valid/bc_block.json");
         let parser = Parser::default();
