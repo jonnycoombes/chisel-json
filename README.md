@@ -9,8 +9,4 @@
 A description of the parser - what it is, why it's even here etc...will be coming soon.
 
 
-Current version: 0.1.9
-
 Coming soon to a small wooden hut near you...
-
-License: MIT OR Apache-2.0

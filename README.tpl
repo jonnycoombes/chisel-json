@@ -8,8 +8,4 @@
 
 {{readme}}
 
-Current version: {{version}}
-
 Coming soon to a small wooden hut near you...
-
-License: {{license}}
