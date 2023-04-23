@@ -1,4 +1,5 @@
 use crate::coords::Coords;
+use crate::decoders::DecoderSelector;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -16,14 +17,17 @@ use crate::JsonValue;
 
 /// Main JSON parser struct
 #[derive(Default)]
-pub struct Parser {}
+pub struct Parser {
+    decoders: DecoderSelector,
+}
 
 impl Parser {
     pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {
         match File::open(&path) {
             Ok(f) => {
-                let reader = BufReader::new(f);
-                self.parse(reader)
+                let mut reader = BufReader::new(f);
+                let mut chars = self.decoders.default_decoder(&mut reader);
+                self.parse(&mut chars)
             }
             Err(_) => {
                 dom_parser_error!(ParserErrorDetails::InvalidFile)
@@ -32,18 +36,19 @@ impl Parser {
     }
 
     pub fn parse_bytes(&self, bytes: &[u8]) -> ParserResult<JsonValue> {
-        let reader = BufReader::new(bytes);
-        self.parse(reader)
+        let mut reader = BufReader::new(bytes);
+        let mut chars = self.decoders.default_decoder(&mut reader);
+        self.parse(&mut chars)
     }
 
     pub fn parse_str(&self, str: &str) -> ParserResult<JsonValue> {
-        let reader = BufReader::new(str.as_bytes());
-        self.parse(reader)
+        let mut reader = BufReader::new(str.as_bytes());
+        let mut chars = self.decoders.default_decoder(&mut reader);
+        self.parse(&mut chars)
     }
 
-    fn parse<Buffer: BufRead>(&self, input: Buffer) -> ParserResult<JsonValue> {
-        let mut lexer = Lexer::new(input);
-
+    pub fn parse(&self, chars: &mut impl Iterator<Item = char>) -> ParserResult<JsonValue> {
+        let mut lexer = Lexer::new(chars);
         match lexer.consume()? {
             (Token::StartObject, _) => self.parse_object(&mut lexer),
             (Token::StartArray, _) => self.parse_array(&mut lexer),
@@ -53,7 +58,7 @@ impl Parser {
         }
     }
 
-    fn parse_value<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+    fn parse_value(&self, lexer: &mut Lexer) -> ParserResult<JsonValue> {
         match lexer.consume()? {
             (Token::StartObject, _) => self.parse_object(lexer),
             (Token::StartArray, _) => self.parse_array(lexer),
@@ -69,7 +74,7 @@ impl Parser {
     }
 
     /// An object is just a list of comma separated KV pairs
-    fn parse_object<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+    fn parse_object(&self, lexer: &mut Lexer) -> ParserResult<JsonValue> {
         let mut pairs = vec![];
         loop {
             match lexer.consume()? {
@@ -95,7 +100,7 @@ impl Parser {
     }
 
     /// An array is just a list of comma separated values
-    fn parse_array<Buffer: BufRead>(&self, lexer: &mut Lexer<Buffer>) -> ParserResult<JsonValue> {
+    fn parse_array(&self, lexer: &mut Lexer) -> ParserResult<JsonValue> {
         let mut values: Vec<JsonValue> = vec![];
         loop {
             match lexer.consume()? {
@@ -120,9 +125,10 @@ impl Parser {
 mod tests {
     #![allow(unused_macros)]
 
+    use crate::decoders::DecoderSelector;
     use crate::dom::Parser;
     use crate::errors::ParserErrorDetails;
-    use crate::{reader_from_file, reader_from_relative_file};
+    use crate::relative_file;
     use bytesize::ByteSize;
     use std::fs::File;
     use std::io::BufReader;
@@ -132,26 +138,26 @@ mod tests {
 
     #[test]
     fn should_parse_lengthy_arrays() {
-        let reader = reader_from_relative_file!("fixtures/json/valid/bc_block.json");
+        let path = relative_file!("fixtures/json/valid/bc_block.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader);
+        let parsed = parser.parse_file(&path);
         println!("{parsed:?}");
         assert!(parsed.is_ok());
     }
 
     #[test]
     fn should_parse_simple_schema() {
-        let reader = reader_from_relative_file!("fixtures/json/valid/simple_schema.json");
+        let path = relative_file!("fixtures/json/valid/simple_schema.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader);
+        let parsed = parser.parse_file(&path);
         println!("{parsed:?}");
         assert!(parsed.is_ok());
     }
     #[test]
     fn should_successfully_bail() {
-        let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
+        let path = relative_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader);
+        let parsed = parser.parse_file(&path);
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
         assert!(parsed.err().unwrap().details == ParserErrorDetails::InvalidRootObject);
@@ -164,9 +170,9 @@ mod tests {
             if path.is_file() {
                 let len = fs::metadata(&path).unwrap().len();
                 let start = Instant::now();
-                let reader = reader_from_file!(path.to_str().unwrap());
+                let path = relative_file!(path.to_str().unwrap());
                 let parser = Parser::default();
-                let parsed = parser.parse(reader);
+                let parsed = parser.parse_file(&path);
                 if parsed.is_err() {
                     println!("Parse of {:?} failed!", &path);
                     println!("Parse failed with errors: {:?}", &parsed)

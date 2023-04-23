@@ -1,4 +1,5 @@
 use crate::coords::Coords;
+use crate::decoders::DecoderSelector;
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
@@ -30,7 +31,9 @@ macro_rules! emit_event {
 
 /// Main JSON parser struct
 #[derive(Default)]
-pub struct Parser {}
+pub struct Parser {
+    decoders: DecoderSelector,
+}
 
 impl Parser {
     pub fn parse_file<PathLike: AsRef<Path>, Callback>(
@@ -43,8 +46,9 @@ impl Parser {
     {
         match File::open(&path) {
             Ok(f) => {
-                let reader = BufReader::new(f);
-                self.parse(reader, cb)
+                let mut reader = BufReader::new(f);
+                let mut chars = self.decoders.default_decoder(&mut reader);
+                self.parse(&mut chars, cb)
             }
             Err(_) => {
                 sax_parser_error!(ParserErrorDetails::InvalidFile)
@@ -59,8 +63,9 @@ impl Parser {
         if bytes.is_empty() {
             return sax_parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
-        let reader = BufReader::new(bytes);
-        self.parse(reader, cb)
+        let mut reader = BufReader::new(bytes);
+        let mut chars = self.decoders.default_decoder(&mut reader);
+        self.parse(&mut chars, cb)
     }
 
     pub fn parse_str<Callback>(&self, str: &str, cb: &mut Callback) -> ParserResult<()>
@@ -70,16 +75,21 @@ impl Parser {
         if str.is_empty() {
             return sax_parser_error!(ParserErrorDetails::ZeroLengthInput, Coords::default());
         }
-        let reader = BufReader::new(str.as_bytes());
-        self.parse(reader, cb)
+        let mut reader = BufReader::new(str.as_bytes());
+        let mut chars = self.decoders.default_decoder(&mut reader);
+        self.parse(&mut chars, cb)
     }
 
-    fn parse<Buffer: BufRead, Callback>(&self, input: Buffer, cb: &mut Callback) -> ParserResult<()>
+    pub fn parse<Callback>(
+        &self,
+        chars: &mut impl Iterator<Item = char>,
+        cb: &mut Callback,
+    ) -> ParserResult<()>
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
         let mut path = JsonPath::new();
-        let mut lexer = Lexer::new(input);
+        let mut lexer = Lexer::new(chars);
         match lexer.consume()? {
             (Token::StartObject, span) => {
                 emit_event!(cb, Match::StartOfInput, span)?;
@@ -97,9 +107,9 @@ impl Parser {
         }
     }
 
-    fn parse_value<Buffer: BufRead, Callback>(
+    fn parse_value<Callback>(
         &self,
-        lexer: &mut Lexer<Buffer>,
+        lexer: &mut Lexer,
         path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
@@ -137,9 +147,9 @@ impl Parser {
     }
 
     /// An object is just a list of comma separated KV pairs
-    fn parse_object<Buffer: BufRead, Callback>(
+    fn parse_object<Callback>(
         &self,
-        lexer: &mut Lexer<Buffer>,
+        lexer: &mut Lexer,
         path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
@@ -177,9 +187,9 @@ impl Parser {
     }
 
     /// An array is just a list of comma separated values
-    fn parse_array<Buffer: BufRead, Callback>(
+    fn parse_array<Callback>(
         &self,
-        lexer: &mut Lexer<Buffer>,
+        lexer: &mut Lexer,
         path: &mut JsonPath,
         cb: &mut Callback,
     ) -> ParserResult<()>
@@ -228,9 +238,10 @@ impl Parser {
 #[cfg(test)]
 mod tests {
 
+    use crate::decoders::DecoderSelector;
     use crate::errors::ParserErrorDetails;
+    use crate::relative_file;
     use crate::sax::Parser;
-    use crate::{reader_from_file, reader_from_relative_file};
     use bytesize::ByteSize;
     use std::fs::File;
     use std::io::BufReader;
@@ -253,9 +264,9 @@ mod tests {
     #[test]
     fn should_parse_successfully() {
         let mut counter = 0;
-        let reader = reader_from_relative_file!("fixtures/json/valid/events.json");
+        let path = relative_file!("fixtures/json/valid/events.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |_e| {
+        let parsed = parser.parse_file(&path, &mut |_e| {
             counter += 1;
             Ok(())
         });
@@ -265,9 +276,9 @@ mod tests {
 
     #[test]
     fn should_successfully_bail() {
-        let reader = reader_from_file!("fixtures/json/invalid/invalid_1.json");
+        let path = relative_file!("fixtures/json/invalid/invalid_1.json");
         let parser = Parser::default();
-        let parsed = parser.parse(reader, &mut |_e| Ok(()));
+        let parsed = parser.parse_file(&path, &mut |_e| Ok(()));
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
         assert!(parsed.err().unwrap().details == ParserErrorDetails::InvalidRootObject);
