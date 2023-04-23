@@ -1,3 +1,4 @@
+use chisel_decoders::utf8::Utf8Decoder;
 use chisel_json::lexer::{Lexer, Token};
 use criterion::{criterion_group, criterion_main, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
@@ -8,8 +9,9 @@ macro_rules! build_lex_benchmark {
     ($func : tt, $filename : expr) => {
         fn $func() {
             let f = File::open(format!("fixtures/json/bench/{}.json", $filename)).unwrap();
-            let reader = BufReader::new(f);
-            let mut lexer = Lexer::new(reader);
+            let mut reader = BufReader::new(f);
+            let mut decoder = Utf8Decoder::new(&mut reader);
+            let mut lexer = Lexer::new(&mut decoder);
             loop {
                 match lexer.consume() {
                     Ok(t) => {
