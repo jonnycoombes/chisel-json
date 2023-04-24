@@ -30,22 +30,22 @@ main() {
   echo '*** WARNING *** Profiling everything will take quite some time'
   echo -e "$ansiNoColour"
 
-  benchmarkTime=30
+  profileTime=30
 
 	echo -e "$ansiGreen"
-	echo 'Running lexer profiling for ' $benchmarkTime ' seconds per benchmark'
+	echo 'Running lexer profiling for ' $profileTime ' seconds per benchmark'
 	echo -e "$ansiNoColour"
-	cargo bench --bench lexing -- --profile-time $benchmarkTime
+	cargo bench --bench lexing -- --profile-time $profileTime
 
 	echo -e "$ansiGreen"
-	echo 'Running DOM parser profiling for ' $benchmarkTime ' seconds per benchmark'
+	echo 'Running DOM parser profiling for ' $profileTime ' seconds per benchmark'
 	echo -e "$ansiNoColour"
-	cargo bench --bench dom_parsing -- --profile-time $benchmarkTime
+	cargo bench --bench dom_parsing -- --profile-time $profileTime
 
 	echo -e "$ansiGreen"
-	echo 'Running SAX parser profiling for ' $benchmarkTime ' seconds per benchmark'
+	echo 'Running SAX parser profiling for ' $profileTime ' seconds per benchmark'
 	echo -e "$ansiNoColour"
-	cargo bench --bench sax_parsing -- --profile-time 60
+	cargo bench --bench sax_parsing -- --profile-time $profileTime
 }
 
 main "$@"
