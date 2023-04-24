@@ -1,3 +1,4 @@
+//! The SAX parser
 use crate::coords::Coords;
 use crate::decoders::DecoderSelector;
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};

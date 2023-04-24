@@ -16,6 +16,8 @@ pub struct Coords {
 }
 
 impl Coords {
+    /// Increment a coordinate by 1 character in the input. Optional, bump the current line number
+    /// and reset the column coordinate to 1
     #[inline]
     pub fn inc(&mut self, newline: bool) {
         if newline {
@@ -76,7 +78,7 @@ impl std::ops::Sub for Coords {
     }
 }
 
-/// A [Span] represents a linear interval within the parser input
+/// A [Span] represents a linear interval within the parser input, between to different [Coords]
 #[derive(Debug, Default, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Span {
     /// Start [Coords] for the span
