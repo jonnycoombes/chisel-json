@@ -1,3 +1,4 @@
+//! Basic JSONPath generation and manipulation
 use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::Display;
@@ -43,7 +44,7 @@ macro_rules! is_index_selector {
 }
 
 /// Struct for creating and manipulating Json paths vaguely compatible with a subset of RFC 8259.
-/// Each instance of [JsonPath] comprises of multiple [JsonPathComponent]
+/// Each instance of [JsonPath] comprises of multiple [JsonPathComponent]s
 #[derive(Debug)]
 pub struct JsonPath<'a> {
     /// The path components
