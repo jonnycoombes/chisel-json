@@ -1,4 +1,4 @@
-name: Rust
+name: Chisel-Json CI
 
 on:
   push:
@@ -16,9 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run debug tests
-      run: cargo test --verbose -- --nocapture
-    - name: Run release tests
-      run: cargo test --release --verbose -- --nocapture
+    - name: Install Cargo Make
+      run: cargo install cargo-make
+    - name: Make
+      run: cargo make
+    - name: Debug Tests
+      run: cargo make test
+    - name: Release Tests
+      run: cargo test-release
