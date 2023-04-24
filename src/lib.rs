@@ -4,7 +4,7 @@
 //! *not include* all the machinery required to support explicit serialisation from, and
 //! deserialisation into `structs`/`enums` within Rust.
 //!
-//! It's a simple parser that is intended to allow you to choose how you want to parse a lump of *cursed* JSON,
+//! It's a simple little parser that is intended to allow you to choose how you want to parse a lump of *cursed* JSON,
 //! and then either build/transform a DOM into a richer AST structure, or alternatively just cherry-pick the useful
 //! bits of the payload via closures which are called in response to SAX parsing events.
 //!
