@@ -1,13 +1,12 @@
-//! Error types for:
-//! - The lexer
-//! - The DOM parser
-//! - The SAX parser
-
-use std::borrow::Cow;
-use std::fmt::{Display, Formatter};
+//! Error and [Result] types
+//!
+//! This module contains definitions for the main [Result] types used throughout the parser.
 
 use crate::coords::Coords;
 use crate::lexer::Token;
+use std::borrow::Cow;
+use std::fmt::{Display, Formatter};
+use std::io::BufRead;
 
 /// Global result type used throughout the parser stages
 pub type ParserResult<T> = Result<T, ParserError>;
@@ -15,11 +14,11 @@ pub type ParserResult<T> = Result<T, ParserError>;
 /// Enumeration of the various different parser stages that can produce an error
 #[derive(Debug, Copy, Clone)]
 pub enum ParserErrorSource {
-    /// The lexer stage of the parser
+    /// The lexing stage of the parser
     Lexer,
-    /// The DOM parsing stage of the parser
+    /// The parsing stage of the DOM parser
     DomParser,
-    /// The SAX parsing stage of the parser
+    /// The parsing stage of the SAX parser
     SaxParser,
 }
 
