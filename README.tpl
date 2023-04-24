@@ -8,7 +8,6 @@
 
 {{readme}}
 
-### Crate Features
 
 There are currently a few features defined within the crate:
 
@@ -36,6 +35,6 @@ or alternatively,
 cargo readme > README.md
 ```
 
-There are a number of [criterion](https://github.com/bheisler/criterion.rs) based benchmarks within the source, which
-can be run using either the supplied [benchmark.sh](./benchmark.sh) script, or alternatively by using the associated
-`cargo make` targets.
+There are a number of benchmarks included based on the *most excellent*
+[criterion](https://github.com/bheisler/criterion.rs) within the source, which can be run using either the supplied
+[benchmark.sh](./benchmark.sh) script, or alternatively by using the associated `cargo make` targets.
