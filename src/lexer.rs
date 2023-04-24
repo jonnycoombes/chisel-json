@@ -1,3 +1,4 @@
+//! Lexer used by both DOM and SAX parsers
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
