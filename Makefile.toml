@@ -16,11 +16,15 @@ command = "cargo"
 args = ["test"]
 dependencies = []
 
+[tasks.profile]
+command = "./profile.sh"
+args = []
+dependencies = []
+
 [tasks.test-release]
 command = "cargo"
 args = ["test", "--release"]
 dependencies = []
-
 
 [tasks.bench]
 command = "cargo"
