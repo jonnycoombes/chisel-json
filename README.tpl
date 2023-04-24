@@ -8,6 +8,7 @@
 
 {{readme}}
 
+### Crate Feature Flags
 
 There are currently a few features defined within the crate:
 

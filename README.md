@@ -20,6 +20,7 @@ bits of the payload via closures which are called in response to SAX parsing eve
 you'll never use*).
 
 
+### Crate Feature Flags
 
 There are currently a few features defined within the crate:
 
