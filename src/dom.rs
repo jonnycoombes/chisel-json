@@ -1,3 +1,6 @@
+//! The DOM parser
+//!
+//! Something
 use crate::coords::Coords;
 use crate::decoders::DecoderSelector;
 use std::borrow::Cow;
@@ -22,6 +25,7 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
     pub fn parse_file<PathLike: AsRef<Path>>(&self, path: PathLike) -> ParserResult<JsonValue> {
         match File::open(&path) {
             Ok(f) => {

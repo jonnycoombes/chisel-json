@@ -1,3 +1,4 @@
+//! Basic JSONPath generation and manipulation
 use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::Display;
