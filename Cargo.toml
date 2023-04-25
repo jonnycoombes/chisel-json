@@ -13,7 +13,7 @@ repository = "https://github.com/jonnycoombes/chisel-json"
 [dependencies]
 fast-float = "0.2.0"
 lexical={version = "6.1.1", features = ["parse-floats", "parse-integers"], optional = true}
-chisel-decoders = "1.0.5"
+chisel-decoders = "1.0.6"
 
 [dev-dependencies]
 bytesize = "1.2.0"
