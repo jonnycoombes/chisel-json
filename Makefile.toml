@@ -26,10 +26,6 @@ command = "cargo"
 args = ["test", "--release"]
 dependencies = []
 
-[tasks.bench]
-command = "cargo"
-args = ["bench", "--bench"]
-
 [tasks.bench_sax]
 command = "cargo"
 args = ["bench", "--bench", "sax_parsing"]
