@@ -3,13 +3,14 @@
 //! bytes from an underlying source, and convert into a stream of `char`s.
 //!
 //! The [DecoderSelector] implemented within this module is used to instantiate new `char`
-//! iterators, based on different encodings. (Although at present, only UTF-8 is supported).
-use chisel_decoders::utf8::Utf8Decoder;
+//! iterators, based on different encodings. (Currently only ASCII and UTF-8 are supported).
+use chisel_decoders::{ascii::AsciiDecoder, utf8::Utf8Decoder};
 use std::io::BufRead;
 
 /// Enumeration of different supported encoding types
 pub enum Encoding {
     Utf8,
+    Ascii,
 }
 
 /// A struct that is essentially a factory for creating new instances of [char] iterators,
@@ -18,12 +19,12 @@ pub enum Encoding {
 pub struct DecoderSelector {}
 
 impl DecoderSelector {
-    /// Create and return an instance of the default byte decoder / char iterator
+    /// Create and return an instance of the default byte decoder / char iterator. (Utf-8)
     pub fn default_decoder<'a, Buffer: BufRead>(
         &'a self,
         buffer: &'a mut Buffer,
-    ) -> impl Iterator<Item = char> + 'a {
-        Utf8Decoder::new(buffer)
+    ) -> Box<dyn Iterator<Item = char> + 'a> {
+        Box::new(Utf8Decoder::new(buffer))
     }
 
     /// Create and return an instance of a given byte decoder / char iterator based on a specific
@@ -32,9 +33,10 @@ impl DecoderSelector {
         &'a self,
         buffer: &'a mut Buffer,
         encoding: Encoding,
-    ) -> impl Iterator<Item = char> + 'a {
+    ) -> Box<dyn Iterator<Item = char> + 'a> {
         match encoding {
-            Encoding::Utf8 => Utf8Decoder::new(buffer),
+            Encoding::Ascii => Box::new(AsciiDecoder::new(buffer)),
+            Encoding::Utf8 => Box::new(Utf8Decoder::new(buffer)),
         }
     }
 }
