@@ -1,6 +1,6 @@
 //! The SAX parser
 use crate::coords::Coords;
-use crate::decoders::DecoderSelector;
+use crate::decoders::{DecoderSelector, Encoding};
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
@@ -31,12 +31,30 @@ macro_rules! emit_event {
 }
 
 /// Main JSON parser struct
-#[derive(Default)]
 pub struct Parser {
     decoders: DecoderSelector,
+    encoding: Encoding,
+}
+
+impl Default for Parser {
+    /// The default encoding is Utf-8
+    fn default() -> Self {
+        Self {
+            decoders: Default::default(),
+            encoding: Default::default(),
+        }
+    }
 }
 
 impl Parser {
+    /// Create a new instance of the parser using a specific [Encoding]
+    pub fn with_encoding(encoding: Encoding) -> Self {
+        Self {
+            decoders: Default::default(),
+            encoding,
+        }
+    }
+
     pub fn parse_file<PathLike: AsRef<Path>, Callback>(
         &self,
         path: PathLike,
@@ -48,7 +66,7 @@ impl Parser {
         match File::open(&path) {
             Ok(f) => {
                 let mut reader = BufReader::new(f);
-                let mut chars = self.decoders.default_decoder(&mut reader);
+                let mut chars = self.decoders.new_decoder(&mut reader, self.encoding);
                 self.parse(&mut chars, cb)
             }
             Err(_) => {
