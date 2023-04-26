@@ -22,13 +22,11 @@ you'll never use*).
 
 ### Crate Feature Flags
 
-There are currently a few features defined within the crate:
+There currently defined features within the crate are as follows:
 
 | Feature | Description | Default Feature? |
 |---------|-------------|---------|
 | `mixed_numerics` | Should numbers be parsed separately as `i64` and `f64`? | `yerp` |
-| `default_utf8_encoding` | Will the default encoding be UTF-8? | `yerp` |
-
 
 
 ### Build & Test
