@@ -8,15 +8,22 @@ use chisel_decoders::{ascii::AsciiDecoder, utf8::Utf8Decoder};
 use std::io::BufRead;
 
 /// Enumeration of different supported encoding types
+#[derive(Copy, Clone)]
 pub enum Encoding {
     Utf8,
     Ascii,
 }
 
+impl Default for Encoding {
+    fn default() -> Self {
+        Self::Utf8
+    }
+}
+
 /// A struct that is essentially a factory for creating new instances of [char] iterators,
 /// based on a specified encoding type
 #[derive(Default)]
-pub struct DecoderSelector {}
+pub(crate) struct DecoderSelector {}
 
 impl DecoderSelector {
     /// Create and return an instance of the default byte decoder / char iterator. (Utf-8)
