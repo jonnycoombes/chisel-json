@@ -1,3 +1,4 @@
+#![allow(unused_macros)]
 //! Basic JSONPath generation and manipulation
 use std::borrow::Cow;
 use std::collections::VecDeque;
@@ -34,10 +35,51 @@ impl<'a> Display for JsonPathComponent<'a> {
     }
 }
 
+/// Macro to check whether a given [JsonPathComponent] is an index selector
 macro_rules! is_index_selector {
     ($comp : expr) => {
         match $comp {
             JsonPathComponent::IndexSelector(_) => true,
+            _ => false,
+        }
+    };
+}
+
+/// Macro to check whether a given [JsonPathComponent] is a root selector
+macro_rules! is_root_selector {
+    ($comp : expr) => {
+        match $comp {
+            JsonPathComponent::Root => true,
+            _ => false,
+        }
+    };
+}
+
+/// Macro to check whether a given [JsonPathComponent] is a wildcard root selector
+macro_rules! is_wildcard_selector {
+    ($comp : expr) => {
+        match $comp {
+            JsonPathComponent::WildcardSelector => true,
+            _ => false,
+        }
+    };
+}
+
+/// macro to check whether a given [JsonPathComponent] is a name selector
+macro_rules! is_name_selector {
+    ($comp : expr) => {
+        match $comp {
+            JsonPathComponent::NameSelector(_) => true,
+            _ => false,
+        }
+    };
+}
+
+/// macro to check whether a given [JsonPathComponent] is a range selector
+macro_rules! is_range_selector {
+    ($comp : expr) => {
+        match $comp {
+            JsonPathComponent::RangeSelector(_, _) => true,
             _ => false,
         }
     };
