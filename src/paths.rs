@@ -175,6 +175,38 @@ impl<'a> JsonPath<'a> {
         }
         is_index_selector!(self.components.last().unwrap())
     }
+
+    /// Returns the number of [JsonPathComponent]s within the path
+    pub fn len(&self) -> usize {
+        self.components.len()
+    }
+
+    /// Determines whether a given [JsonPath] matches another given [JsonPath] strictly,
+    /// in that wildcards do not match against ranges within the path, and each path must
+    /// be identical to each other in the sense that all components match exactly
+    pub fn matches_strict(&self, rhs: &JsonPath<'a>) -> bool {
+        if self.is_empty() && rhs.is_empty() {
+            return true;
+        }
+        if self.len() != rhs.len() {
+            return false;
+        };
+        self.components
+            .iter()
+            .zip(rhs.components.iter())
+            .fold(true, |acc, comps| acc && comps.0 == comps.1)
+    }
+
+    /// Determines whether a path matches a given path according to the following rules:
+    /// -
+    /// -
+    /// -
+    pub fn matches(&self, rhs: &JsonPath<'a>) -> bool {
+        if self.len() != rhs.len() {
+            return false;
+        };
+        true
+    }
 }
 
 impl<'a> Display for JsonPath<'a> {
@@ -306,5 +338,38 @@ mod tests {
         let partial = JsonPath::new_partial();
         let root = JsonPath::new();
         let _combined = partial + &root;
+    }
+
+    #[test]
+    fn empty_paths_should_strictly_match() {
+        let left = JsonPath::new();
+        let right = JsonPath::new();
+        assert!(left.matches_strict(&right))
+    }
+
+    #[test]
+    fn complex_paths_should_strictly_match() {
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_str_selector("a");
+        right.push_str_selector("a");
+        left.push_index_select(6);
+        right.push_index_select(6);
+        left.push_range_selector(4, 5);
+        right.push_range_selector(4, 5);
+        assert!(left.matches_strict(&right))
+    }
+
+    #[test]
+    fn slightly_different_complex_paths_should_not_strictly_match() {
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_str_selector("a");
+        right.push_str_selector("a");
+        left.push_index_select(6);
+        right.push_index_select(6);
+        left.push_range_selector(4, 5);
+        right.push_range_selector(3, 5);
+        assert!(!left.matches_strict(&right))
     }
 }
