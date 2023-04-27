@@ -198,14 +198,39 @@ impl<'a> JsonPath<'a> {
     }
 
     /// Determines whether a path matches a given path according to the following rules:
-    /// -
-    /// -
-    /// -
+    /// - A wildcard selector should match against an index selector in the same position
+    /// - Name selectors only match based on strict equality
+    /// - Indexed selectors match a range selector iff the index lies within the range supplied
+    /// - Range selectors only match strictly with other range selectors (hmmmm)
     pub fn matches(&self, rhs: &JsonPath<'a>) -> bool {
+        if self.is_empty() && rhs.is_empty() {
+            return true;
+        }
         if self.len() != rhs.len() {
             return false;
         };
-        true
+        self.components
+            .iter()
+            .zip(rhs.components.iter())
+            .fold(true, |acc, comp| acc && Self::match_path_components(comp))
+    }
+
+    /// Pattern match on pairs of [JsonPathComponent]s, and perform "special" equality checks for
+    /// things like [JsonPathComponent::IndexSelector] and [JsonPathComponent::RangeSelector]. We
+    /// need to make sure that we take care of commutativity in the match arms
+    fn match_path_components(pair: (&JsonPathComponent, &JsonPathComponent)) -> bool {
+        match pair {
+            (JsonPathComponent::IndexSelector(i), JsonPathComponent::IndexSelector(j)) => i == j,
+            (JsonPathComponent::IndexSelector(i), JsonPathComponent::RangeSelector(j, k)) => {
+                j <= i && i <= k
+            }
+            (JsonPathComponent::RangeSelector(j, k), JsonPathComponent::IndexSelector(i)) => {
+                j <= i && i <= k
+            }
+            (JsonPathComponent::WildcardSelector, JsonPathComponent::IndexSelector(_)) => true,
+            (JsonPathComponent::IndexSelector(_), JsonPathComponent::WildcardSelector) => true,
+            (a, b) => a == b,
+        }
     }
 }
 
@@ -385,5 +410,38 @@ mod tests {
         right.push_wildcard_selector();
         assert!(left.matches(&right));
         assert_eq!(left.to_string(), right.to_string())
+    }
+
+    #[test]
+    fn indexes_should_match_on_ranges() {
+        // x == y
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_range_selector(0, 4);
+        right.push_index_select(3);
+        assert!(left.matches(&right));
+
+        // y == x
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_range_selector(0, 4);
+        right.push_index_select(3);
+        assert!(right.matches(&left))
+    }
+    #[test]
+    fn indexes_should_not_match_outside_of_ranges() {
+        // x == y
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_range_selector(0, 4);
+        right.push_index_select(6);
+        assert!(!left.matches(&right));
+
+        // y == x
+        let mut left = JsonPath::new();
+        let mut right = JsonPath::new();
+        left.push_range_selector(0, 4);
+        right.push_index_select(6);
+        assert!(!right.matches(&left))
     }
 }
