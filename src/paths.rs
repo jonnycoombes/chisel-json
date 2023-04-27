@@ -357,7 +357,8 @@ mod tests {
         right.push_index_select(6);
         left.push_range_selector(4, 5);
         right.push_range_selector(4, 5);
-        assert!(left.matches_strict(&right))
+        assert!(left.matches_strict(&right));
+        assert_eq!(left.to_string(), right.to_string())
     }
 
     #[test]
@@ -370,6 +371,19 @@ mod tests {
         right.push_index_select(6);
         left.push_range_selector(4, 5);
         right.push_range_selector(3, 5);
-        assert!(!left.matches_strict(&right))
+        assert!(!left.matches_strict(&right));
+        assert_ne!(left.to_string(), right.to_string())
+    }
+
+    #[test]
+    fn partial_paths_should_match_strictly() {
+        let mut left = JsonPath::new_partial();
+        let mut right = JsonPath::new_partial();
+        left.push_str_selector("a");
+        right.push_str_selector("a");
+        left.push_wildcard_selector();
+        right.push_wildcard_selector();
+        assert!(left.matches(&right));
+        assert_eq!(left.to_string(), right.to_string())
     }
 }
