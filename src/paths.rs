@@ -1,5 +1,7 @@
 #![allow(unused_macros)]
-//! Basic JSONPath generation and manipulation
+//! Basic JSONPath generation and manipulation.  Note that this is *not* supposed to be a complete
+//! implementation of RFC 8259...there is just enough JSONPath goodness within this module to
+//! support what the SAX and DOM parsers do.
 use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::Display;
