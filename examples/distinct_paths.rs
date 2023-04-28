@@ -13,8 +13,8 @@ macro_rules! selected_event {
     };
 }
 
-/// Very simple example of using the SAX based parser to extract all the distinct keys in a JSON
-/// document
+/// Extract all the unique paths from a given document, using the SAX parser and an appropriate set
+/// of matching [Match] values
 fn main() {
     let parser = Parser::with_encoding(Encoding::Utf8);
     let _result = parser.parse_file("fixtures/json/bench/citm_catalog.json", &mut |evt| {
