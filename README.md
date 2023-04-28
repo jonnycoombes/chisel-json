@@ -28,6 +28,14 @@ There currently defined features within the crate are as follows:
 |---------|-------------|---------|
 | `mixed_numerics` | Should numbers be parsed separately as `i64` and `f64`? | `yerp` |
 
+### Examples
+
+There are several examples provided as part of the source:
+
+| Example | Description |
+|---------|-------------|
+|[distinct_paths](./examples/distinct_paths.rs) | Extract all distinct paths using the SAX parser |
+|[distinct_object_paths](./examples/distinct_object_paths.rs) | Extract all object paths using the SAX parser |
 
 ### Build & Test
 
