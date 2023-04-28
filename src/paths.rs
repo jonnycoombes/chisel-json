@@ -309,7 +309,7 @@ mod tests {
         path.push_str_selector("b");
         path.push_str_selector("c");
         path.push_str_selector("d");
-        assert_eq!(&path.as_string(), "$.a.b.c.d")
+        assert_eq!(&path.as_string(), "$.['a'].['b'].['c'].['d']")
     }
 
     #[test]
@@ -319,7 +319,7 @@ mod tests {
         path.push_wildcard_selector();
         path.push_index_select(4);
         path.push_range_selector(6, 7);
-        assert_eq!(path.as_string(), "$.array.[*].[4].[6..7]")
+        assert_eq!(path.as_string(), "$.['array'].[*].[4].[6..7]")
     }
 
     #[test]
@@ -331,7 +331,7 @@ mod tests {
         path.push_str_selector("d");
         path.pop();
         path.pop();
-        assert_eq!(&path.as_string(), "$.a.b")
+        assert_eq!(&path.as_string(), "$.['a'].['b']")
     }
 
     #[test]
@@ -343,12 +343,12 @@ mod tests {
     }
 
     #[test]
-    fn a_root_and_partial_paths_can_be_concatenated_correctly() {
+    fn root_and_partial_paths_can_be_concatenated_correctly() {
         let mut root = JsonPath::new();
         let mut partial = JsonPath::new_partial();
         partial.push_str_selector("a");
         root = root + &partial;
-        assert_eq!(root.as_string(), "$.a")
+        assert_eq!(root.as_string(), "$.['a']")
     }
 
     #[test]
