@@ -511,6 +511,18 @@ mod tests {
     }
 
     #[test]
+    fn tail_should_return_the_correct_elements() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
+        path.push_str_selector("e");
+        let tail = path.tail().unwrap().tail().unwrap();
+        assert_eq!(tail.len(), 4);
+    }
+
+    #[test]
     fn recursing_over_paths_should_consume_original() {
         let mut path = JsonPath::new();
         path.push_str_selector("a");
