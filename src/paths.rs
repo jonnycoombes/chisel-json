@@ -1,14 +1,16 @@
 #![allow(unused_macros)]
-//! Basic JSONPath generation and manipulation.  Note that this is *not* supposed to be a complete
-//! implementation of RFC 8259...there is just enough JSONPath goodness within this module to
-//! support what the SAX and DOM parsers do.
+//! A representation of a JSON Pointer with associated operations, as per RFC 6901
 use std::borrow::Cow;
 use std::collections::{vec_deque, VecDeque};
 use std::fmt::Display;
 use std::ops::Add;
 
-/// The default separator to use within generated paths
-const PATH_SEPARATOR: char = '.';
+/// Each pointer is a series of segments delineated by a separator char
+const PATH_SEPARATOR: char = '/';
+/// As per the RFC, we need to encode any tilde characters as ~0
+const ENCODED_TILDE: &str = "~0";
+/// As per the RFC, we need to encode any slash characters as ~1
+const ENCODED_SLASH: &str = "~1";
 
 /// An enumeration fo various different path components
 #[derive(Debug, Clone, PartialEq)]
