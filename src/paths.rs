@@ -3,7 +3,7 @@
 //! implementation of RFC 8259...there is just enough JSONPath goodness within this module to
 //! support what the SAX and DOM parsers do.
 use std::borrow::Cow;
-use std::collections::VecDeque;
+use std::collections::{vec_deque, VecDeque};
 use std::fmt::Display;
 use std::ops::Add;
 
@@ -92,19 +92,21 @@ macro_rules! is_range_selector {
 #[derive(Debug)]
 pub struct JsonPath<'a> {
     /// The path components
-    components: Vec<JsonPathComponent<'a>>,
+    components: VecDeque<JsonPathComponent<'a>>,
 }
 
 impl<'a> JsonPath<'a> {
     /// Create a new, partial (no root) [JsonPath] instance
     pub fn new_partial() -> Self {
-        JsonPath { components: vec![] }
+        JsonPath {
+            components: VecDeque::new(),
+        }
     }
 
     /// Create a new [JsonPath] instance with just a root component
     pub fn new() -> Self {
         JsonPath {
-            components: vec![JsonPathComponent::Root],
+            components: VecDeque::from([JsonPathComponent::Root]),
         }
     }
 
@@ -138,7 +140,7 @@ impl<'a> JsonPath<'a> {
     /// full of crap
     pub fn push_str_selector(&mut self, name: &str) {
         self.components
-            .push(JsonPathComponent::NameSelector(Cow::Owned(String::from(
+            .push_back(JsonPathComponent::NameSelector(Cow::Owned(String::from(
                 name.replace("\"", ""),
             ))));
     }
@@ -146,28 +148,29 @@ impl<'a> JsonPath<'a> {
     /// Push a new [JsonPathComponent::IndexSelector] based on a given index
     pub fn push_index_select(&mut self, index: usize) {
         self.components
-            .push(JsonPathComponent::IndexSelector(index));
+            .push_back(JsonPathComponent::IndexSelector(index));
     }
 
     /// Push a new [JsonPathComponent::RangeSelector] based on a given start and end index
     pub fn push_range_selector(&mut self, start: usize, end: usize) {
         self.components
-            .push(JsonPathComponent::RangeSelector(start, end));
+            .push_back(JsonPathComponent::RangeSelector(start, end));
     }
 
     /// Push a new [JsonPathComponent::WildcardSelector]
     pub fn push_wildcard_selector(&mut self) {
-        self.components.push(JsonPathComponent::WildcardSelector);
+        self.components
+            .push_back(JsonPathComponent::WildcardSelector);
     }
 
     /// Appends a new [JsonPathComponent] to the end of the path
     pub fn push(&mut self, component: JsonPathComponent<'a>) {
-        self.components.push(component);
+        self.components.push_back(component);
     }
 
     /// Pops the last [JsonPathComponent] from the end of the path (if it exists)
     pub fn pop(&mut self) -> Option<JsonPathComponent<'a>> {
-        self.components.pop()
+        self.components.pop_back()
     }
 
     /// Checks whether a path points to an array element within the source JSON
@@ -175,7 +178,7 @@ impl<'a> JsonPath<'a> {
         if self.is_empty() {
             return false;
         }
-        is_index_selector!(self.components.last().unwrap())
+        is_index_selector!(self.components.iter().last().unwrap())
     }
 
     /// Returns the number of [JsonPathComponent]s within the path
@@ -234,6 +237,22 @@ impl<'a> JsonPath<'a> {
             (a, b) => a == b,
         }
     }
+
+    /// Returns the (optional) head of the path
+    pub fn head(&mut self) -> Option<JsonPathComponent<'a>> {
+        self.components.pop_front()
+    }
+
+    /// Returns a new [JsonPath] instance containing the tail elements of a path. If the existing
+    /// path is empty, or only has a single element (head) then None is returned.
+    pub fn tail(&mut self) -> Option<Self> {
+        if self.is_empty() || self.len() == 1 {
+            return None;
+        }
+        Some(JsonPath {
+            components: self.components.split_off(1),
+        })
+    }
 }
 
 impl<'a> Display for JsonPath<'a> {
@@ -256,7 +275,7 @@ impl<'a> Add<&JsonPath<'a>> for JsonPath<'a> {
         }
         rhs.components
             .iter()
-            .for_each(|c| self.components.push(c.clone()));
+            .for_each(|c| self.components.push_back(c.clone()));
         self
     }
 }
@@ -445,5 +464,75 @@ mod tests {
         left.push_range_selector(0, 4);
         right.push_index_select(6);
         assert!(!right.matches(&left))
+    }
+
+    #[test]
+    fn should_correctly_return_the_head() {
+        let mut path = JsonPath::new();
+        let head = path.head();
+        assert!(head.is_some())
+    }
+
+    #[test]
+    fn should_correctly_return_a_tail() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        let tail = path.tail();
+        assert!(tail.is_some());
+        assert_eq!(tail.unwrap().len(), 1)
+    }
+
+    /// Simple example function for recursing a path
+    fn recurse_path<'a>(
+        acc: &'a mut Vec<JsonPathComponent<'a>>,
+        path: &'a mut JsonPath,
+    ) -> &'a Vec<JsonPathComponent<'a>> {
+        match path.head() {
+            Some(component) => {
+                acc.push(component);
+                recurse_path(acc, path)
+            }
+            None => acc,
+        }
+    }
+    #[test]
+    fn should_be_able_to_recurse_over_paths() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
+        path.push_str_selector("e");
+        assert_eq!(path.len(), 6);
+
+        let mut acc = vec![];
+        let result = recurse_path(&mut acc, &mut path);
+        assert_eq!(result.len(), 6);
+    }
+
+    #[test]
+    fn tail_should_return_the_correct_elements() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
+        path.push_str_selector("e");
+        let tail = path.tail().unwrap().tail().unwrap();
+        assert_eq!(tail.len(), 4);
+    }
+
+    #[test]
+    fn recursing_over_paths_should_consume_original() {
+        let mut path = JsonPath::new();
+        path.push_str_selector("a");
+        path.push_str_selector("b");
+        path.push_str_selector("c");
+        path.push_str_selector("d");
+        path.push_str_selector("e");
+        assert_eq!(path.len(), 6);
+        let mut acc = vec![];
+        let _result = recurse_path(&mut acc, &mut path);
+        assert_eq!(path.len(), 0)
     }
 }
