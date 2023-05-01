@@ -3,7 +3,7 @@
 //!
 use crate::coords::Span;
 use crate::errors::ParserError;
-use crate::paths::JsonPath;
+use crate::pointer::JsonPointer;
 use std::borrow::Cow;
 use std::fmt::Display;
 
@@ -62,26 +62,26 @@ pub struct Event<'a> {
     /// The [Span] associated with the current [Match]
     pub span: Span,
 
-    /// Optional [JsonPath] information relating to the event
-    pub path: Option<&'a JsonPath<'a>>,
+    /// Optional [JsonPointer] information relating to the event
+    pub pointer: Option<&'a JsonPointer<'a>>,
 }
 
 impl<'a> Event<'a> {
     /// Checks whether an event has a path or not
-    fn has_path(&self) -> bool {
-        self.path.is_some()
+    fn has_pointer(&self) -> bool {
+        self.pointer.is_some()
     }
 }
 
 impl<'a> Display for Event<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.path.is_some() {
+        if self.pointer.is_some() {
             write!(
                 f,
                 "Event[{}, {}, {}]",
                 self.matched,
                 self.span,
-                self.path.unwrap()
+                self.pointer.unwrap()
             )
         } else {
             write!(f, "Event[{}, {}]", self.matched, self.span)
