@@ -26,7 +26,6 @@ pub mod dom;
 pub mod errors;
 pub mod events;
 pub mod lexer;
-pub mod paths;
 pub mod pointer;
 pub mod sax;
 #[cfg(test)]
