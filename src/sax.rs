@@ -178,7 +178,7 @@ impl Parser {
         loop {
             match lexer.consume()? {
                 (Token::Str(str), span) => {
-                    pointer.push_name(str.to_string());
+                    pointer.push_name(str.replace("\"", ""));
                     emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span, pointer)?;
                     let should_be_colon = lexer.consume()?;
                     match should_be_colon {

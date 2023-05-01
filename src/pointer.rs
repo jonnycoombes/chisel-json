@@ -28,9 +28,7 @@ impl<'a> Display for JsonPointerComponent<'a> {
             Self::Name(s) => write!(
                 f,
                 "{}",
-                &s.replace("~", ENCODED_TILDE)
-                    .replace("\"", "")
-                    .replace("/", ENCODED_SLASH)
+                &s.replace("~", ENCODED_TILDE).replace("/", ENCODED_SLASH)
             ),
             Self::Index(i) => write!(f, "{}", i),
         }
