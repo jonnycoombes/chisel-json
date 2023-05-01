@@ -22,8 +22,8 @@ There are several examples provided as part of the source:
 
 | Example | Description |
 |---------|-------------|
-|[distinct_paths](./examples/distinct_paths.rs) | Extract all distinct paths using the SAX parser |
-|[distinct_object_paths](./examples/distinct_object_paths.rs) | Extract all object paths using the SAX parser |
+|[distinct_pointers](./examples/distinct_pointers.rs) | Extract all distinct JSON pointers using the SAX parser |
+|[distinct_object_pointers](./examples/distinct_object_pointers.rs) | Extract all object JSON pointers using the SAX parser |
 
 ### Build & Test
 

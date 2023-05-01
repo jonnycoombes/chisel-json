@@ -13,13 +13,13 @@ macro_rules! selected_event {
     };
 }
 
-/// Extract all the unique paths from a given document, using the SAX parser and an appropriate set
+/// Extract all the unique pointers from a given document, using the SAX parser and an appropriate set
 /// of matching [Match] values
 fn main() {
     let parser = Parser::with_encoding(Encoding::Utf8);
     let _result = parser.parse_file("fixtures/json/bench/citm_catalog.json", &mut |evt| {
         match evt.matched {
-            selected_event!() => println!("{}", evt.path.unwrap()),
+            selected_event!() => println!("{}", evt.pointer.unwrap()),
             _ => (),
         }
         Ok(())

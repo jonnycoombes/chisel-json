@@ -1,6 +1,6 @@
 [package]
 name = "chisel-json"
-version = "0.1.15"
+version = "0.1.16"
 edition = "2021"
 authors = ["Jonny Coombes <jcoombes@jcs-software.co.uk>"]
 rust-version = "1.56"

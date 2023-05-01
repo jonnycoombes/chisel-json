@@ -4,7 +4,7 @@ use crate::decoders::{DecoderSelector, Encoding};
 use crate::errors::{ParserError, ParserErrorDetails, ParserErrorSource, ParserResult};
 use crate::events::{Event, Match};
 use crate::lexer::{Lexer, Token};
-use crate::paths::JsonPath;
+use crate::pointer::JsonPointer;
 use crate::sax_parser_error;
 use crate::JsonValue;
 use crate::Span;
@@ -18,14 +18,14 @@ macro_rules! emit_event {
         $cb(&Event {
             matched: $m,
             span: $span,
-            path: Some(&$path),
+            pointer: Some(&$path),
         })
     };
     ($cb : expr, $m : expr, $span : expr) => {
         $cb(&Event {
             matched: $m,
             span: $span,
-            path: None,
+            pointer: None,
         })
     };
 }
@@ -107,18 +107,18 @@ impl Parser {
     where
         Callback: FnMut(&Event) -> ParserResult<()>,
     {
-        let mut path = JsonPath::new();
+        let mut pointer = JsonPointer::default();
         let mut lexer = Lexer::new(chars);
         match lexer.consume()? {
             (Token::StartObject, span) => {
                 emit_event!(cb, Match::StartOfInput, span)?;
-                emit_event!(cb, Match::StartObject, span, path)?;
-                self.parse_object(&mut lexer, &mut path, cb)
+                emit_event!(cb, Match::StartObject, span, pointer)?;
+                self.parse_object(&mut lexer, &mut pointer, cb)
             }
             (Token::StartArray, span) => {
-                emit_event!(cb, Match::StartOfInput, span, path)?;
-                emit_event!(cb, Match::StartArray, span, path)?;
-                self.parse_array(&mut lexer, &mut path, cb)
+                emit_event!(cb, Match::StartOfInput, span, pointer)?;
+                emit_event!(cb, Match::StartArray, span, pointer)?;
+                self.parse_array(&mut lexer, &mut pointer, cb)
             }
             (_, span) => {
                 sax_parser_error!(ParserErrorDetails::InvalidRootObject, span.start)
@@ -129,7 +129,7 @@ impl Parser {
     fn parse_value<Callback>(
         &self,
         lexer: &mut Lexer,
-        path: &mut JsonPath,
+        pointer: &mut JsonPointer,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -137,27 +137,27 @@ impl Parser {
     {
         match lexer.consume()? {
             (Token::StartObject, span) => {
-                emit_event!(cb, Match::StartObject, span, path)?;
-                self.parse_object(lexer, path, cb)
+                emit_event!(cb, Match::StartObject, span, pointer)?;
+                self.parse_object(lexer, pointer, cb)
             }
             (Token::StartArray, span) => {
-                emit_event!(cb, Match::StartArray, span, path)?;
-                self.parse_array(lexer, path, cb)
+                emit_event!(cb, Match::StartArray, span, pointer)?;
+                self.parse_array(lexer, pointer, cb)
             }
             (Token::Str(str), span) => {
-                emit_event!(cb, Match::String(Cow::Borrowed(&str)), span, path)
+                emit_event!(cb, Match::String(Cow::Borrowed(&str)), span, pointer)
             }
             (Token::Float(value), span) => {
-                emit_event!(cb, Match::Float(value), span, path)
+                emit_event!(cb, Match::Float(value), span, pointer)
             }
             (Token::Integer(value), span) => {
-                emit_event!(cb, Match::Integer(value), span, path)
+                emit_event!(cb, Match::Integer(value), span, pointer)
             }
             (Token::Boolean(value), span) => {
-                emit_event!(cb, Match::Boolean(value), span, path)
+                emit_event!(cb, Match::Boolean(value), span, pointer)
             }
             (Token::Null, span) => {
-                emit_event!(cb, Match::Null, span, path)
+                emit_event!(cb, Match::Null, span, pointer)
             }
             (token, span) => {
                 sax_parser_error!(ParserErrorDetails::UnexpectedToken(token), span.start)
@@ -169,7 +169,7 @@ impl Parser {
     fn parse_object<Callback>(
         &self,
         lexer: &mut Lexer,
-        path: &mut JsonPath,
+        pointer: &mut JsonPointer,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -178,13 +178,13 @@ impl Parser {
         loop {
             match lexer.consume()? {
                 (Token::Str(str), span) => {
-                    path.push_str_selector(&str);
-                    emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span, path)?;
+                    pointer.push_name(str.replace("\"", ""));
+                    emit_event!(cb, Match::ObjectKey(Cow::Borrowed(&str)), span, pointer)?;
                     let should_be_colon = lexer.consume()?;
                     match should_be_colon {
                         (Token::Colon, _) => {
-                            self.parse_value(lexer, path, cb)?;
-                            path.pop();
+                            self.parse_value(lexer, pointer, cb)?;
+                            pointer.pop();
                         }
                         (_, _) => {
                             return sax_parser_error!(
@@ -196,7 +196,7 @@ impl Parser {
                 }
                 (Token::Comma, _) => (),
                 (Token::EndObject, span) => {
-                    return emit_event!(cb, Match::EndObject, span, path);
+                    return emit_event!(cb, Match::EndObject, span, pointer);
                 }
                 (_token, span) => {
                     return sax_parser_error!(ParserErrorDetails::InvalidArray, span.start)
@@ -209,7 +209,7 @@ impl Parser {
     fn parse_array<Callback>(
         &self,
         lexer: &mut Lexer,
-        path: &mut JsonPath,
+        pointer: &mut JsonPointer,
         cb: &mut Callback,
     ) -> ParserResult<()>
     where
@@ -217,39 +217,39 @@ impl Parser {
     {
         let mut index = 0;
         loop {
-            path.push_index_select(index);
+            pointer.push_index(index);
             match lexer.consume()? {
                 (Token::StartArray, span) => {
-                    emit_event!(cb, Match::StartArray, span, path)?;
-                    self.parse_array(lexer, path, cb)?;
+                    emit_event!(cb, Match::StartArray, span, pointer)?;
+                    self.parse_array(lexer, pointer, cb)?;
                 }
                 (Token::EndArray, span) => {
-                    path.pop();
-                    return emit_event!(cb, Match::EndArray, span, path);
+                    pointer.pop();
+                    return emit_event!(cb, Match::EndArray, span, pointer);
                 }
                 (Token::StartObject, span) => {
-                    emit_event!(cb, Match::StartObject, span, path)?;
-                    self.parse_object(lexer, path, cb)?;
+                    emit_event!(cb, Match::StartObject, span, pointer)?;
+                    self.parse_object(lexer, pointer, cb)?;
                 }
                 (Token::Str(str), span) => {
-                    emit_event!(cb, Match::String(Cow::Borrowed(&str)), span, path)?;
+                    emit_event!(cb, Match::String(Cow::Borrowed(&str)), span, pointer)?;
                 }
                 (Token::Float(value), span) => {
-                    emit_event!(cb, Match::Float(value), span, path)?;
+                    emit_event!(cb, Match::Float(value), span, pointer)?;
                 }
                 (Token::Integer(value), span) => {
-                    emit_event!(cb, Match::Integer(value), span, path)?;
+                    emit_event!(cb, Match::Integer(value), span, pointer)?;
                 }
                 (Token::Boolean(value), span) => {
-                    emit_event!(cb, Match::Boolean(value), span, path)?;
+                    emit_event!(cb, Match::Boolean(value), span, pointer)?;
                 }
-                (Token::Null, span) => emit_event!(cb, Match::Null, span, path)?,
+                (Token::Null, span) => emit_event!(cb, Match::Null, span, pointer)?,
                 (Token::Comma, _) => index += 1,
                 (_token, span) => {
                     return sax_parser_error!(ParserErrorDetails::InvalidArray, span.start);
                 }
             }
-            path.pop();
+            pointer.pop();
         }
     }
 }
