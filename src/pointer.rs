@@ -28,7 +28,9 @@ impl<'a> Display for JsonPointerComponent<'a> {
             Self::Name(s) => write!(
                 f,
                 "{}",
-                &s.replace("~", ENCODED_TILDE).replace("/", ENCODED_SLASH)
+                &s.replace("~", ENCODED_TILDE)
+                    .replace("\"", "")
+                    .replace("/", ENCODED_SLASH)
             ),
             Self::Index(i) => write!(f, "{}", i),
         }
@@ -55,7 +57,7 @@ impl<'a> JsonPointer<'a> {
 
     /// Push a whole bunch of names onto the end of the path in order
     pub fn push_names(&mut self, names: &[&'a str]) {
-        names.iter().for_each(|n| self.push_name(n))
+        names.iter().for_each(|n| self.push_name(n.to_string()))
     }
 
     /// Push a whole bunch of indexes onto the end of the path in order
@@ -64,12 +66,12 @@ impl<'a> JsonPointer<'a> {
     }
 
     /// Push a new [JsonPointerComponent::Name] onto the end of the pointer
-    pub fn push_name(&mut self, name: &'a str) {
+    pub fn push_name(&mut self, name: String) {
         if self.is_empty() {
             self.components.push_back(JsonPointerComponent::Root)
         }
         self.components
-            .push_back(JsonPointerComponent::Name(Cow::Borrowed(name)))
+            .push_back(JsonPointerComponent::Name(Cow::Owned(name)))
     }
 
     /// Push a new [JsonPointerComponent::Index] onto the end of the pointer
@@ -103,6 +105,12 @@ impl<'a> JsonPointer<'a> {
                 .collect::<Vec<String>>()
                 .join("/"),
         )
+    }
+}
+
+impl<'a> Display for JsonPointer<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -175,9 +183,9 @@ mod tests {
     fn pointers_should_match() {
         let mut s = JsonPointer::default();
         let mut t = JsonPointer::default();
-        s.push_name("b");
+        s.push_name("b".to_string());
         s.push_index(9);
-        t.push_name("b");
+        t.push_name("b".to_string());
         t.push_index(9);
         assert!(s.matches(&t))
     }
