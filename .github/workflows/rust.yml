@@ -19,8 +19,4 @@ jobs:
     - name: Install Cargo Make
       run: cargo install cargo-make
     - name: Make
-      run: cargo make
-    - name: Debug Tests
-      run: cargo make test
-    - name: Release Tests
-      run: cargo make test-release
+      run: cargo make && cargo make test
