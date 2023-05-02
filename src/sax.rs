@@ -99,6 +99,19 @@ impl Parser {
         self.parse(&mut chars, cb)
     }
 
+    /// Parse the contents extracted from an instance of [BufRead]
+    pub fn parse_buffer<Callback>(
+        &self,
+        buffer: &mut impl BufRead,
+        cb: &mut Callback,
+    ) -> ParserResult<()>
+    where
+        Callback: FnMut(&Event) -> ParserResult<()>,
+    {
+        let mut chars = self.decoders.default_decoder(buffer);
+        self.parse(&mut chars, cb)
+    }
+
     pub fn parse<Callback>(
         &self,
         chars: &mut impl Iterator<Item = char>,
@@ -301,5 +314,13 @@ mod tests {
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
         assert!(parsed.err().unwrap().details == ParserErrorDetails::InvalidRootObject);
+    }
+
+    #[test]
+    fn should_allow_for_parsing_of_a_buffer() {
+        let input = "{ \"test\" : 2123232323}".as_bytes();
+        let mut buffer = BufReader::new(input);
+        let parser = Parser::default();
+        let _parsed = parser.parse_buffer(&mut buffer, &mut |_e| Ok(()));
     }
 }
