@@ -18,5 +18,5 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install Cargo Make
       run: cargo install cargo-make
-    - name: Make
-      run: cargo make && cargo make test
+    - name: Make Test
+      run: cargo make test
