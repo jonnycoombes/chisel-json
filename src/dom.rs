@@ -69,6 +69,12 @@ impl Parser {
         self.parse(&mut chars)
     }
 
+    /// Parse the contents of a buffer (e.g. implementation of [BufRead])
+    pub fn parse_buffer<Callback>(&self, buffer: &mut impl BufRead) -> ParserResult<JsonValue> {
+        let mut chars = self.decoders.default_decoder(buffer);
+        self.parse(&mut chars)
+    }
+
     pub fn parse(&self, chars: &mut impl Iterator<Item = char>) -> ParserResult<JsonValue> {
         let mut lexer = Lexer::new(chars);
         match lexer.consume()? {
