@@ -17,7 +17,7 @@ macro_rules! selected_event {
 /// of matching [Match] values
 fn main() {
     let parser = Parser::with_encoding(Encoding::Utf8);
-    let _result = parser.parse_file("fixtures/json/bench/citm_catalog.json", &mut |evt| {
+    let _result = parser.parse_file("fixtures/json/bench/schema.json", &mut |evt| {
         match evt.matched {
             selected_event!() => println!("{}", evt.pointer.unwrap()),
             _ => (),
