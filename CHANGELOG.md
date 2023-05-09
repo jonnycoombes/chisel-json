@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.20] - 2023-05-09
+
+### Features
+
+- Added a derived `Eq` implementation to `JsonPointer`
+
 ## [0.1.19] - 2023-05-09
 
 ### Features
