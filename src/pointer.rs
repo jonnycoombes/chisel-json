@@ -11,7 +11,7 @@ const ENCODED_TILDE: &str = "~0";
 const ENCODED_SLASH: &str = "~1";
 
 /// Each pointer is made of one of three different component types
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub enum JsonPointerComponent<'a> {
     /// Root element of a pointer
     Root,
@@ -36,10 +36,16 @@ impl<'a> Display for JsonPointerComponent<'a> {
 }
 
 /// A structure representing a complete pointer, comprising multiple [JsonPointerComponent]s
-#[derive(Default)]
+#[derive(Debug, Default, Hash)]
 pub struct JsonPointer<'a> {
     /// The components that go together to make up the pointer
     components: VecDeque<JsonPointerComponent<'a>>,
+}
+
+impl<'a> PartialEq for JsonPointer<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.matches(other)
+    }
 }
 
 impl<'a> JsonPointer<'a> {
@@ -186,5 +192,20 @@ mod tests {
         t.push_name("b".to_string());
         t.push_index(9);
         assert!(s.matches(&t))
+    }
+
+    #[test]
+    fn pointers_should_match_using_equality_ops() {
+        let mut s = JsonPointer::default();
+        let mut t = JsonPointer::default();
+        let mut u = JsonPointer::default();
+        s.push_name("b".to_string());
+        s.push_index(9);
+        t.push_name("b".to_string());
+        t.push_index(9);
+        u.push_name("x".to_string());
+        assert_eq!(s, t);
+        assert_ne!(t, u);
+        assert_ne!(s, u)
     }
 }
