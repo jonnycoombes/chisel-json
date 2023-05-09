@@ -11,7 +11,7 @@ const ENCODED_TILDE: &str = "~0";
 const ENCODED_SLASH: &str = "~1";
 
 /// Each pointer is made of one of three different component types
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum JsonPointerComponent<'a> {
     /// Root element of a pointer
     Root,
@@ -36,7 +36,7 @@ impl<'a> Display for JsonPointerComponent<'a> {
 }
 
 /// A structure representing a complete pointer, comprising multiple [JsonPointerComponent]s
-#[derive(Debug, Default, Hash)]
+#[derive(Debug, Default, Hash, Eq)]
 pub struct JsonPointer<'a> {
     /// The components that go together to make up the pointer
     components: VecDeque<JsonPointerComponent<'a>>,
