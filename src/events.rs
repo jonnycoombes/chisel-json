@@ -8,6 +8,7 @@ use std::borrow::Cow;
 use std::fmt::Display;
 
 /// Enumeration of the various different matches that can be produced during a parse
+#[derive(PartialEq)]
 pub enum Match<'a> {
     /// Start of the input Emitted prior to anything else
     StartOfInput,
