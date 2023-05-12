@@ -359,7 +359,7 @@ impl<'a> Lexer<'a> {
             },
         }
 
-        self.parse_numeric(!have_decimal, start_coords, self.coords)
+        self.parse_numeric(!have_decimal, adjusted_coords, self.coords)
     }
 
     fn check_following_exponent(&mut self) -> ParserResult<()> {
@@ -615,19 +615,17 @@ impl<'a> Lexer<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::coords::{Coords, Span};
+    use crate::errors::{ParserError, ParserResult};
+    use crate::lexer::{Lexer, PackedToken, Token};
+    use crate::{lines_from_relative_file, reader_from_bytes};
+    use chisel_decoders::utf8::Utf8Decoder;
     use std::cell::RefCell;
     use std::env;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::rc::Rc;
     use std::time::Instant;
-
-    use chisel_decoders::utf8::Utf8Decoder;
-
-    use crate::coords::{Coords, Span};
-    use crate::errors::{ParserError, ParserResult};
-    use crate::lexer::{Lexer, PackedToken, Token};
-    use crate::{lines_from_relative_file, reader_from_bytes};
 
     #[test]
     fn should_parse_basic_tokens() {
@@ -697,6 +695,21 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn should_report_correct_error_char_position() {
+        let mut reader = reader_from_bytes!("{\"abc\" : \nd}");
+        let mut decoder = Utf8Decoder::new(&mut reader);
+        let mut lexer = Lexer::new(&mut decoder);
+        let mut results = vec![];
+        for _ in 0..4 {
+            results.push(lexer.consume())
+        }
+        assert!(&results[3].is_err());
+        let coords = results[3].clone().err().unwrap().coords.unwrap();
+        assert_eq!(coords.absolute, 11);
+        assert_eq!(coords.line, 2)
     }
 
     #[test]
