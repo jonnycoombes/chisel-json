@@ -146,6 +146,12 @@ macro_rules! match_quote {
     };
 }
 
+macro_rules! match_newline {
+    () => {
+        '\n'
+    };
+}
+
 pub struct Lexer<'a> {
     /// An iterator producing `char` values
     chars: &'a mut dyn Iterator<Item = char>,
