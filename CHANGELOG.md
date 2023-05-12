@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.22] - 2023-05-12
+
+### Features
+
+- Additional newline checking within lexer core
+- Modified reported error coords to utilise an "adjusted" value
+- Added `match_newline` convenience macro to lexer core
+- Added `inc_n` associated function to `Coords` type
+
+### Testing
+
+- Additional simple tests for error coordinate checking
+
 ## [0.1.21] - 2023-05-10
 
 ### Features
