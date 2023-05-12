@@ -146,6 +146,12 @@ macro_rules! match_quote {
     };
 }
 
+macro_rules! match_newline {
+    () => {
+        '\n'
+    };
+}
+
 pub struct Lexer<'a> {
     /// An iterator producing `char` values
     chars: &'a mut dyn Iterator<Item = char>,
@@ -208,7 +214,7 @@ impl<'a> Lexer<'a> {
 
     /// Match on a valid Json string.
     fn match_string(&mut self) -> ParserResult<PackedToken> {
-        let start_coords = self.coords;
+        let mut adjusted_coords = self.coords;
         loop {
             match self.advance(false) {
                 Ok(_) => match self.buffer.last().unwrap() {
@@ -217,11 +223,12 @@ impl<'a> Lexer<'a> {
                             match_escape_non_unicode_suffix!() => (),
                             match_escape_unicode_suffix!() => self.check_unicode_sequence()?,
                             _ => {
+                                adjusted_coords.inc_n(2);
                                 return lexer_error!(
                                     ParserErrorDetails::InvalidEscapeSequence(
                                         self.buffer_to_string()
                                     ),
-                                    self.coords
+                                    adjusted_coords
                                 );
                             }
                         },
@@ -232,7 +239,7 @@ impl<'a> Lexer<'a> {
                     match_quote!() => {
                         return packed_token!(
                             Token::Str(self.buffer_to_string()),
-                            start_coords,
+                            adjusted_coords,
                             self.coords
                         );
                     }
@@ -245,12 +252,15 @@ impl<'a> Lexer<'a> {
 
     #[inline]
     fn check_unicode_sequence(&mut self) -> ParserResult<()> {
+        let mut adjusted_coords = self.coords;
         self.advance_n(4, false).and_then(|_| {
             for i in 1..=4 {
-                if !self.buffer[self.buffer.len() - i].is_ascii_hexdigit() {
+                let ch = self.buffer[self.buffer.len() - i];
+                if !ch.is_ascii_hexdigit() {
+                    adjusted_coords.inc_n(i - 1);
                     return lexer_error!(
                         ParserErrorDetails::InvalidUnicodeEscapeSequence(self.buffer_to_string()),
-                        self.coords
+                        adjusted_coords
                     );
                 }
             }
@@ -269,7 +279,7 @@ impl<'a> Lexer<'a> {
     /// - An non-exponent alphabetic found in the representation will result in an error
     /// - Numbers can be terminated by commas, brackets and whitespace only (end of pair, end of array)
     fn match_number(&mut self) -> ParserResult<PackedToken> {
-        let start_coords = self.coords;
+        let mut adjusted_coords = self.coords;
         let mut have_exponent = false;
         let mut have_decimal = false;
 
@@ -285,11 +295,12 @@ impl<'a> Lexer<'a> {
                                     self.check_following_exponent()?;
                                     have_exponent = true;
                                 } else {
+                                    adjusted_coords.inc_n(1);
                                     return lexer_error!(
                                         ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
-                                        self.coords
+                                        adjusted_coords
                                     );
                                 }
                             }
@@ -297,20 +308,25 @@ impl<'a> Lexer<'a> {
                                 if !have_decimal {
                                     have_decimal = true;
                                 } else {
+                                    adjusted_coords.inc_n(1);
                                     return lexer_error!(
                                         ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
-                                        self.coords
+                                        adjusted_coords
                                     );
                                 }
                             }
                             match_numeric_terminator!() => {
-                                self.pushback();
+                                self.pushback(false);
+                                break;
+                            }
+                            match_newline!() => {
+                                self.pushback(true);
                                 break;
                             }
                             ch if ch.is_ascii_whitespace() => {
-                                self.pushback();
+                                self.pushback(false);
                                 break;
                             }
                             ch if ch.is_alphabetic() => {
@@ -343,7 +359,7 @@ impl<'a> Lexer<'a> {
             },
         }
 
-        self.parse_numeric(!have_decimal, start_coords, self.coords)
+        self.parse_numeric(!have_decimal, adjusted_coords, self.coords)
     }
 
     fn check_following_exponent(&mut self) -> ParserResult<()> {
@@ -437,8 +453,12 @@ impl<'a> Lexer<'a> {
                 ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
             ),
+            match_newline!() => {
+                self.pushback(true);
+                Ok(true)
+            }
             _ => {
-                self.pushback();
+                self.pushback(false);
                 Ok(true)
             }
         }
@@ -457,6 +477,10 @@ impl<'a> Lexer<'a> {
                 }
                 Ok(false)
             }),
+            match_newline!() => {
+                self.pushback(true);
+                Ok(true)
+            }
             _ => lexer_error!(
                 ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
@@ -535,11 +559,14 @@ impl<'a> Lexer<'a> {
 
     /// Transfer the last character in the buffer to the pushback
     #[inline]
-    fn pushback(&mut self) {
+    fn pushback(&mut self, newline: bool) {
         if !self.buffer.is_empty() {
             self.pushback = self.buffer.pop();
             self.coords.absolute -= 1;
             self.coords.column -= 1;
+            if newline {
+                self.coords.line -= 1;
+            }
         } else {
             self.pushback = None;
         }
@@ -561,7 +588,7 @@ impl<'a> Lexer<'a> {
         loop {
             match self.next_char() {
                 Ok(c) => {
-                    self.coords.inc(c == '\n');
+                    self.coords.inc(c == '\n' || c == '\r');
                     if skip_whitespace {
                         if !c.is_ascii_whitespace() {
                             self.buffer.push(c);
@@ -588,19 +615,17 @@ impl<'a> Lexer<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::coords::{Coords, Span};
+    use crate::errors::{ParserError, ParserResult};
+    use crate::lexer::{Lexer, PackedToken, Token};
+    use crate::{lines_from_relative_file, reader_from_bytes};
+    use chisel_decoders::utf8::Utf8Decoder;
     use std::cell::RefCell;
     use std::env;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::rc::Rc;
     use std::time::Instant;
-
-    use chisel_decoders::utf8::Utf8Decoder;
-
-    use crate::coords::{Coords, Span};
-    use crate::errors::{ParserError, ParserResult};
-    use crate::lexer::{Lexer, PackedToken, Token};
-    use crate::{lines_from_relative_file, reader_from_bytes};
 
     #[test]
     fn should_parse_basic_tokens() {
@@ -670,6 +695,21 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn should_report_correct_error_char_position() {
+        let mut reader = reader_from_bytes!("{\"abc\" : \nd}");
+        let mut decoder = Utf8Decoder::new(&mut reader);
+        let mut lexer = Lexer::new(&mut decoder);
+        let mut results = vec![];
+        for _ in 0..4 {
+            results.push(lexer.consume())
+        }
+        assert!(&results[3].is_err());
+        let coords = results[3].clone().err().unwrap().coords.unwrap();
+        assert_eq!(coords.absolute, 11);
+        assert_eq!(coords.line, 2)
     }
 
     #[test]
