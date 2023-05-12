@@ -29,6 +29,13 @@ impl Coords {
             self.column += 1;
         }
     }
+
+    /// Increment a coordinate by n.  Does not allow for crossing newline boundaries
+    #[inline]
+    pub fn inc_n(&mut self, n: usize) {
+        self.absolute += n;
+        self.column += n;
+    }
 }
 
 impl Display for Coords {
