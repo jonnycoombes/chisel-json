@@ -308,20 +308,25 @@ impl<'a> Lexer<'a> {
                                 if !have_decimal {
                                     have_decimal = true;
                                 } else {
+                                    adjusted_coords.inc_n(1);
                                     return lexer_error!(
                                         ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
-                                        self.coords
+                                        adjusted_coords
                                     );
                                 }
                             }
                             match_numeric_terminator!() => {
-                                self.pushback();
+                                self.pushback(false);
+                                break;
+                            }
+                            match_newline!() => {
+                                self.pushback(true);
                                 break;
                             }
                             ch if ch.is_ascii_whitespace() => {
-                                self.pushback();
+                                self.pushback(false);
                                 break;
                             }
                             ch if ch.is_alphabetic() => {
@@ -448,8 +453,12 @@ impl<'a> Lexer<'a> {
                 ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
             ),
+            match_newline!() => {
+                self.pushback(true);
+                Ok(true)
+            }
             _ => {
-                self.pushback();
+                self.pushback(false);
                 Ok(true)
             }
         }
@@ -468,6 +477,10 @@ impl<'a> Lexer<'a> {
                 }
                 Ok(false)
             }),
+            match_newline!() => {
+                self.pushback(true);
+                Ok(true)
+            }
             _ => lexer_error!(
                 ParserErrorDetails::InvalidNumericRepresentation(self.buffer_to_string()),
                 self.coords
@@ -546,11 +559,14 @@ impl<'a> Lexer<'a> {
 
     /// Transfer the last character in the buffer to the pushback
     #[inline]
-    fn pushback(&mut self) {
+    fn pushback(&mut self, newline: bool) {
         if !self.buffer.is_empty() {
             self.pushback = self.buffer.pop();
             self.coords.absolute -= 1;
             self.coords.column -= 1;
+            if newline {
+                self.coords.line -= 1;
+            }
         } else {
             self.pushback = None;
         }
@@ -572,7 +588,7 @@ impl<'a> Lexer<'a> {
         loop {
             match self.next_char() {
                 Ok(c) => {
-                    self.coords.inc(c == '\n');
+                    self.coords.inc(c == '\n' || c == '\r');
                     if skip_whitespace {
                         if !c.is_ascii_whitespace() {
                             self.buffer.push(c);
