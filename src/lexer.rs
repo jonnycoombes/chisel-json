@@ -214,7 +214,7 @@ impl<'a> Lexer<'a> {
 
     /// Match on a valid Json string.
     fn match_string(&mut self) -> ParserResult<PackedToken> {
-        let start_coords = self.coords;
+        let mut adjusted_coords = self.coords;
         loop {
             match self.advance(false) {
                 Ok(_) => match self.buffer.last().unwrap() {
@@ -223,11 +223,12 @@ impl<'a> Lexer<'a> {
                             match_escape_non_unicode_suffix!() => (),
                             match_escape_unicode_suffix!() => self.check_unicode_sequence()?,
                             _ => {
+                                adjusted_coords.inc_n(2);
                                 return lexer_error!(
                                     ParserErrorDetails::InvalidEscapeSequence(
                                         self.buffer_to_string()
                                     ),
-                                    self.coords
+                                    adjusted_coords
                                 );
                             }
                         },
@@ -238,7 +239,7 @@ impl<'a> Lexer<'a> {
                     match_quote!() => {
                         return packed_token!(
                             Token::Str(self.buffer_to_string()),
-                            start_coords,
+                            adjusted_coords,
                             self.coords
                         );
                     }
@@ -251,12 +252,15 @@ impl<'a> Lexer<'a> {
 
     #[inline]
     fn check_unicode_sequence(&mut self) -> ParserResult<()> {
+        let mut adjusted_coords = self.coords;
         self.advance_n(4, false).and_then(|_| {
             for i in 1..=4 {
-                if !self.buffer[self.buffer.len() - i].is_ascii_hexdigit() {
+                let ch = self.buffer[self.buffer.len() - i];
+                if !ch.is_ascii_hexdigit() {
+                    adjusted_coords.inc_n(i - 1);
                     return lexer_error!(
                         ParserErrorDetails::InvalidUnicodeEscapeSequence(self.buffer_to_string()),
-                        self.coords
+                        adjusted_coords
                     );
                 }
             }
@@ -275,7 +279,7 @@ impl<'a> Lexer<'a> {
     /// - An non-exponent alphabetic found in the representation will result in an error
     /// - Numbers can be terminated by commas, brackets and whitespace only (end of pair, end of array)
     fn match_number(&mut self) -> ParserResult<PackedToken> {
-        let start_coords = self.coords;
+        let mut adjusted_coords = self.coords;
         let mut have_exponent = false;
         let mut have_decimal = false;
 
@@ -291,11 +295,12 @@ impl<'a> Lexer<'a> {
                                     self.check_following_exponent()?;
                                     have_exponent = true;
                                 } else {
+                                    adjusted_coords.inc_n(1);
                                     return lexer_error!(
                                         ParserErrorDetails::InvalidNumericRepresentation(
                                             self.buffer_to_string()
                                         ),
-                                        self.coords
+                                        adjusted_coords
                                     );
                                 }
                             }
