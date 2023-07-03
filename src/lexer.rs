@@ -152,6 +152,16 @@ macro_rules! match_newline {
     };
 }
 
+/// Struct used to track the current input coordinate state for the [Lexer]
+#[derive(Default)]
+struct InputState {
+
+}
+
+impl InputState {
+
+}
+
 pub struct Lexer<'a> {
     /// An iterator producing `char` values
     chars: &'a mut dyn Iterator<Item = char>,
@@ -164,6 +174,9 @@ pub struct Lexer<'a> {
 
     /// Current input [Coords]
     coords: Coords,
+
+    /// Input coordinate state
+    state : InputState
 }
 
 impl<'a> Lexer<'a> {
@@ -173,6 +186,7 @@ impl<'a> Lexer<'a> {
             buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
             pushback: None,
             coords: Coords::default(),
+            state : InputState::default()
         }
     }
 
@@ -250,7 +264,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_unicode_sequence(&mut self) -> ParserResult<()> {
         let mut adjusted_coords = self.coords;
         self.advance_n(4, false).and_then(|_| {
@@ -375,20 +388,17 @@ impl<'a> Lexer<'a> {
     }
 
     /// Convert the contents of the buffer into an owned [String]
-    #[inline]
     fn buffer_to_string(&self) -> String {
         let mut s = String::with_capacity(self.buffer.len());
         self.buffer.iter().for_each(|ch| s.push(*ch));
         s
     }
 
-    #[inline]
     fn buffer_to_bytes_unchecked(&self) -> Vec<u8> {
         self.buffer.iter().map(|ch| *ch as u8).collect()
     }
 
     #[cfg(not(feature = "mixed_numerics"))]
-    #[inline]
     fn parse_numeric(
         &mut self,
         integral: bool,
@@ -403,7 +413,6 @@ impl<'a> Lexer<'a> {
     }
 
     #[cfg(feature = "mixed_numerics")]
-    #[inline]
     fn parse_numeric(
         &mut self,
         integral: bool,
@@ -431,7 +440,6 @@ impl<'a> Lexer<'a> {
     /// - A leading minus must be followed by a digit
     /// - A leading minus must be followed by at most one zero before a period
     /// - Any number > zero can't have a leading zero in the representation
-    #[inline]
     fn match_valid_number_prefix(&mut self) -> ParserResult<bool> {
         assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
         match self.buffer[0] {
@@ -445,7 +453,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_following_zero(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
             match_period!() => Ok(false),
@@ -464,7 +471,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_following_minus(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
             match_non_zero_digit!() => Ok(true),
