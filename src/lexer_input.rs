@@ -3,7 +3,7 @@ use crate::coords::Coords;
 /// Structure to manage input state information for the lexer.  Allows for an absolute position as well as a sliding
 /// buffer of (as of yet) unconsumed entries
 #[derive()]
-pub struct InputState<'a> {
+pub struct LexerInput<'a> {
 
     /// The underlying source of characters
     chars : &'a mut dyn Iterator<Item = char>,
@@ -21,16 +21,21 @@ pub struct InputState<'a> {
     back_index : usize
 }
 
-impl <'a> InputState<'a> {
+impl <'a> LexerInput<'a> {
     /// Create a new state instance with all the defaults
     pub fn new(chars: &'a mut dyn Iterator<Item = char>) -> Self {
-        InputState {
+        LexerInput {
             chars,
             absolute_coords: Coords::default(),
             buffer : vec![],
             front_index: 0,
             back_index: 0
         }
+    }
+
+    /// Reset the state without resetting the state of the underlying char iterator
+    pub fn reset(&mut self) {
+        todo!()
     }
 
     /// Get the absolute position in the underlying input

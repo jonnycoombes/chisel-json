@@ -15,7 +15,7 @@ use std::cell::{Cell, RefCell};
 use std::fmt::{Display, Formatter};
 use std::io::BufRead;
 use std::rc::Rc;
-use crate::input_state::InputState;
+use crate::lexer_input::LexerInput;
 
 /// Default lookahead buffer size
 const DEFAULT_BUFFER_SIZE: usize = 4096;
@@ -155,19 +155,14 @@ macro_rules! match_newline {
 
 pub struct Lexer<'a> {
     /// Input coordinate state
-    state: InputState<'a>,
+    input: LexerInput<'a>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(chars: &'a mut impl Iterator<Item = char>) -> Self {
         Lexer {
-            state: InputState::new(chars),
+            input: LexerInput::new(chars),
         }
-    }
-
-    /// Reset the current state
-    fn reset(&mut self) {
-        self.buffer.clear();
     }
 
     /// Consume the next [Token] from the input
