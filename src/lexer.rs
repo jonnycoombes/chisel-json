@@ -15,6 +15,7 @@ use std::cell::{Cell, RefCell};
 use std::fmt::{Display, Formatter};
 use std::io::BufRead;
 use std::rc::Rc;
+use crate::input_state::InputState;
 
 /// Default lookahead buffer size
 const DEFAULT_BUFFER_SIZE: usize = 4096;
@@ -152,41 +153,15 @@ macro_rules! match_newline {
     };
 }
 
-/// Struct used to track the current input coordinate state for the [Lexer]
-#[derive(Default)]
-struct InputState {
-
-}
-
-impl InputState {
-
-}
-
 pub struct Lexer<'a> {
-    /// An iterator producing `char` values
-    chars: &'a mut dyn Iterator<Item = char>,
-
-    /// Lookahead buffer
-    buffer: Vec<char>,
-
-    /// Optional pushback character
-    pushback: Option<char>,
-
-    /// Current input [Coords]
-    coords: Coords,
-
     /// Input coordinate state
-    state : InputState
+    state: InputState<'a>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(chars: &'a mut impl Iterator<Item = char>) -> Self {
         Lexer {
-            chars,
-            buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
-            pushback: None,
-            coords: Coords::default(),
-            state : InputState::default()
+            state: InputState::new(chars),
         }
     }
 
@@ -359,9 +334,9 @@ impl<'a> Lexer<'a> {
                                 );
                             }
                         },
-                        Err(err) => match err.coords {
-                            Some(coords) => return lexer_error!(err.details, coords),
-                            None => return lexer_error!(err.details),
+                        Err(err) => return match err.coords {
+                            Some(coords) => lexer_error!(err.details, coords),
+                            None => lexer_error!(err.details),
                         },
                     }
                 }
@@ -549,7 +524,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Get the next character from either the pushback or from the decoder
-    #[inline]
     fn next_char(&mut self) -> ParserResult<char> {
         match self.pushback {
             Some(c) => {
@@ -564,7 +538,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Transfer the last character in the buffer to the pushback
-    #[inline]
     fn pushback(&mut self, newline: bool) {
         if !self.buffer.is_empty() {
             self.pushback = self.buffer.pop();
@@ -579,7 +552,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Advance n characters in the input
-    #[inline]
     fn advance_n(&mut self, n: usize, skip_whitespace: bool) -> ParserResult<()> {
         for _ in 0..n {
             self.advance(skip_whitespace)?;
