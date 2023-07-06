@@ -16,26 +16,7 @@ pub struct Coords {
 }
 
 impl Coords {
-    /// Increment a coordinate by 1 character in the input. Optional, bump the current line number
-    /// and reset the column coordinate to 1
-    #[inline]
-    pub fn inc(&mut self, newline: bool) {
-        if newline {
-            self.absolute += 1;
-            self.line += 1;
-            self.column = 1;
-        } else {
-            self.absolute += 1;
-            self.column += 1;
-        }
-    }
 
-    /// Increment a coordinate by n.  Does not allow for crossing newline boundaries
-    #[inline]
-    pub fn inc_n(&mut self, n: usize) {
-        self.absolute += n;
-        self.column += n;
-    }
 }
 
 impl Display for Coords {
@@ -53,7 +34,7 @@ impl Default for Coords {
     fn default() -> Self {
         Coords {
             absolute: 0,
-            line: 1,
+            line: 0,
             column: 0,
         }
     }
@@ -74,14 +55,6 @@ impl PartialOrd<Self> for Coords {
 impl Ord for Coords {
     fn cmp(&self, other: &Self) -> Ordering {
         self.absolute.cmp(&other.absolute)
-    }
-}
-
-impl std::ops::Sub for Coords {
-    type Output = usize;
-    /// Subtraction is based on the absolute position, could be +/-ve
-    fn sub(self, rhs: Self) -> Self::Output {
-        self.absolute - rhs.absolute
     }
 }
 

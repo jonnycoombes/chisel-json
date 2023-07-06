@@ -28,6 +28,7 @@ pub mod events;
 pub mod lexer;
 pub mod pointer;
 pub mod sax;
+mod lexer_input;
 #[cfg(test)]
 mod test_macros;
 

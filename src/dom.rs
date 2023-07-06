@@ -202,7 +202,10 @@ mod tests {
         let parsed = parser.parse_file(&path);
         println!("Parse result = {:?}", parsed);
         assert!(parsed.is_err());
-        assert!(parsed.err().unwrap().details == ParserErrorDetails::InvalidRootObject);
+        assert_eq!(
+            parsed.err().unwrap().details,
+            ParserErrorDetails::InvalidRootObject
+        );
     }
     #[test]
     fn should_parse_basic_test_files() {

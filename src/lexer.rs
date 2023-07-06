@@ -15,6 +15,7 @@ use std::cell::{Cell, RefCell};
 use std::fmt::{Display, Formatter};
 use std::io::BufRead;
 use std::rc::Rc;
+use crate::lexer_input::LexerInput;
 
 /// Default lookahead buffer size
 const DEFAULT_BUFFER_SIZE: usize = 4096;
@@ -153,32 +154,15 @@ macro_rules! match_newline {
 }
 
 pub struct Lexer<'a> {
-    /// An iterator producing `char` values
-    chars: &'a mut dyn Iterator<Item = char>,
-
-    /// Lookahead buffer
-    buffer: Vec<char>,
-
-    /// Optional pushback character
-    pushback: Option<char>,
-
-    /// Current input [Coords]
-    coords: Coords,
+    /// Input coordinate state
+    input: LexerInput<'a>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(chars: &'a mut impl Iterator<Item = char>) -> Self {
         Lexer {
-            chars,
-            buffer: Vec::with_capacity(DEFAULT_BUFFER_SIZE),
-            pushback: None,
-            coords: Coords::default(),
+            input: LexerInput::new(chars),
         }
-    }
-
-    /// Reset the current state
-    fn reset(&mut self) {
-        self.buffer.clear();
     }
 
     /// Consume the next [Token] from the input
@@ -250,7 +234,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_unicode_sequence(&mut self) -> ParserResult<()> {
         let mut adjusted_coords = self.coords;
         self.advance_n(4, false).and_then(|_| {
@@ -346,9 +329,9 @@ impl<'a> Lexer<'a> {
                                 );
                             }
                         },
-                        Err(err) => match err.coords {
-                            Some(coords) => return lexer_error!(err.details, coords),
-                            None => return lexer_error!(err.details),
+                        Err(err) => return match err.coords {
+                            Some(coords) => lexer_error!(err.details, coords),
+                            None => lexer_error!(err.details),
                         },
                     }
                 }
@@ -375,20 +358,17 @@ impl<'a> Lexer<'a> {
     }
 
     /// Convert the contents of the buffer into an owned [String]
-    #[inline]
     fn buffer_to_string(&self) -> String {
         let mut s = String::with_capacity(self.buffer.len());
         self.buffer.iter().for_each(|ch| s.push(*ch));
         s
     }
 
-    #[inline]
     fn buffer_to_bytes_unchecked(&self) -> Vec<u8> {
         self.buffer.iter().map(|ch| *ch as u8).collect()
     }
 
     #[cfg(not(feature = "mixed_numerics"))]
-    #[inline]
     fn parse_numeric(
         &mut self,
         integral: bool,
@@ -403,7 +383,6 @@ impl<'a> Lexer<'a> {
     }
 
     #[cfg(feature = "mixed_numerics")]
-    #[inline]
     fn parse_numeric(
         &mut self,
         integral: bool,
@@ -431,7 +410,6 @@ impl<'a> Lexer<'a> {
     /// - A leading minus must be followed by a digit
     /// - A leading minus must be followed by at most one zero before a period
     /// - Any number > zero can't have a leading zero in the representation
-    #[inline]
     fn match_valid_number_prefix(&mut self) -> ParserResult<bool> {
         assert!(self.buffer[0].is_ascii_digit() || self.buffer[0] == '-');
         match self.buffer[0] {
@@ -445,7 +423,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_following_zero(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
             match_period!() => Ok(false),
@@ -464,7 +441,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
     fn check_following_minus(&mut self) -> ParserResult<bool> {
         match self.buffer[1] {
             match_non_zero_digit!() => Ok(true),
@@ -543,7 +519,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Get the next character from either the pushback or from the decoder
-    #[inline]
     fn next_char(&mut self) -> ParserResult<char> {
         match self.pushback {
             Some(c) => {
@@ -558,7 +533,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Transfer the last character in the buffer to the pushback
-    #[inline]
     fn pushback(&mut self, newline: bool) {
         if !self.buffer.is_empty() {
             self.pushback = self.buffer.pop();
@@ -573,7 +547,6 @@ impl<'a> Lexer<'a> {
     }
 
     /// Advance n characters in the input
-    #[inline]
     fn advance_n(&mut self, n: usize, skip_whitespace: bool) -> ParserResult<()> {
         for _ in 0..n {
             self.advance(skip_whitespace)?;

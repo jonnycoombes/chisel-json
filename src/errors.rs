@@ -14,6 +14,8 @@ pub type ParserResult<T> = Result<T, ParserError>;
 /// Enumeration of the various different parser stages that can produce an error
 #[derive(Debug, Copy, Clone)]
 pub enum ParserErrorSource {
+    /// The character input stage of the parser
+    LexerInput,
     /// The lexing stage of the parser
     Lexer,
     /// The parsing stage of the DOM parser
@@ -25,6 +27,7 @@ pub enum ParserErrorSource {
 impl Display for ParserErrorSource {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            ParserErrorSource::LexerInput => write!(f, "lexer input"),
             ParserErrorSource::Lexer => write!(f, "lexing"),
             ParserErrorSource::DomParser => write!(f, "DOM parsing"),
             ParserErrorSource::SaxParser => write!(f, "SAX parsing"),
@@ -131,7 +134,23 @@ impl Display for ParserError {
         }
     }
 }
-
+#[macro_export]
+macro_rules! lexer_input_error {
+    ($details: expr, $coords : expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::LexerInput,
+            details: $details,
+            coords: Some($coords),
+        })
+    };
+    ($details: expr) => {
+        Err(ParserError {
+            source: ParserErrorSource::LexerInput,
+            details: $details,
+            coords: None,
+        })
+    };
+}
 /// Helper macro for cooking up a [ParserError] specific to the lexer
 #[macro_export]
 macro_rules! lexer_error {
